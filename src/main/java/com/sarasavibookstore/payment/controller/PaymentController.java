@@ -26,6 +26,13 @@ public class PaymentController {
         this.paymentService = paymentService;
     }
 
+      // READ - list available payment methods (for checkout UI dropdowns etc.)
+    // Open to any authenticated user - it's just static reference data, not
+    // customer/financial data, so no role restriction is applied here.
+    @GetMapping("/methods")
+    public ResponseEntity<PaymentMethod[]> getAvailablePaymentMethods() {
+        return ResponseEntity.ok(PaymentMethod.values());
+    }
     // CREATE - record a new payment
     @PostMapping
     @PreAuthorize("hasAnyRole('CUSTOMER','FINANCE_COORDINATOR','STORE_MANAGER')")
