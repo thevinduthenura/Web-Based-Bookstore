@@ -1,4 +1,4 @@
-package com.sarasavibookstore.payment.exception;
+package com.sarasavipages.members.m2_anaf_payment.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

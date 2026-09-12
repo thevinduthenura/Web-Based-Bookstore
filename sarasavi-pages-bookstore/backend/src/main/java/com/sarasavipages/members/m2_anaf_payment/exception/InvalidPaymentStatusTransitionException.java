@@ -1,6 +1,6 @@
-package com.sarasavibookstore.payment.exception;
+package com.sarasavipages.members.m2_anaf_payment.exception;
 
-import com.sarasavibookstore.payment.entity.PaymentStatus;
+import com.sarasavipages.members.m2_anaf_payment.entity.PaymentStatus;
 
 public class InvalidPaymentStatusTransitionException extends RuntimeException {
     public InvalidPaymentStatusTransitionException(PaymentStatus from, PaymentStatus to) {

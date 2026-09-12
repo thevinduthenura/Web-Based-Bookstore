@@ -1,4 +1,4 @@
-package com.sarasavibookstore.payment.exception;
+package com.sarasavipages.members.m2_anaf_payment.exception;
 
 public class PaymentNotFoundException extends RuntimeException {
     public PaymentNotFoundException(Long id) {
