@@ -1,9 +1,9 @@
-package com.sarasavibookstore.payment.service;
+package com.sarasavipages.members.m2_anaf_payment.service;
 
-import com.sarasavibookstore.payment.dto.MonthlyReportResponse;
-import com.sarasavibookstore.payment.dto.PaymentCreateRequest;
-import com.sarasavibookstore.payment.dto.PaymentResponse;
-import com.sarasavibookstore.payment.dto.PaymentStatusUpdateRequest;
+import com.sarasavipages.members.m2_anaf_payment.dto.MonthlyReportResponse;
+import com.sarasavipages.members.m2_anaf_payment.dto.PaymentCreateRequest;
+import com.sarasavipages.members.m2_anaf_payment.dto.PaymentResponse;
+import com.sarasavipages.members.m2_anaf_payment.dto.PaymentStatusUpdateRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
