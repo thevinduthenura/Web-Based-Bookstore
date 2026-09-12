@@ -1,4 +1,4 @@
-package com.sarasavibookstore.payment.dto;
+package com.sarasavipages.members.m2_anaf_payment.dto;
 
 import java.math.BigDecimal;
 

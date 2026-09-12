@@ -1,7 +1,7 @@
-package com.sarasavibookstore.payment.dto;
+package com.sarasavipages.members.m2_anaf_payment.dto;
 
-import com.sarasavibookstore.payment.entity.PaymentMethod;
-import com.sarasavibookstore.payment.entity.PaymentStatus;
+import com.sarasavipages.members.m2_anaf_payment.entity.PaymentMethod;
+import com.sarasavipages.members.m2_anaf_payment.entity.PaymentStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

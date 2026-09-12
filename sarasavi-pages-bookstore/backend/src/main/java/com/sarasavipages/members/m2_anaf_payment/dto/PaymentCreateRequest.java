@@ -1,6 +1,6 @@
-package com.sarasavibookstore.payment.dto;
+package com.sarasavipages.members.m2_anaf_payment.dto;
 
-import com.sarasavibookstore.payment.entity.PaymentMethod;
+import com.sarasavipages.members.m2_anaf_payment.entity.PaymentMethod;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 
