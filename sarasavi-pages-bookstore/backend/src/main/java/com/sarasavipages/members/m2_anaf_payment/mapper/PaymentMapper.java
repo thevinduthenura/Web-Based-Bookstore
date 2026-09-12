@@ -1,7 +1,7 @@
-package com.sarasavibookstore.payment.mapper;
+package com.sarasavipages.members.m2_anaf_payment.mapper;
 
-import com.sarasavibookstore.payment.dto.PaymentResponse;
-import com.sarasavibookstore.payment.entity.Payment;
+import com.sarasavipages.members.m2_anaf_payment.dto.PaymentResponse;
+import com.sarasavipages.members.m2_anaf_payment.entity.Payment;
 
 public class PaymentMapper {
 

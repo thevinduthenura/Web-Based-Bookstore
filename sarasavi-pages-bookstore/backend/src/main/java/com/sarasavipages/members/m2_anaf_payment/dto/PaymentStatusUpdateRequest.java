@@ -1,6 +1,6 @@
-package com.sarasavibookstore.payment.dto;
+package com.sarasavipages.members.m2_anaf_payment.dto;
 
-import com.sarasavibookstore.payment.entity.PaymentStatus;
+import com.sarasavipages.members.m2_anaf_payment.entity.PaymentStatus;
 import jakarta.validation.constraints.NotNull;
 
 /**
