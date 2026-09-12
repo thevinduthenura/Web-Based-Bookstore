@@ -1,0 +1,62 @@
+version: '3.9'
+
+services:
+  # ── PostgreSQL ───────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: sarasavi-postgres
+    environment:
+      POSTGRES_DB: sarasavi_db
+      POSTGRES_USER: sarasavi
+      POSTGRES_PASSWORD: sarasavi123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sarasavi -d sarasavi_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ── Spring Boot Backend ──────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: sarasavi-backend
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: sarasavi_db
+      DB_USER: sarasavi
+      DB_PASSWORD: sarasavi123
+      JWT_SECRET: sarasavi-pages-secret-key-2026-SE2030-B9G2-CHANGE-IN-PROD
+      SERVER_PORT: 8080
+      CORS_ORIGINS: http://localhost:3000
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ── Chatbot Service (placeholder) ────────────────────────────────────────────
+  # chatbot:
+  #   build: ./services/chatbot
+  #   container_name: sarasavi-chatbot
+  #   ports:
+  #     - "4000:4000"
+  #   restart: unless-stopped
+
+  # ── Blender Render Engine (placeholder) ─────────────────────────────────────
+  # render-engine:
+  #   build: ./services/render-engine
+  #   container_name: sarasavi-render
+  #   ports:
+  #     - "5000:5000"
+  #   restart: unless-stopped
+
+volumes:
+  postgres_data:
