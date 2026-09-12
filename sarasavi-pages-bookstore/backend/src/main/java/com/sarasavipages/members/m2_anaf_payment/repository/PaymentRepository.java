@@ -1,7 +1,7 @@
-package com.sarasavibookstore.payment.repository;
+package com.sarasavipages.members.m2_anaf_payment.repository;
 
-import com.sarasavibookstore.payment.entity.Payment;
-import com.sarasavibookstore.payment.entity.PaymentStatus;
+import com.sarasavipages.members.m2_anaf_payment.entity.Payment;
+import com.sarasavipages.members.m2_anaf_payment.entity.PaymentStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

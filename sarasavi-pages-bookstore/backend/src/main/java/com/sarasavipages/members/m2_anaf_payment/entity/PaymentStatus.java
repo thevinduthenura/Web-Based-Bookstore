@@ -1,4 +1,4 @@
-package com.sarasavibookstore.payment.entity;
+package com.sarasavipages.members.m2_anaf_payment.entity;
 
 /**
  * Lifecycle states for a Payment transaction.
