@@ -11,6 +11,7 @@ import {
   TrendingUp,
   MapPin
 } from 'lucide-react';
+import CartManager from '@/components/orders/CartManager';
 
 export default function OrdersDashboardPage() {
   const { user, isSuperAdmin, hasRole } = useAuth();
@@ -107,6 +108,9 @@ export default function OrdersDashboardPage() {
           <p className="text-[11px] text-ink-faint mt-1">Automated recovery emails queued</p>
         </div>
       </div>
+
+      {/* Live Shopping Cart & Promotions Management (Diyes C.L. - Module 6) */}
+      <CartManager />
 
       {/* Orders Table */}
       <div className="glass-card rounded-2xl p-6">
