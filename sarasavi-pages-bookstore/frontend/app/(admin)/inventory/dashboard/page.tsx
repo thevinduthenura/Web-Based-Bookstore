@@ -9,8 +9,11 @@ import {
   Tag, 
   Lock,
   Plus,
-  ArrowUpRight
+  ArrowUpRight,
+  RefreshCw,
+  TrendingDown
 } from 'lucide-react';
+import { useState } from 'react';
 
 export default function InventoryDashboardPage() {
   const { user, isSuperAdmin, hasRole } = useAuth();
@@ -32,6 +35,28 @@ export default function InventoryDashboardPage() {
     );
   }
 
+  const [stockItems, setStockItems] = useState([
+    { id: 1, title: 'Madol Doova', author: 'Martin Wickramasinghe', isbn: '978-955-0201-12-1', category: 'Classic Fiction', price: 1250, qty: 45, status: 'IN_STOCK' },
+    { id: 2, title: 'Gamperaliya', author: 'Martin Wickramasinghe', isbn: '978-955-0201-15-2', category: 'Classic Fiction', price: 1450, qty: 30, status: 'IN_STOCK' },
+    { id: 3, title: 'The Village in the Jungle', author: 'Leonard Woolf', isbn: '978-955-0201-88-0', category: 'Historical', price: 1850, qty: 25, status: 'IN_STOCK' },
+    { id: 4, title: 'Running in the Family', author: 'Michael Ondaatje', isbn: '978-067-9746-69-0', category: 'Memoir', price: 2100, qty: 8, status: 'LOW_STOCK' },
+    { id: 5, title: 'Designing Data-Intensive Applications', author: 'Martin Kleppmann', isbn: '978-144-9373-32-0', category: 'Technology', price: 5800, qty: 4, status: 'LOW_STOCK' }
+  ]);
+
+  const handleRestock = (id: number, addQty: number) => {
+    setStockItems(prev => prev.map(item => {
+      if (item.id === id) {
+        const newQty = item.qty + addQty;
+        return {
+          ...item,
+          qty: newQty,
+          status: newQty > 10 ? 'IN_STOCK' : 'LOW_STOCK'
+        };
+      }
+      return item;
+    }));
+  };
+
   return (
     <div className="space-y-6 pb-12">
       {/* Top Banner */}
@@ -48,7 +73,10 @@ export default function InventoryDashboardPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          <button className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-violet-500/10 border border-violet-500/20 text-violet-400 hover:bg-violet-500/20 text-xs font-medium transition-all">
+          <button 
+            onClick={() => alert("Open Add New Book to Warehouse Catalog Modal (UC-INV-01)")}
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-violet-500/10 border border-violet-500/20 text-violet-400 hover:bg-violet-500/20 text-xs font-medium transition-all"
+          >
             <Plus className="w-4 h-4" />
             <span>Add New Book</span>
           </button>
@@ -72,48 +100,55 @@ export default function InventoryDashboardPage() {
 
         <div className="glass-card p-5 rounded-2xl">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-ink-muted">Total Physical Stock</span>
-            <div className="h-8 w-8 rounded-lg bg-brand-500/10 text-brand-400 flex items-center justify-center">
+            <span className="text-xs font-medium text-ink-muted">Stock Units Available</span>
+            <div className="h-8 w-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
               <Package className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-bold text-white font-display">14,250 Units</span>
+            <span className="text-2xl font-bold text-white font-display">
+              {stockItems.reduce((acc, i) => acc + i.qty, 0).toLocaleString()}
+            </span>
           </div>
-          <p className="text-[11px] text-emerald-400 mt-1">Warehouses: Colombo & Kandy</p>
+          <p className="text-[11px] text-emerald-400 mt-1">Across 3 Warehouses</p>
         </div>
 
         <div className="glass-card p-5 rounded-2xl">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-ink-muted">Low Stock Warnings</span>
+            <span className="text-xs font-medium text-ink-muted">Low Stock Alerts</span>
             <div className="h-8 w-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center">
               <AlertTriangle className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-bold text-white font-display">6 Titles</span>
+            <span className="text-2xl font-bold text-white font-display">
+              {stockItems.filter(i => i.status === 'LOW_STOCK').length} Items
+            </span>
           </div>
-          <p className="text-[11px] text-amber-400 mt-1">Stock level under threshold (&lt; 5)</p>
+          <p className="text-[11px] text-amber-400 mt-1">Below safety threshold</p>
         </div>
 
         <div className="glass-card p-5 rounded-2xl">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-ink-muted">Active Categories</span>
-            <div className="h-8 w-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+            <div className="h-8 w-8 rounded-lg bg-sky-500/10 text-sky-400 flex items-center justify-center">
               <Tag className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-bold text-white font-display">24 Genres</span>
+            <span className="text-2xl font-bold text-white font-display">18</span>
           </div>
-          <p className="text-[11px] text-emerald-400 mt-1">Fiction, Academic, Sci-Fi, History</p>
+          <p className="text-[11px] text-ink-faint mt-1">Fiction, Academic, Tech</p>
         </div>
       </div>
 
-      {/* Book Catalog Table */}
+      {/* Inventory Stock Table */}
       <div className="glass-card rounded-2xl p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base font-bold text-white">Featured Books & Stock Inventory</h2>
+          <div>
+            <h2 className="text-base font-bold text-white">Live Stock Inventory & Warehouse Control</h2>
+            <p className="text-xs text-ink-muted mt-0.5">Real-time stock tracking with restock triggers</p>
+          </div>
           <span className="text-xs text-ink-muted font-mono">Module 4 Scope</span>
         </div>
 
@@ -127,39 +162,51 @@ export default function InventoryDashboardPage() {
                 <th className="py-3 px-4">Price</th>
                 <th className="py-3 px-4">Available Qty</th>
                 <th className="py-3 px-4">Stock Status</th>
+                <th className="py-3 px-4 text-right">Quick Restock</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-surface-border/50">
-              <tr className="hover:bg-surface/40 transition-colors">
-                <td className="py-3 px-4">
-                  <div className="font-semibold text-white">Gamperaliya</div>
-                  <div className="text-ink-faint text-[11px]">Martin Wickramasinghe</div>
-                </td>
-                <td className="py-3 px-4 font-mono text-ink-muted">978-955-0201-12-8</td>
-                <td className="py-3 px-4 text-ink-muted">Sinhala Literature</td>
-                <td className="py-3 px-4 font-bold text-white font-mono">LKR 950</td>
-                <td className="py-3 px-4 font-mono text-white font-medium">85 Units</td>
-                <td className="py-3 px-4">
-                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-mono">
-                    In Stock
-                  </span>
-                </td>
-              </tr>
-              <tr className="hover:bg-surface/40 transition-colors">
-                <td className="py-3 px-4">
-                  <div className="font-semibold text-white">Madol Doova</div>
-                  <div className="text-ink-faint text-[11px]">Martin Wickramasinghe</div>
-                </td>
-                <td className="py-3 px-4 font-mono text-ink-muted">978-955-0201-44-9</td>
-                <td className="py-3 px-4 text-ink-muted">Classic Youth</td>
-                <td className="py-3 px-4 font-bold text-white font-mono">LKR 750</td>
-                <td className="py-3 px-4 font-mono text-amber-400 font-medium">4 Units</td>
-                <td className="py-3 px-4">
-                  <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[10px] font-mono">
-                    Low Stock
-                  </span>
-                </td>
-              </tr>
+              {stockItems.map(item => (
+                <tr key={item.id} className="hover:bg-surface/40 transition-colors">
+                  <td className="py-3 px-4">
+                    <div className="font-semibold text-white">{item.title}</div>
+                    <div className="text-ink-faint text-[11px]">{item.author}</div>
+                  </td>
+                  <td className="py-3 px-4 font-mono text-ink-muted">{item.isbn}</td>
+                  <td className="py-3 px-4 text-ink-muted">{item.category}</td>
+                  <td className="py-3 px-4 font-bold text-white font-mono">LKR {item.price.toLocaleString()}</td>
+                  <td className="py-3 px-4 font-mono font-medium">
+                    <span className={item.status === 'LOW_STOCK' ? 'text-amber-400 font-bold' : 'text-white'}>
+                      {item.qty} Units
+                    </span>
+                  </td>
+                  <td className="py-3 px-4">
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono border ${
+                      item.status === 'LOW_STOCK' 
+                        ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' 
+                        : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                    }`}>
+                      {item.status === 'LOW_STOCK' ? 'Low Stock' : 'In Stock'}
+                    </span>
+                  </td>
+                  <td className="py-3 px-4 text-right">
+                    <div className="inline-flex items-center gap-1.5">
+                      <button
+                        onClick={() => handleRestock(item.id, 10)}
+                        className="px-2 py-1 rounded-lg bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/30 text-violet-400 text-[11px] font-medium transition-all"
+                      >
+                        +10 Units
+                      </button>
+                      <button
+                        onClick={() => handleRestock(item.id, 25)}
+                        className="px-2 py-1 rounded-lg bg-surface hover:bg-surface/80 border border-surface-border text-ink-muted hover:text-white text-[11px] transition-all"
+                      >
+                        +25
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
