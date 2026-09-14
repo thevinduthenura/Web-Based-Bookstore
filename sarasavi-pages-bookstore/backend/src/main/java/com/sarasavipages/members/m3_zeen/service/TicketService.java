@@ -18,7 +18,7 @@ public class TicketService {
 
     private final TicketRepository ticketRepository;
 
-    //time period still not decided, so i set it to 30
+    //time period still not decided, so i set it to 30 days
     private static final long RETENTION_DAYS = 30;
 
     //Create Complaint Ticket
