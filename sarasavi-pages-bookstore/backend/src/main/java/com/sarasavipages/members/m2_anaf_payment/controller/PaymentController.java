@@ -4,6 +4,7 @@ import com.sarasavipages.members.m2_anaf_payment.dto.MonthlyReportResponse;
 import com.sarasavipages.members.m2_anaf_payment.dto.PaymentCreateRequest;
 import com.sarasavipages.members.m2_anaf_payment.dto.PaymentResponse;
 import com.sarasavipages.members.m2_anaf_payment.dto.PaymentStatusUpdateRequest;
+import com.sarasavipages.members.m2_anaf_payment.entity.PaymentMethod;
 import com.sarasavipages.members.m2_anaf_payment.service.PaymentService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -16,8 +17,13 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * REST Controller for Payment & Gateway Operations
+ * Module: M2 – Payment Management
+ * Owner: Anaf M.K.A.S. (IT25102345)
+ */
 @RestController
-@RequestMapping("/api/payments")
+@RequestMapping("/payment")
 public class PaymentController {
 
     private final PaymentService paymentService;
@@ -26,16 +32,15 @@ public class PaymentController {
         this.paymentService = paymentService;
     }
 
-      // READ - list available payment methods (for checkout UI dropdowns etc.)
-    // Open to any authenticated user - it's just static reference data, not
-    // customer/financial data, so no role restriction is applied here.
+    // READ - list available payment methods (for checkout UI dropdowns etc.)
     @GetMapping("/methods")
     public ResponseEntity<PaymentMethod[]> getAvailablePaymentMethods() {
         return ResponseEntity.ok(PaymentMethod.values());
     }
+
     // CREATE - record a new payment
     @PostMapping
-    @PreAuthorize("hasAnyRole('CUSTOMER','FINANCE_COORDINATOR','STORE_MANAGER')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN','PAYMENT_ADMIN','CUSTOMER')")
     public ResponseEntity<PaymentResponse> recordPayment(@Valid @RequestBody PaymentCreateRequest request) {
         PaymentResponse response = paymentService.recordPayment(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -43,51 +48,51 @@ public class PaymentController {
 
     // READ - single transaction
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('CUSTOMER','FINANCE_COORDINATOR','STORE_MANAGER')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN','PAYMENT_ADMIN','CUSTOMER')")
     public ResponseEntity<PaymentResponse> getPayment(@PathVariable Long id) {
         return ResponseEntity.ok(paymentService.getPaymentById(id));
     }
 
     // READ - all transactions, paginated (Performance NFR: avoid loading full table)
     @GetMapping
-    @PreAuthorize("hasAnyRole('FINANCE_COORDINATOR','STORE_MANAGER')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN','PAYMENT_ADMIN')")
     public ResponseEntity<Page<PaymentResponse>> getAllPayments(Pageable pageable) {
         return ResponseEntity.ok(paymentService.getAllPayments(pageable));
     }
 
     // READ - transactions for one customer (payment history)
     @GetMapping("/customer/{customerId}")
-    @PreAuthorize("hasAnyRole('CUSTOMER','FINANCE_COORDINATOR','STORE_MANAGER')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN','PAYMENT_ADMIN','CUSTOMER')")
     public ResponseEntity<Page<PaymentResponse>> getPaymentsByCustomer(@PathVariable Long customerId, Pageable pageable) {
         return ResponseEntity.ok(paymentService.getPaymentsByCustomer(customerId, pageable));
     }
 
     // READ - transactions for one order
     @GetMapping("/order/{orderId}")
-    @PreAuthorize("hasAnyRole('CUSTOMER','FINANCE_COORDINATOR','STORE_MANAGER')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN','PAYMENT_ADMIN','CUSTOMER')")
     public ResponseEntity<List<PaymentResponse>> getPaymentsByOrder(@PathVariable Long orderId) {
         return ResponseEntity.ok(paymentService.getPaymentsByOrder(orderId));
     }
 
     // UPDATE - change status (Pending/Paid/Failed/Refunded)
     @PatchMapping("/{id}/status")
-    @PreAuthorize("hasAnyRole('FINANCE_COORDINATOR','STORE_MANAGER')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN','PAYMENT_ADMIN')")
     public ResponseEntity<PaymentResponse> updateStatus(@PathVariable Long id,
-                                                          @Valid @RequestBody PaymentStatusUpdateRequest request) {
+                                                        @Valid @RequestBody PaymentStatusUpdateRequest request) {
         return ResponseEntity.ok(paymentService.updateStatus(id, request));
     }
 
     // UPDATE - dedicated refund action
     @PostMapping("/{id}/refund")
-    @PreAuthorize("hasAnyRole('FINANCE_COORDINATOR','STORE_MANAGER')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN','PAYMENT_ADMIN')")
     public ResponseEntity<PaymentResponse> refundPayment(@PathVariable Long id,
-                                                           @RequestParam(required = false) String reason) {
+                                                         @RequestParam(required = false) String reason) {
         return ResponseEntity.ok(paymentService.refundPayment(id, reason));
     }
 
     // DELETE - void/cancel a failed or pending transaction
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('FINANCE_COORDINATOR','STORE_MANAGER')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN','PAYMENT_ADMIN')")
     public ResponseEntity<Void> voidPayment(@PathVariable Long id) {
         paymentService.voidPayment(id);
         return ResponseEntity.noContent().build();
@@ -95,7 +100,7 @@ public class PaymentController {
 
     // Additional scope - downloadable invoice
     @GetMapping(value = "/{id}/invoice", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    @PreAuthorize("hasAnyRole('CUSTOMER','FINANCE_COORDINATOR','STORE_MANAGER')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN','PAYMENT_ADMIN','CUSTOMER')")
     public ResponseEntity<byte[]> downloadInvoice(@PathVariable Long id) {
         byte[] invoice = paymentService.generateInvoicePdf(id);
         return ResponseEntity.ok()
@@ -105,7 +110,7 @@ public class PaymentController {
 
     // Additional scope - monthly financial report
     @GetMapping("/reports/monthly")
-    @PreAuthorize("hasAnyRole('FINANCE_COORDINATOR','STORE_MANAGER')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN','PAYMENT_ADMIN')")
     public ResponseEntity<MonthlyReportResponse> getMonthlyReport(@RequestParam int year, @RequestParam int month) {
         return ResponseEntity.ok(paymentService.getMonthlyReport(year, month));
     }
