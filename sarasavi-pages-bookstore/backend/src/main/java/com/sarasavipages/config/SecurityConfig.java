@@ -73,11 +73,13 @@ public class SecurityConfig {
 
                 // ── M2: Payment ────────────────────────────────────────────────
                 // SUPER_ADMIN or PAYMENT_ADMIN
-                .requestMatchers("/payment/**").hasAnyRole("SUPER_ADMIN", "PAYMENT_ADMIN")
+                .requestMatchers("/payment/**", "/payments/**")
+                    .hasAnyRole("SUPER_ADMIN", "PAYMENT_ADMIN")
 
                 // ── M3: Customer Service ───────────────────────────────────────
                 .requestMatchers("/customer-service/**")
                     .hasAnyRole("SUPER_ADMIN", "CUSTOMER_SERVICE_ADMIN")
+                .requestMatchers(HttpMethod.POST, "/tickets").permitAll()
 
                 // ── M4: Inventory & Catalog ────────────────────────────────────
                 .requestMatchers("/inventory/**")
