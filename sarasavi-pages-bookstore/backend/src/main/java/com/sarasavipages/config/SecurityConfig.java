@@ -87,6 +87,7 @@ public class SecurityConfig {
                     .hasAnyRole("SUPER_ADMIN", "INVENTORY_ADMIN")
 
                 // ── M5: User Accounts ──────────────────────────────────────────
+                .requestMatchers(HttpMethod.POST, "/accounts/register").permitAll()
                 .requestMatchers("/accounts/**")
                     .hasAnyRole("SUPER_ADMIN", "ACCOUNT_ADMIN")
 
