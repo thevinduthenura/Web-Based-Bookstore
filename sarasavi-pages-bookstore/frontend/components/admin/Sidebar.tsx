@@ -15,7 +15,8 @@ import {
   BookOpen,
   LogOut,
   ShieldAlert,
-  ChevronRight
+  ChevronRight,
+  Globe
 } from 'lucide-react';
 import type { StaffRole } from '@/types/admin';
 
@@ -173,7 +174,18 @@ export default function Sidebar() {
       </div>
 
       {/* Footer logout / user profile button */}
-      <div className="p-3 border-t border-surface-border">
+      <div className="p-3 border-t border-surface-border space-y-1">
+        <Link
+          href="/"
+          className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-ink-light hover:text-brand-400 hover:bg-surface/80 transition-all"
+        >
+          <div className="flex items-center gap-2.5">
+            <Globe className="w-4 h-4 text-brand-400" />
+            <span>Customer Storefront</span>
+          </div>
+          <ChevronRight className="w-3.5 h-3.5 text-ink-faint" />
+        </Link>
+
         <button
           onClick={logout}
           className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-ink-muted hover:text-red-400 hover:bg-red-500/10 transition-all border border-transparent hover:border-red-500/20"

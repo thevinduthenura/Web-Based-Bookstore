@@ -1,7 +1,8 @@
 'use client';
 
+import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
-import { ShieldCheck, LogOut, Bell, Search, ExternalLink } from 'lucide-react';
+import { ShieldCheck, LogOut, Bell, Search, ExternalLink, Globe } from 'lucide-react';
 import { ROLE_META } from '@/types/admin';
 
 export default function Header() {
@@ -34,7 +35,17 @@ export default function Header() {
       </div>
 
       {/* User Status and Controls */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3">
+        {/* Switch to Main Website Storefront */}
+        <Link
+          href="/"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface/80 hover:bg-brand-500/10 border border-surface-border hover:border-brand-500/40 text-ink-light hover:text-white text-xs font-semibold shadow-sm transition-all"
+          title="Switch to Customer Storefront (Main Site)"
+        >
+          <Globe className="w-3.5 h-3.5 text-brand-400" />
+          <span className="hidden sm:inline">View Main Site</span>
+        </Link>
+
         <div className="flex items-center gap-3">
           <div className="text-right hidden sm:block">
             <p className="text-xs font-semibold text-white">{user.fullName}</p>
