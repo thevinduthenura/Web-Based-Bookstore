@@ -16,7 +16,8 @@ import {
   Lock, 
   Mail, 
   AlertCircle,
-  X
+  X,
+  Layers
 } from 'lucide-react';
 import type { StaffMember, StaffRole } from '@/types/admin';
 
@@ -181,8 +182,30 @@ export default function StaffManagementPage() {
           className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-brand text-white font-medium text-xs shadow-glow hover:brightness-110 transition-all self-start sm:self-auto"
         >
           <UserPlus className="w-4 h-4" />
-          <span>Add New Staff</span>
+          <span>[C] Add New Staff</span>
         </button>
+      </div>
+
+      {/* CRUD Capability Legend */}
+      <div className="glass-card p-3.5 rounded-xl border border-brand-500/20 bg-brand-950/10 flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div className="flex items-center gap-2 font-semibold text-brand-400">
+          <Layers className="w-4 h-4" />
+          <span>Member 1 CRUD Operations Active:</span>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 font-mono text-[11px]">
+          <span className="px-2.5 py-1 rounded-md bg-brand-500/20 text-brand-300 border border-brand-500/30">
+            [C] Add New Staff
+          </span>
+          <span className="px-2.5 py-1 rounded-md bg-sky-500/20 text-sky-300 border border-sky-500/30">
+            [R] Search & Role Filter
+          </span>
+          <span className="px-2.5 py-1 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/30">
+            [U] Edit Details & Role
+          </span>
+          <span className="px-2.5 py-1 rounded-md bg-red-500/20 text-red-300 border border-red-500/30">
+            [D] Deactivate / Revoke
+          </span>
+        </div>
       </div>
 
       {/* Feedback Banner */}

@@ -20,4 +20,8 @@ public interface InventoryService {
     List<InventoryResponse> getLowStockAlerts();
 
     List<StockAdjustmentLog> getStockAuditLogs(Long inventoryItemId);
+
+    InventoryResponse updateInventoryItem(Long id, InventoryItemRequest request);
+
+    void deleteInventoryItem(Long id);
 }

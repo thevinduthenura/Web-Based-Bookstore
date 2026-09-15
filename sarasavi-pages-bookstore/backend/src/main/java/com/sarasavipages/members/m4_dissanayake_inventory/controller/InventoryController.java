@@ -98,4 +98,30 @@ public class InventoryController {
         List<StockAdjustmentLog> logs = inventoryService.getStockAuditLogs(itemId);
         return ResponseEntity.ok(ApiResponse.success("Stock adjustment logs retrieved", logs));
     }
+
+    @Operation(summary = "Update inventory item details")
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'INVENTORY_ADMIN')")
+    public ResponseEntity<ApiResponse<InventoryResponse>> updateInventoryItem(
+            @PathVariable Long id,
+            @Valid @RequestBody InventoryItemRequest request) {
+        try {
+            InventoryResponse updated = inventoryService.updateInventoryItem(id, request);
+            return ResponseEntity.ok(ApiResponse.success("Inventory item updated successfully", updated));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+        }
+    }
+
+    @Operation(summary = "Delete inventory item")
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'INVENTORY_ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> deleteInventoryItem(@PathVariable Long id) {
+        try {
+            inventoryService.deleteInventoryItem(id);
+            return ResponseEntity.ok(ApiResponse.success("Inventory item deleted successfully", null));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+        }
+    }
 }

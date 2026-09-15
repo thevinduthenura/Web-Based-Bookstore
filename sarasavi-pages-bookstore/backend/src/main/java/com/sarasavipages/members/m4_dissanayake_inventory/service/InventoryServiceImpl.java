@@ -150,4 +150,32 @@ public class InventoryServiceImpl implements InventoryService {
         }
         return logRepository.findTop20ByOrderByTimestampDesc();
     }
+
+    @Override
+    @Transactional
+    public InventoryResponse updateInventoryItem(Long id, InventoryItemRequest req) {
+        InventoryItem item = inventoryRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Inventory item not found with ID: " + id));
+
+        item.setTitle(req.getTitle());
+        item.setAuthor(req.getAuthor());
+        item.setIsbn(req.getIsbn());
+        item.setCategory(req.getCategory());
+        item.setLocation(req.getLocation());
+        item.setUnitPrice(req.getUnitPrice());
+        item.setSafetyStockLevel(req.getSafetyStockLevel());
+        item.setSupplier(req.getSupplier());
+
+        InventoryItem updated = inventoryRepository.save(item);
+        return InventoryResponse.fromEntity(updated);
+    }
+
+    @Override
+    @Transactional
+    public void deleteInventoryItem(Long id) {
+        if (!inventoryRepository.existsById(id)) {
+            throw new IllegalArgumentException("Inventory item not found with ID: " + id);
+        }
+        inventoryRepository.deleteById(id);
+    }
 }
