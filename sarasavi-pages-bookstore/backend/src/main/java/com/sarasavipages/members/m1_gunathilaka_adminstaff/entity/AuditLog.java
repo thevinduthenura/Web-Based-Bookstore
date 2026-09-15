@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
  * is written here as part of UC-ASM-01 audit trail requirement.
  */
 @Entity
-@Table(name = "audit_log", schema = "public")
+@Table(name = "audit_log")
 @Data
 @Builder
 @NoArgsConstructor
