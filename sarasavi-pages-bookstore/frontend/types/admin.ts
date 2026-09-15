@@ -38,7 +38,8 @@ export type AuditAction =
   | 'STAFF_ACTIVATED'
   | 'STAFF_LOGIN'
   | 'STAFF_ROLE_CHANGED'
-  | 'STAFF_PASSWORD_RESET';
+  | 'STAFF_PASSWORD_RESET'
+  | 'STAFF_DELETED';
 
 export interface LoginRequest {
   username: string;
