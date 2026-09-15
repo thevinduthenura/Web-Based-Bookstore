@@ -94,6 +94,15 @@ public class StaffController {
         return ResponseEntity.ok(ApiResponse.ok("Staff member activated", null));
     }
 
+    @DeleteMapping("/staff/{id}/permanent")
+    @Operation(summary = "Permanently delete a staff account")
+    public ResponseEntity<ApiResponse<Void>> deleteStaff(
+            @PathVariable Long id,
+            Authentication auth) {
+        staffService.deleteStaff(id, auth.getName());
+        return ResponseEntity.ok(ApiResponse.ok("Staff member permanently deleted", null));
+    }
+
     // ── Audit Logs ────────────────────────────────────────────────────────────
 
     @GetMapping("/audit-logs")

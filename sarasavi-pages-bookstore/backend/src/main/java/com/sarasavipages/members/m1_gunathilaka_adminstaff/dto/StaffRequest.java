@@ -22,13 +22,15 @@ public class StaffRequest {
     @Email(message = "Invalid email format")
     private String email;
 
-    @NotBlank(message = "IT number is required")
-    @Pattern(regexp = "IT\\d{8}", message = "IT number must be in format IT12345678")
+    /** Optional - auto-generated if omitted */
     private String itNumber;
+
+    /** Optional on create (auto-generated if omitted); editable on update */
+    private String username;
 
     @NotNull(message = "Role is required")
     private StaffRole role;
 
-    /** Only used on create — if omitted on update, password is not changed */
+    /** Only used on create or password reset — if omitted on update, password is unchanged */
     private String password;
 }

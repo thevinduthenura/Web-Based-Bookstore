@@ -53,35 +53,61 @@ public class StaffService implements UserDetailsService {
 
     /**
      * Create a new staff member.
-     * Username is auto-generated from their name and IT number.
-     * Default password = last 4 digits of IT number.
+     * IT number is optional (auto-generated if omitted).
+     * Username can be specified or auto-generated.
+     * Enforces username, password, email and name validation rules.
      */
     public StaffResponse createStaff(StaffRequest request, String performedBy) {
-        // Validate uniqueness
-        if (staffRepository.existsByEmail(request.getEmail())) {
+        // Validation: Full Name
+        if (request.getFullName() == null || request.getFullName().trim().length() < 3) {
+            throw new IllegalArgumentException("Full name must be at least 3 characters long");
+        }
+
+        // Validation: Email
+        if (request.getEmail() == null || !request.getEmail().contains("@")) {
+            throw new IllegalArgumentException("Valid email address is required");
+        }
+        if (staffRepository.existsByEmail(request.getEmail().trim())) {
             throw new IllegalArgumentException("Email already in use: " + request.getEmail());
         }
-        if (staffRepository.existsByItNumber(request.getItNumber())) {
-            throw new IllegalArgumentException("IT number already registered: " + request.getItNumber());
+
+        // IT Number (optional: auto-generated if omitted)
+        String itNumber = request.getItNumber() != null && !request.getItNumber().isBlank()
+                ? request.getItNumber().trim()
+                : "IT25" + (int)(100000 + Math.random() * 900000);
+
+        while (staffRepository.existsByItNumber(itNumber)) {
+            itNumber = "IT25" + (int)(100000 + Math.random() * 900000);
         }
 
-        // Generate username: {LastName}{FirstInitialOfName}{Last4DigitsOfITNumber}
-        String username = generateUsername(request.getFullName(), request.getItNumber());
+        // Username: user-provided or auto-generated
+        String username = request.getUsername() != null && !request.getUsername().isBlank()
+                ? request.getUsername().trim()
+                : generateUsername(request.getFullName(), itNumber);
+
+        if (!username.matches("^[a-zA-Z0-9_]{3,30}$")) {
+            throw new IllegalArgumentException("Username must be between 3 and 30 characters (letters, numbers, underscores only)");
+        }
+
         if (staffRepository.existsByUsername(username)) {
-            throw new IllegalArgumentException("Generated username already exists: " + username);
+            throw new IllegalArgumentException("Username already exists: " + username);
         }
 
-        // Default password = last 4 digits of IT number
+        // Password: user-provided or default to last 4 digits / default strong password
         String rawPassword = request.getPassword() != null && !request.getPassword().isBlank()
                 ? request.getPassword()
-                : request.getItNumber().substring(request.getItNumber().length() - 4);
+                : "Admin@" + itNumber.substring(itNumber.length() - 4);
+
+        if (request.getPassword() != null && !request.getPassword().isBlank() && request.getPassword().length() < 6) {
+            throw new IllegalArgumentException("Password must be at least 6 characters long");
+        }
 
         Staff staff = Staff.builder()
                 .username(username)
                 .password(passwordEncoder.encode(rawPassword))
-                .fullName(request.getFullName())
-                .email(request.getEmail())
-                .itNumber(request.getItNumber())
+                .fullName(request.getFullName().trim())
+                .email(request.getEmail().trim())
+                .itNumber(itNumber)
                 .role(request.getRole())
                 .active(true)
                 .createdAt(LocalDateTime.now())
@@ -90,7 +116,7 @@ public class StaffService implements UserDetailsService {
         Staff saved = staffRepository.save(staff);
 
         auditLogService.log(performedBy, AuditAction.STAFF_CREATED, username,
-                "Created staff: " + saved.getFullName() + " (" + saved.getItNumber()
+                "Created staff: " + saved.getFullName() + " (" + saved.getUsername()
                         + ") with role " + saved.getRole());
 
         return StaffResponse.from(saved);
@@ -112,23 +138,44 @@ public class StaffService implements UserDetailsService {
     }
 
     /**
-     * Update staff role and/or email.
-     * Username and IT number cannot be changed after creation.
+     * Update staff details: Full Name, Username, Role, Email, and Password.
      */
     public StaffResponse updateStaff(Long id, StaffRequest request, String performedBy) {
         Staff staff = findStaffOrThrow(id);
 
         StringBuilder changeDesc = new StringBuilder("Updated " + staff.getUsername() + ": ");
 
-        if (!staff.getEmail().equals(request.getEmail())) {
-            if (staffRepository.existsByEmail(request.getEmail())) {
-                throw new IllegalArgumentException("Email already in use: " + request.getEmail());
-            }
-            changeDesc.append("email changed; ");
-            staff.setEmail(request.getEmail());
+        // 1. Update Full Name
+        if (request.getFullName() != null && !request.getFullName().isBlank()) {
+            staff.setFullName(request.getFullName().trim());
         }
 
-        if (staff.getRole() != request.getRole()) {
+        // 2. Update Username
+        if (request.getUsername() != null && !request.getUsername().isBlank()
+                && !staff.getUsername().equalsIgnoreCase(request.getUsername().trim())) {
+            String newUsername = request.getUsername().trim();
+            if (!newUsername.matches("^[a-zA-Z0-9_]{3,30}$")) {
+                throw new IllegalArgumentException("Username must be between 3 and 30 characters (letters, numbers, underscores only)");
+            }
+            if (staffRepository.existsByUsername(newUsername)) {
+                throw new IllegalArgumentException("Username already in use: " + newUsername);
+            }
+            changeDesc.append("username changed from ").append(staff.getUsername()).append(" to ").append(newUsername).append("; ");
+            staff.setUsername(newUsername);
+        }
+
+        // 3. Update Email
+        if (request.getEmail() != null && !staff.getEmail().equalsIgnoreCase(request.getEmail().trim())) {
+            String newEmail = request.getEmail().trim();
+            if (staffRepository.existsByEmail(newEmail)) {
+                throw new IllegalArgumentException("Email already in use: " + newEmail);
+            }
+            changeDesc.append("email changed; ");
+            staff.setEmail(newEmail);
+        }
+
+        // 4. Update Role
+        if (request.getRole() != null && staff.getRole() != request.getRole()) {
             changeDesc.append("role changed from ").append(staff.getRole())
                     .append(" to ").append(request.getRole()).append("; ");
             staff.setRole(request.getRole());
@@ -137,7 +184,11 @@ public class StaffService implements UserDetailsService {
                     "Role changed to " + request.getRole());
         }
 
+        // 5. Update Password
         if (request.getPassword() != null && !request.getPassword().isBlank()) {
+            if (request.getPassword().length() < 6) {
+                throw new IllegalArgumentException("Password must be at least 6 characters long");
+            }
             staff.setPassword(passwordEncoder.encode(request.getPassword()));
             changeDesc.append("password reset; ");
 
@@ -145,8 +196,7 @@ public class StaffService implements UserDetailsService {
                     "Password was reset by " + performedBy);
         }
 
-        staff.setFullName(request.getFullName());
-
+        staff.setUpdatedAt(LocalDateTime.now());
         Staff saved = staffRepository.save(staff);
 
         auditLogService.log(performedBy, AuditAction.STAFF_UPDATED, staff.getUsername(),
@@ -155,19 +205,19 @@ public class StaffService implements UserDetailsService {
         return StaffResponse.from(saved);
     }
 
-    /** Deactivate a staff member (soft delete — they cannot log in) */
+    /** Deactivate a staff member (soft delete — cannot log in) */
     public void deactivateStaff(Long id, String performedBy) {
         Staff staff = findStaffOrThrow(id);
 
-        if (staff.getRole() == StaffRole.SUPER_ADMIN) {
-            throw new IllegalArgumentException("Cannot deactivate the Super Admin account");
+        if (staff.getRole() == StaffRole.SUPER_ADMIN && staff.getUsername().equalsIgnoreCase("GunathilakaT1540")) {
+            throw new IllegalArgumentException("Cannot deactivate the primary Super Admin account");
         }
 
         staff.setActive(false);
         staffRepository.save(staff);
 
         auditLogService.log(performedBy, AuditAction.STAFF_DEACTIVATED, staff.getUsername(),
-                "Deactivated staff: " + staff.getFullName() + " (" + staff.getItNumber() + ")");
+                "Deactivated staff: " + staff.getFullName() + " (" + staff.getUsername() + ")");
     }
 
     /** Re-activate a deactivated staff member */
@@ -177,7 +227,21 @@ public class StaffService implements UserDetailsService {
         staffRepository.save(staff);
 
         auditLogService.log(performedBy, AuditAction.STAFF_ACTIVATED, staff.getUsername(),
-                "Activated staff: " + staff.getFullName());
+                "Activated staff: " + staff.getFullName() + " (" + staff.getUsername() + ")");
+    }
+
+    /** Permanently delete a staff member account */
+    public void deleteStaff(Long id, String performedBy) {
+        Staff staff = findStaffOrThrow(id);
+
+        if (staff.getRole() == StaffRole.SUPER_ADMIN && staff.getUsername().equalsIgnoreCase("GunathilakaT1540")) {
+            throw new IllegalArgumentException("Cannot delete the primary Super Admin account");
+        }
+
+        staffRepository.delete(staff);
+
+        auditLogService.log(performedBy, AuditAction.STAFF_DELETED, staff.getUsername(),
+                "Permanently deleted staff account: " + staff.getFullName() + " (" + staff.getUsername() + ")");
     }
 
     /** Record login timestamp in audit log */
