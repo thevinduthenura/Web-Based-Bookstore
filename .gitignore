@@ -33,6 +33,12 @@ yarn-error.log*
 logs/
 *.log
 
+# Database & Data
+data/
+**/data/
+*.mv.db
+*.trace.db
+
 # OS
 .DS_Store
 Thumbs.db

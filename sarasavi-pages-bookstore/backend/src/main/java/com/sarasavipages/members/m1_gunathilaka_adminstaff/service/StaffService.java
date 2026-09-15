@@ -6,7 +6,7 @@ import com.sarasavipages.members.m1_gunathilaka_adminstaff.entity.AuditAction;
 import com.sarasavipages.members.m1_gunathilaka_adminstaff.entity.Staff;
 import com.sarasavipages.members.m1_gunathilaka_adminstaff.entity.StaffRole;
 import com.sarasavipages.members.m1_gunathilaka_adminstaff.repository.StaffRepository;
-import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -27,13 +27,18 @@ import java.util.stream.Collectors;
  * Password default rule:     last 4 digits of IT number (BCrypt hashed)
  */
 @Service
-@RequiredArgsConstructor
 @Transactional
 public class StaffService implements UserDetailsService {
 
     private final StaffRepository staffRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuditLogService auditLogService;
+
+    public StaffService(StaffRepository staffRepository, @Lazy PasswordEncoder passwordEncoder, AuditLogService auditLogService) {
+        this.staffRepository = staffRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.auditLogService = auditLogService;
+    }
 
     // ── UserDetailsService (used by Spring Security) ─────────────────────────
 
