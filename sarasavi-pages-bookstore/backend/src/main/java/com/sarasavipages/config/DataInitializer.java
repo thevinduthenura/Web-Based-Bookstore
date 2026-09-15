@@ -158,9 +158,9 @@ public class DataInitializer implements CommandLineRunner {
 
             log.info("Seeding payments...");
             LocalDateTime now = LocalDateTime.now();
-            jdbcTemplate.update("INSERT INTO payments (order_id, customer_id, amount, currency, payment_method, status, transaction_reference, gateway_message, invoice_number, created_at, updated_at) VALUES ('ORD-1001', 'CUST-001', 2050.00, 'LKR', 'CREDIT_CARD', 'COMPLETED', 'TXN-88239102-M2', 'Approved', 'INV-2026-0001', ?, ?)", now, now);
-            jdbcTemplate.update("INSERT INTO payments (order_id, customer_id, amount, currency, payment_method, status, transaction_reference, gateway_message, invoice_number, created_at, updated_at) VALUES ('ORD-1002', 'CUST-002', 4500.00, 'LKR', 'ONLINE_BANKING', 'COMPLETED', 'TXN-99182301-M2', 'Approved', 'INV-2026-0002', ?, ?)", now, now);
-            jdbcTemplate.update("INSERT INTO payments (order_id, customer_id, amount, currency, payment_method, status, transaction_reference, gateway_message, invoice_number, created_at, updated_at) VALUES ('ORD-1003', 'CUST-003', 850.00, 'LKR', 'CASH_ON_DELIVERY', 'PENDING', 'TXN-77382910-M2', 'Pending delivery confirmation', 'INV-2026-0003', ?, ?)", now, now);
+            jdbcTemplate.update("INSERT INTO payments (order_id, customer_id, amount, currency, payment_method, status, transaction_reference, gateway_message, invoice_number, created_at, updated_at) VALUES (1001, 1, 2050.00, 'LKR', 'CREDIT_CARD', 'COMPLETED', 'TXN-88239102-M2', 'Approved', 'INV-2026-0001', ?, ?)", now, now);
+            jdbcTemplate.update("INSERT INTO payments (order_id, customer_id, amount, currency, payment_method, status, transaction_reference, gateway_message, invoice_number, created_at, updated_at) VALUES (1002, 2, 4500.00, 'LKR', 'ONLINE_BANKING', 'COMPLETED', 'TXN-99182301-M2', 'Approved', 'INV-2026-0002', ?, ?)", now, now);
+            jdbcTemplate.update("INSERT INTO payments (order_id, customer_id, amount, currency, payment_method, status, transaction_reference, gateway_message, invoice_number, created_at, updated_at) VALUES (1003, 3, 850.00, 'LKR', 'CASH_ON_DELIVERY', 'PENDING', 'TXN-77382910-M2', 'Pending delivery confirmation', 'INV-2026-0003', ?, ?)", now, now);
         } catch (Exception e) {
             log.warn("Could not seed payments: {}", e.getMessage());
         }
@@ -175,9 +175,9 @@ public class DataInitializer implements CommandLineRunner {
 
             log.info("Seeding customer service tickets...");
             LocalDateTime now = LocalDateTime.now();
-            jdbcTemplate.update("INSERT INTO tickets (customer_id, customer_name, contact_number, subject, description, status, resolution_details, resolved_by, created_at, updated_at, resolved_at) VALUES ('CUST-001', 'Kamal Perera', '+94771234567', 'Late Delivery of Order ORD-1001', 'Order placed 3 days ago not arrived yet.', 'OPEN', NULL, NULL, ?, ?, NULL)", now, now);
-            jdbcTemplate.update("INSERT INTO tickets (customer_id, customer_name, contact_number, subject, description, status, resolution_details, resolved_by, created_at, updated_at, resolved_at) VALUES ('CUST-002', 'Nimal Silva', '+94712345678', 'Damaged Book Cover', 'Cover was torn upon delivery.', 'IN_PROGRESS', NULL, NULL, ?, ?, NULL)", now, now);
-            jdbcTemplate.update("INSERT INTO tickets (customer_id, customer_name, contact_number, subject, description, status, resolution_details, resolved_by, created_at, updated_at, resolved_at) VALUES ('CUST-003', 'Sunil Fernando', '+94763456789', 'Refund Request for ORD-0988', 'Duplicate order refund requested.', 'RESOLVED', 'Refund processed via Payment Gateway.', 'ZeenC3342', ?, ?, ?)", now, now, now);
+            jdbcTemplate.update("INSERT INTO tickets (customer_id, customer_name, contact_number, subject, description, status, resolution_details, resolved_by, created_at, updated_at, resolved_at) VALUES (1, 'Kamal Perera', '+94771234567', 'Late Delivery of Order ORD-1001', 'Order placed 3 days ago not arrived yet.', 'OPEN', NULL, NULL, ?, ?, NULL)", now, now);
+            jdbcTemplate.update("INSERT INTO tickets (customer_id, customer_name, contact_number, subject, description, status, resolution_details, resolved_by, created_at, updated_at, resolved_at) VALUES (2, 'Nimal Silva', '+94712345678', 'Damaged Book Cover', 'Cover was torn upon delivery.', 'IN_PROGRESS', NULL, NULL, ?, ?, NULL)", now, now);
+            jdbcTemplate.update("INSERT INTO tickets (customer_id, customer_name, contact_number, subject, description, status, resolution_details, resolved_by, created_at, updated_at, resolved_at) VALUES (3, 'Sunil Fernando', '+94763456789', 'Refund Request for ORD-0988', 'Duplicate order refund requested.', 'RESOLVED', 'Refund processed via Payment Gateway.', 'ZeenC3342', ?, ?, ?)", now, now, now);
         } catch (Exception e) {
             log.warn("Could not seed tickets: {}", e.getMessage());
         }
