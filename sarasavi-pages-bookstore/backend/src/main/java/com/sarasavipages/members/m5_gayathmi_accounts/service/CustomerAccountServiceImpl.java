@@ -118,4 +118,12 @@ public class CustomerAccountServiceImpl implements CustomerAccountService {
         }
         return list.stream().map(CustomerProfileResponse::fromEntity).collect(Collectors.toList());
     }
+
+    @Override
+    @Transactional
+    public void deleteCustomer(String customerId) {
+        CustomerProfile profile = profileRepository.findByCustomerId(customerId)
+                .orElseThrow(() -> new IllegalArgumentException("Customer profile not found for ID: " + customerId));
+        profileRepository.delete(profile);
+    }
 }

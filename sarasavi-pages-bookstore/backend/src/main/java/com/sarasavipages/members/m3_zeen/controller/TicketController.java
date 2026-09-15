@@ -64,4 +64,11 @@ public class TicketController {
         TicketResponse response = ticketService.updateTicket(id, request, officerUsername);
         return ApiResponse.ok("Ticket updated successfully", response);
     }
+
+    // Staff-only: Delete ticket by ID
+    @DeleteMapping("/customer-service/tickets/{id}")
+    public ApiResponse<Void> deleteTicket(@PathVariable Long id) {
+        ticketService.deleteTicket(id);
+        return ApiResponse.ok("Ticket deleted successfully", null);
+    }
 }

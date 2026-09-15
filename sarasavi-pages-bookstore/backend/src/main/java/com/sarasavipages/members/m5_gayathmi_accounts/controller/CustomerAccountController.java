@@ -112,4 +112,17 @@ public class CustomerAccountController {
         List<CustomerProfileResponse> list = accountService.getAllCustomers(status, query);
         return ResponseEntity.ok(ApiResponse.success("Customers retrieved successfully", list));
     }
+
+    @Operation(summary = "Delete customer account")
+    @DeleteMapping("/{customerId}")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ACCOUNT_ADMIN')")
+    @SecurityRequirement(name = "bearerAuth")
+    public ResponseEntity<ApiResponse<Void>> deleteCustomer(@PathVariable String customerId) {
+        try {
+            accountService.deleteCustomer(customerId);
+            return ResponseEntity.ok(ApiResponse.success("Customer account deleted successfully", null));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+        }
+    }
 }

@@ -22,4 +22,6 @@ public interface CustomerAccountService {
     CustomerProfileResponse verifyKyc(String customerId, boolean verified);
 
     List<CustomerProfileResponse> getAllCustomers(AccountStatus status, String query);
+
+    void deleteCustomer(String customerId);
 }

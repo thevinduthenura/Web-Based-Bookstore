@@ -47,4 +47,43 @@ public class BookController {
         List<Book> books = bookRepository.findByTitleContainingIgnoreCaseOrAuthorContainingIgnoreCase(q, q);
         return ResponseEntity.ok(ApiResponse.success("Search results for: " + q, books));
     }
+
+    @Operation(summary = "Add a new book (Order Admin or Super Admin)")
+    @PostMapping
+    public ResponseEntity<ApiResponse<Book>> createBook(@RequestBody Book book) {
+        if (book.getId() == null || book.getId().isBlank()) {
+            book.setId("BK-" + System.currentTimeMillis());
+        }
+        Book saved = bookRepository.save(book);
+        return ResponseEntity.ok(ApiResponse.success("Book registered successfully", saved));
+    }
+
+    @Operation(summary = "Update book details (Order Admin or Super Admin)")
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<Book>> updateBook(@PathVariable String id, @RequestBody Book book) {
+        return bookRepository.findById(id)
+                .map(existing -> {
+                    existing.setTitle(book.getTitle());
+                    existing.setAuthor(book.getAuthor());
+                    existing.setCategory(book.getCategory());
+                    existing.setPrice(book.getPrice());
+                    existing.setStockQuantity(book.getStockQuantity());
+                    existing.setDescription(book.getDescription());
+                    existing.setIsbn(book.getIsbn());
+                    existing.setImageUrl(book.getImageUrl());
+                    Book updated = bookRepository.save(existing);
+                    return ResponseEntity.ok(ApiResponse.success("Book updated successfully", updated));
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @Operation(summary = "Delete book from catalog (Order Admin or Super Admin)")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteBook(@PathVariable String id) {
+        if (!bookRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        bookRepository.deleteById(id);
+        return ResponseEntity.ok(ApiResponse.success("Book deleted successfully", null));
+    }
 }

@@ -71,6 +71,13 @@ public class TicketService {
     }
 
     // Delete Ticket
+    public void deleteTicket(Long id) {
+        if (!ticketRepository.existsById(id)) {
+            throw new IllegalArgumentException("Ticket not found with ID: " + id);
+        }
+        ticketRepository.deleteById(id);
+    }
+
     public void purgeOldResolvedTickets() {
         LocalDateTime cutoff = LocalDateTime.now().minusDays(RETENTION_DAYS);
         List<Ticket> toDelete = ticketRepository

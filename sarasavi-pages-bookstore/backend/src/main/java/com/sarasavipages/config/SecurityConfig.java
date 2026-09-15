@@ -91,6 +91,9 @@ public class SecurityConfig {
                     .hasAnyRole("SUPER_ADMIN", "ACCOUNT_ADMIN")
 
                 // ── M6: Orders & Cart ──────────────────────────────────────────
+                .requestMatchers(HttpMethod.POST, "/books/**").hasAnyRole("SUPER_ADMIN", "ORDER_ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/books/**").hasAnyRole("SUPER_ADMIN", "ORDER_ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/books/**").hasAnyRole("SUPER_ADMIN", "ORDER_ADMIN")
                 .requestMatchers("/orders/**")
                     .hasAnyRole("SUPER_ADMIN", "ORDER_ADMIN")
 

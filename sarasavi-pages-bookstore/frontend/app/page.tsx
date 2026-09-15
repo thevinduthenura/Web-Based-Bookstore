@@ -19,7 +19,13 @@ import {
   X,
   Plus,
   Minus,
-  Trash2
+  Trash2,
+  CreditCard,
+  Boxes,
+  UserCheck,
+  Users,
+  Headphones,
+  Layers
 } from 'lucide-react';
 import { ordersApi } from '@/lib/orders-api';
 import apiClient from '@/lib/api-client';
@@ -464,6 +470,171 @@ export default function StorefrontPage() {
                 </button>
               </form>
             )}
+          </div>
+        </section>
+
+        {/* ── 6 MEMBER CRUD MODULES DIRECT ACCESS PORTAL ────────── */}
+        <section className="mt-16">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/20 text-brand-400 text-xs font-semibold mb-2">
+                <Layers className="w-3.5 h-3.5" />
+                <span>SE2030 Group Project — B9G2 Member Modules</span>
+              </div>
+              <h3 className="text-2xl font-display font-bold text-white tracking-tight">
+                Team Member Functions & CRUD Operations
+              </h3>
+              <p className="text-xs text-ink-muted mt-1">
+                Each member module supports full Create, Read, Update, and Delete operations on the site.
+              </p>
+            </div>
+            <Link
+              href="/login"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-brand text-white font-semibold text-xs shadow-glow hover:brightness-110 transition-all self-start sm:self-auto"
+            >
+              <span>Login to Admin Portal</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* M1 */}
+            <div className="glass-card p-5 rounded-2xl border border-surface-border hover:border-brand-500/30 transition-all space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="px-2.5 py-0.5 rounded-md bg-brand-500/10 text-brand-400 text-[11px] font-bold font-mono">
+                  Module 1
+                </span>
+                <Users className="w-4 h-4 text-brand-400" />
+              </div>
+              <div>
+                <h4 className="font-bold text-white text-sm">Admin & Staff Management</h4>
+                <p className="text-[11px] text-brand-400 font-semibold mt-0.5">Gunathilaka H.D.T.T. (IT25101540)</p>
+              </div>
+              <div className="space-y-1 text-[11px] text-ink-muted bg-surface/40 p-2.5 rounded-xl border border-surface-border font-mono">
+                <div><strong className="text-emerald-400">[C]</strong> Add staff with IT number</div>
+                <div><strong className="text-sky-400">[R]</strong> View staff list & RBAC audit logs</div>
+                <div><strong className="text-amber-400">[U]</strong> Edit role, department & email</div>
+                <div><strong className="text-red-400">[D]</strong> Deactivate / revoke staff access</div>
+              </div>
+              <Link href="/admin/staff" className="text-[11px] text-brand-400 hover:text-brand-300 font-semibold flex items-center gap-1">
+                Open Staff Portal &rarr;
+              </Link>
+            </div>
+
+            {/* M2 */}
+            <div className="glass-card p-5 rounded-2xl border border-surface-border hover:border-emerald-500/30 transition-all space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="px-2.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 text-[11px] font-bold font-mono">
+                  Module 2
+                </span>
+                <CreditCard className="w-4 h-4 text-emerald-400" />
+              </div>
+              <div>
+                <h4 className="font-bold text-white text-sm">Payment & Gateways</h4>
+                <p className="text-[11px] text-emerald-400 font-semibold mt-0.5">Anaf M.K.A.S. (IT25102345)</p>
+              </div>
+              <div className="space-y-1 text-[11px] text-ink-muted bg-surface/40 p-2.5 rounded-xl border border-surface-border font-mono">
+                <div><strong className="text-emerald-400">[C]</strong> Record & invoice new payment</div>
+                <div><strong className="text-sky-400">[R]</strong> Search transactions & download receipt</div>
+                <div><strong className="text-amber-400">[U]</strong> Update status & process refunds</div>
+                <div><strong className="text-red-400">[D]</strong> Void & cancel failed transaction</div>
+              </div>
+              <Link href="/admin/payment/dashboard" className="text-[11px] text-emerald-400 hover:text-emerald-300 font-semibold flex items-center gap-1">
+                Open Payment Portal &rarr;
+              </Link>
+            </div>
+
+            {/* M3 */}
+            <div className="glass-card p-5 rounded-2xl border border-surface-border hover:border-sky-500/30 transition-all space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="px-2.5 py-0.5 rounded-md bg-sky-500/10 text-sky-400 text-[11px] font-bold font-mono">
+                  Module 3
+                </span>
+                <Headphones className="w-4 h-4 text-sky-400" />
+              </div>
+              <div>
+                <h4 className="font-bold text-white text-sm">Customer Support Helpdesk</h4>
+                <p className="text-[11px] text-sky-400 font-semibold mt-0.5">Zeen A.C. (IT25103342)</p>
+              </div>
+              <div className="space-y-1 text-[11px] text-ink-muted bg-surface/40 p-2.5 rounded-xl border border-surface-border font-mono">
+                <div><strong className="text-emerald-400">[C]</strong> Submit ticket from web form</div>
+                <div><strong className="text-sky-400">[R]</strong> Real-time ticket queue & priority</div>
+                <div><strong className="text-amber-400">[U]</strong> Update status & resolution notes</div>
+                <div><strong className="text-red-400">[D]</strong> Close & delete resolved tickets</div>
+              </div>
+              <Link href="/admin/customer-service/dashboard" className="text-[11px] text-sky-400 hover:text-sky-300 font-semibold flex items-center gap-1">
+                Open Support Portal &rarr;
+              </Link>
+            </div>
+
+            {/* M4 */}
+            <div className="glass-card p-5 rounded-2xl border border-surface-border hover:border-violet-500/30 transition-all space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="px-2.5 py-0.5 rounded-md bg-violet-500/10 text-violet-400 text-[11px] font-bold font-mono">
+                  Module 4
+                </span>
+                <Boxes className="w-4 h-4 text-violet-400" />
+              </div>
+              <div>
+                <h4 className="font-bold text-white text-sm">Inventory & Stock Control</h4>
+                <p className="text-[11px] text-violet-400 font-semibold mt-0.5">Dissanayake S.A.S.D. (IT25101062)</p>
+              </div>
+              <div className="space-y-1 text-[11px] text-ink-muted bg-surface/40 p-2.5 rounded-xl border border-surface-border font-mono">
+                <div><strong className="text-emerald-400">[C]</strong> Register new book in warehouse</div>
+                <div><strong className="text-sky-400">[R]</strong> Catalog search & low-stock alerts</div>
+                <div><strong className="text-amber-400">[U]</strong> Restock / damage stock adjustment</div>
+                <div><strong className="text-red-400">[D]</strong> Remove discontinued book item</div>
+              </div>
+              <Link href="/admin/inventory/dashboard" className="text-[11px] text-violet-400 hover:text-violet-300 font-semibold flex items-center gap-1">
+                Open Inventory Portal &rarr;
+              </Link>
+            </div>
+
+            {/* M5 */}
+            <div className="glass-card p-5 rounded-2xl border border-surface-border hover:border-pink-500/30 transition-all space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="px-2.5 py-0.5 rounded-md bg-pink-500/10 text-pink-400 text-[11px] font-bold font-mono">
+                  Module 5
+                </span>
+                <UserCheck className="w-4 h-4 text-pink-400" />
+              </div>
+              <div>
+                <h4 className="font-bold text-white text-sm">User Accounts & KYC</h4>
+                <p className="text-[11px] text-pink-400 font-semibold mt-0.5">Gayathmi P.G.R. (IT25103013)</p>
+              </div>
+              <div className="space-y-1 text-[11px] text-ink-muted bg-surface/40 p-2.5 rounded-xl border border-surface-border font-mono">
+                <div><strong className="text-emerald-400">[C]</strong> Register customer with welcome points</div>
+                <div><strong className="text-sky-400">[R]</strong> Customer directory & loyalty tiers</div>
+                <div><strong className="text-amber-400">[U]</strong> Edit profile, toggle KYC & status</div>
+                <div><strong className="text-red-400">[D]</strong> Delete & deactivate account</div>
+              </div>
+              <Link href="/admin/accounts/dashboard" className="text-[11px] text-pink-400 hover:text-pink-300 font-semibold flex items-center gap-1">
+                Open Accounts Portal &rarr;
+              </Link>
+            </div>
+
+            {/* M6 */}
+            <div className="glass-card p-5 rounded-2xl border border-surface-border hover:border-amber-500/30 transition-all space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="px-2.5 py-0.5 rounded-md bg-amber-500/10 text-amber-400 text-[11px] font-bold font-mono">
+                  Module 6
+                </span>
+                <ShoppingCart className="w-4 h-4 text-amber-400" />
+              </div>
+              <div>
+                <h4 className="font-bold text-white text-sm">Orders & Shopping Cart</h4>
+                <p className="text-[11px] text-amber-400 font-semibold mt-0.5">Diyes C.L. (IT25100263)</p>
+              </div>
+              <div className="space-y-1 text-[11px] text-ink-muted bg-surface/40 p-2.5 rounded-xl border border-surface-border font-mono">
+                <div><strong className="text-emerald-400">[C]</strong> Add books to cart & place order</div>
+                <div><strong className="text-sky-400">[R]</strong> Live shopping cart & dispatch feed</div>
+                <div><strong className="text-amber-400">[U]</strong> Update quantities & apply promo codes</div>
+                <div><strong className="text-red-400">[D]</strong> Remove cart items / cancel order</div>
+              </div>
+              <Link href="/admin/orders/dashboard" className="text-[11px] text-amber-400 hover:text-amber-300 font-semibold flex items-center gap-1">
+                Open Orders Portal &rarr;
+              </Link>
+            </div>
           </div>
         </section>
       </main>
