@@ -54,6 +54,13 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- H2 Database (In-Memory / File-based for instant local running) -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
         <!-- Flyway DB Migrations -->
         <dependency>
             <groupId>org.flywaydb</groupId>

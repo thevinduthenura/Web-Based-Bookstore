@@ -27,7 +27,7 @@ import java.util.List;
  *   ORDER_ADMIN        → DiyesL0263 / 0263
  */
 @Entity
-@Table(name = "staff", schema = "public")
+@Table(name = "staff")
 @Data
 @Builder
 @NoArgsConstructor
