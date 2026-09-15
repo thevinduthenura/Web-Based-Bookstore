@@ -278,65 +278,71 @@ export default function StorefrontPage() {
         <span>Use Coupon Code <strong>WELCOME10</strong> for 10% off • Islandwide Delivery on all Sinhala & English Books</span>
       </div>
 
-      {/* ── STICKY HEADER & TABS NAVIGATION ────────────────────── */}
-      <header className="sticky top-0 z-40 bg-[#0a0c10]/90 backdrop-blur-md border-b border-surface-border">
+      {/* ── STICKY HEADER & CINEVAULT-STYLE FLOATING TABS NAVIGATION ── */}
+      <header className="sticky top-0 z-40 bg-[#07080a]/95 backdrop-blur-xl border-b border-white/[0.06] transition-all">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="h-16 flex items-center justify-between gap-4">
-            {/* Logo */}
-            <div className="flex items-center gap-6">
-              <button onClick={() => setActiveNavTab('home')} className="flex items-center gap-2.5 group text-left">
-                <div className="w-9 h-9 rounded-xl bg-gradient-brand flex items-center justify-center shadow-glow group-hover:scale-105 transition-transform">
-                  <BookOpen className="w-5 h-5 text-white" />
+          <div className="h-20 flex items-center justify-between gap-4">
+            {/* Left: Brand Logo */}
+            <div className="flex items-center">
+              <button 
+                onClick={() => {
+                  setActiveNavTab('home');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }} 
+                className="flex items-center gap-3 group text-left"
+              >
+                <div className="w-10 h-10 rounded-xl bg-[#ff7a00] flex items-center justify-center shadow-[0_0_20px_rgba(255,122,0,0.35)] group-hover:scale-105 transition-transform">
+                  <BookOpen className="w-5 h-5 text-black stroke-[2.5]" />
                 </div>
                 <div className="leading-tight">
-                  <span className="font-display font-bold text-base tracking-tight text-white group-hover:text-brand-400 transition-colors">
-                    Sarasavi Pages
+                  <span className="font-display font-black text-xl tracking-tight text-white group-hover:text-[#ff7a00] transition-colors">
+                    sarasavi<span className="font-light text-zinc-300">pages</span>
                   </span>
-                  <span className="block text-[10px] text-ink-muted">Online Bookstore & Lending</span>
                 </div>
               </button>
-
-              {/* Desktop Nav Tabs */}
-              <nav className="hidden lg:flex items-center gap-1 p-1 rounded-2xl bg-surface/80 border border-surface-border">
-                {[
-                  { id: 'home', label: 'Home', icon: BookOpen },
-                  { id: 'books', label: 'Books', icon: BookMarked },
-                  { id: 'about', label: 'About Us', icon: Info },
-                  { id: 'rentals', label: 'Book Rentals', icon: Repeat },
-                  { id: 'writers', label: 'Writers', icon: Feather },
-                ].map((tab) => {
-                  const Icon = tab.icon;
-                  const isActive = activeNavTab === tab.id;
-                  return (
-                    <button
-                      key={tab.id}
-                      onClick={() => {
-                        setActiveNavTab(tab.id as NavTab);
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                      }}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
-                        isActive
-                          ? 'bg-brand-500 text-white shadow-glow'
-                          : 'text-ink-muted hover:text-white hover:bg-surface'
-                      }`}
-                    >
-                      <Icon className="w-3.5 h-3.5" />
-                      <span>{tab.label}</span>
-                    </button>
-                  );
-                })}
-              </nav>
             </div>
 
-            {/* Right Side: Cart, Account & Admin Link */}
-            <div className="flex items-center gap-2.5">
+            {/* Center: Cinevault-style Dark Floating Pill Nav */}
+            <nav className="hidden md:flex items-center bg-[#12141a]/90 backdrop-blur-md rounded-full px-8 py-2.5 border border-white/10 shadow-2xl">
+              {[
+                { id: 'home', label: 'Home' },
+                { id: 'books', label: 'Books' },
+                { id: 'writers', label: 'Writers' },
+                { id: 'rentals', label: 'Rentals' },
+                { id: 'about', label: 'About' },
+              ].map((tab) => {
+                const isActive = activeNavTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => {
+                      setActiveNavTab(tab.id as NavTab);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    className={`relative px-4 py-1 text-sm font-medium transition-all duration-200 ${
+                      isActive
+                        ? 'text-white font-semibold'
+                        : 'text-zinc-400 hover:text-white'
+                    }`}
+                  >
+                    <span>{tab.label}</span>
+                    {isActive && (
+                      <span className="absolute -bottom-1 left-3 right-3 h-[2px] bg-[#ff7a00] rounded-full shadow-[0_0_8px_#ff7a00]" />
+                    )}
+                  </button>
+                );
+              })}
+            </nav>
+
+            {/* Right: Cart & Cinevault-style Orange Pill Sign In Button */}
+            <div className="flex items-center gap-3">
               {/* Search Shortcut */}
               <button 
                 onClick={() => {
                   setActiveNavTab('books');
                   window.scrollTo({ top: 400, behavior: 'smooth' });
                 }}
-                className="p-2 rounded-xl text-ink-muted hover:text-white hover:bg-surface transition-colors hidden sm:flex"
+                className="p-2.5 rounded-full text-zinc-400 hover:text-white hover:bg-white/5 transition-colors hidden sm:flex"
                 title="Search books"
               >
                 <Search className="w-4 h-4" />
@@ -345,67 +351,69 @@ export default function StorefrontPage() {
               {/* Cart Button */}
               <button
                 onClick={() => setIsCartOpen(true)}
-                className="relative p-2.5 rounded-xl bg-surface border border-surface-border text-ink-light hover:text-white hover:border-brand-500/50 transition-all flex items-center gap-2 text-xs font-semibold"
+                className="relative p-2.5 rounded-full bg-[#12141a] border border-white/10 text-zinc-300 hover:text-white hover:border-[#ff7a00]/50 transition-all flex items-center justify-center"
+                title="Shopping Cart"
               >
-                <ShoppingCart className="w-4 h-4 text-brand-400" />
-                <span className="hidden sm:inline">Cart</span>
+                <ShoppingCart className="w-4 h-4 text-[#ff7a00]" />
                 {cart.length > 0 && (
-                  <span className="h-5 min-w-[20px] px-1 rounded-full bg-brand-500 text-white text-[10px] font-bold flex items-center justify-center shadow-glow font-mono">
+                  <span className="absolute -top-1 -right-1 h-5 min-w-[20px] px-1 rounded-full bg-[#ff7a00] text-black text-[10px] font-extrabold flex items-center justify-center shadow-lg">
                     {cart.reduce((s, i) => s + i.quantity, 0)}
                   </span>
                 )}
               </button>
 
-              {/* User / Account / Admin Button */}
+              {/* User / Account / Sign In Pill */}
               {loggedInCustomer ? (
                 <Link
                   href="/account"
-                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-brand-500/10 hover:bg-brand-500/20 border border-brand-500/30 text-brand-400 text-xs font-semibold transition-all"
+                  className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-[#ff7a00] hover:bg-[#ff8c1a] text-black text-sm font-bold shadow-lg shadow-orange-500/20 active:scale-95 transition-all"
                 >
-                  <User className="w-3.5 h-3.5" />
-                  <span className="truncate max-w-[120px]">{loggedInCustomer.name}</span>
+                  <User className="w-4 h-4" />
+                  <span className="truncate max-w-[130px]">{loggedInCustomer.name}</span>
                 </Link>
               ) : loggedInStaff ? (
                 <Link
                   href="/admin/dashboard"
-                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-xs font-semibold transition-all"
+                  className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-[#ff7a00] hover:bg-[#ff8c1a] text-black text-sm font-bold shadow-lg shadow-orange-500/20 active:scale-95 transition-all"
                 >
-                  <Shield className="w-3.5 h-3.5" />
-                  <span>Admin Portal</span>
+                  <Shield className="w-4 h-4" />
+                  <span>Admin Panel</span>
                 </Link>
               ) : (
                 <Link
                   href="/login"
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-brand text-white text-xs font-semibold shadow-glow hover:brightness-110 active:scale-95 transition-all"
+                  className="inline-flex items-center justify-center px-6 py-2 rounded-full bg-[#ff7a00] hover:bg-[#ff8c1a] text-black text-sm font-bold shadow-lg shadow-orange-500/25 active:scale-95 transition-all"
                 >
-                  <User className="w-3.5 h-3.5" />
-                  <span>Sign In</span>
+                  Sign In
                 </Link>
               )}
             </div>
           </div>
 
           {/* Mobile Nav Tabs Strip */}
-          <div className="lg:hidden flex items-center gap-1 overflow-x-auto py-2 border-t border-surface-border/50 text-xs no-scrollbar">
+          <div className="md:hidden flex items-center justify-center gap-1 overflow-x-auto py-2.5 border-t border-white/5 text-xs no-scrollbar">
             {[
               { id: 'home', label: 'Home' },
               { id: 'books', label: 'Books' },
-              { id: 'about', label: 'About Us' },
-              { id: 'rentals', label: 'Book Rentals' },
               { id: 'writers', label: 'Writers' },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveNavTab(tab.id as NavTab)}
-                className={`px-3 py-1 rounded-lg whitespace-nowrap font-medium transition-all ${
-                  activeNavTab === tab.id
-                    ? 'bg-brand-500 text-white font-semibold'
-                    : 'text-ink-muted hover:text-white'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
+              { id: 'rentals', label: 'Rentals' },
+              { id: 'about', label: 'About' },
+            ].map((tab) => {
+              const isActive = activeNavTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveNavTab(tab.id as NavTab)}
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
+                    isActive
+                      ? 'bg-[#ff7a00] text-black font-bold'
+                      : 'text-zinc-400 hover:text-white'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
           </div>
         </div>
       </header>
