@@ -9,6 +9,7 @@ export interface Book {
   isbn: string;
   description: string;
   rating: number;
+  hidden?: boolean;
 }
 
 export interface CartItem {

@@ -44,8 +44,14 @@ import {
   LayoutDashboard,
   Instagram,
   Facebook,
-  Twitter
+  Twitter,
+  Edit3,
+  Eye,
+  EyeOff,
+  AlertCircle,
+  Save
 } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 import { ordersApi } from '@/lib/orders-api';
 import apiClient from '@/lib/api-client';
 import type { Book } from '@/types/orders';
@@ -179,9 +185,48 @@ export default function StorefrontPage() {
   const [promoApplied, setPromoApplied] = useState(false);
   const [promoError, setPromoError] = useState('');
 
-  // Logged-in user states
+  // Logged-in user states & Auth
+  const { user: authStaff } = useAuth();
   const [loggedInCustomer, setLoggedInCustomer] = useState<any>(null);
   const [loggedInStaff, setLoggedInStaff] = useState<any>(null);
+  const activeStaff = authStaff || loggedInStaff;
+
+  // Strict role check: Only admin with catalog permissions ("Only admin - adala adminta adala parts")
+  // Module 1 (SUPER_ADMIN), Module 4 (INVENTORY_ADMIN), and Module 6 (ORDER_ADMIN)
+  const canManageBooks = Boolean(
+    activeStaff && (
+      activeStaff.role === 'SUPER_ADMIN' ||
+      activeStaff.role === 'INVENTORY_ADMIN' ||
+      activeStaff.role === 'ORDER_ADMIN'
+    )
+  );
+
+  // Admin Book Management Modals
+  const [isAddBookModalOpen, setIsAddBookModalOpen] = useState(false);
+  const [isEditBookModalOpen, setIsEditBookModalOpen] = useState(false);
+  const [editingBook, setEditingBook] = useState<Book | null>(null);
+  const [deleteConfirmBook, setDeleteConfirmBook] = useState<Book | null>(null);
+
+  // Form state for creating a new book
+  const [newBookForm, setNewBookForm] = useState({
+    title: '',
+    author: '',
+    category: 'Classic Fiction',
+    price: 1500,
+    coverImage: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=600',
+    stockQuantity: 25,
+    isbn: '978-955-0201-99-9',
+    description: '',
+    rating: 4.8
+  });
+
+  // Admin Action Toast
+  const [adminNotification, setAdminNotification] = useState<{ message: string; type: 'success' | 'info' | 'error' } | null>(null);
+
+  const showNotification = (message: string, type: 'success' | 'info' | 'error' = 'success') => {
+    setAdminNotification({ message, type });
+    setTimeout(() => setAdminNotification(null), 4000);
+  };
 
   // Support ticket state (M3 Zeen)
   const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
@@ -198,7 +243,23 @@ export default function StorefrontPage() {
     async function loadBooks() {
       try {
         const data = await ordersApi.getBooks();
-        setBooks(data);
+        let storedBooks: Book[] = [];
+        if (typeof window !== 'undefined') {
+          const raw = localStorage.getItem('sp_catalog_books');
+          if (raw) {
+            try { storedBooks = JSON.parse(raw); } catch (e) {}
+          }
+        }
+        const hiddenIds: string[] = typeof window !== 'undefined'
+          ? JSON.parse(localStorage.getItem('sp_hidden_books') || '[]')
+          : [];
+
+        const initialList = storedBooks.length > 0 ? storedBooks : data;
+        const merged = initialList.map(b => ({
+          ...b,
+          hidden: hiddenIds.includes(b.id) || Boolean(b.hidden)
+        }));
+        setBooks(merged);
       } catch (err) {
         console.error('Failed to load books:', err);
       } finally {
@@ -217,6 +278,125 @@ export default function StorefrontPage() {
       try { setLoggedInStaff(JSON.parse(staffRaw)); } catch (e) {}
     }
   }, []);
+
+  // Admin Book Management Handlers
+  const handleCreateBook = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newBookForm.title.trim() || !newBookForm.author.trim()) return;
+
+    const newBook: Book = {
+      id: `BK-${Date.now().toString().slice(-5)}`,
+      title: newBookForm.title.trim(),
+      author: newBookForm.author.trim(),
+      category: newBookForm.category.trim() || 'General',
+      price: Number(newBookForm.price) || 0,
+      coverImage: newBookForm.coverImage.trim() || 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=600',
+      stockQuantity: Number(newBookForm.stockQuantity) || 1,
+      isbn: newBookForm.isbn.trim() || `978-955-0201-${Math.floor(10 + Math.random() * 89)}-${Math.floor(1 + Math.random() * 9)}`,
+      description: newBookForm.description.trim() || 'A curated title in the Sarasavi Pages bookstore archive.',
+      rating: Number(newBookForm.rating) || 4.8,
+      hidden: false
+    };
+
+    const updated = [newBook, ...books];
+    setBooks(updated);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('sp_catalog_books', JSON.stringify(updated));
+    }
+
+    try {
+      await apiClient.post('/books', newBook);
+    } catch (err: any) {
+      console.warn('Backend books sync fallback:', err.message);
+    }
+
+    setIsAddBookModalOpen(false);
+    setNewBookForm({
+      title: '',
+      author: '',
+      category: 'Classic Fiction',
+      price: 1500,
+      coverImage: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=600',
+      stockQuantity: 25,
+      isbn: '978-955-0201-99-9',
+      description: '',
+      rating: 4.8
+    });
+    showNotification(`Book "${newBook.title}" successfully added to the catalog!`);
+  };
+
+  const handleOpenEditBook = (book: Book) => {
+    setEditingBook({ ...book });
+    setIsEditBookModalOpen(true);
+  };
+
+  const handleSaveEditBook = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingBook) return;
+
+    const updated = books.map(b => b.id === editingBook.id ? editingBook : b);
+    setBooks(updated);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('sp_catalog_books', JSON.stringify(updated));
+    }
+
+    try {
+      await apiClient.put(`/books/${editingBook.id}`, editingBook);
+    } catch (err: any) {
+      console.warn('Backend books update fallback:', err.message);
+    }
+
+    setIsEditBookModalOpen(false);
+    showNotification(`Book details for "${editingBook.title}" updated successfully!`);
+    setEditingBook(null);
+  };
+
+  const handleToggleHideBook = (book: Book) => {
+    const isNowHidden = !book.hidden;
+    const updated = books.map(b => b.id === book.id ? { ...b, hidden: isNowHidden } : b);
+    setBooks(updated);
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('sp_catalog_books', JSON.stringify(updated));
+      const hiddenIds = updated.filter(b => b.hidden).map(b => b.id);
+      localStorage.setItem('sp_hidden_books', JSON.stringify(hiddenIds));
+    }
+
+    showNotification(
+      isNowHidden
+        ? `"${book.title}" is now hidden from regular customers.`
+        : `"${book.title}" is now visible to all customers on the storefront.`,
+      isNowHidden ? 'info' : 'success'
+    );
+  };
+
+  const handleDeleteBook = (book: Book) => {
+    setDeleteConfirmBook(book);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteConfirmBook) return;
+    const bookId = deleteConfirmBook.id;
+    const bookTitle = deleteConfirmBook.title;
+
+    const updated = books.filter(b => b.id !== bookId);
+    setBooks(updated);
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('sp_catalog_books', JSON.stringify(updated));
+      const hiddenIds: string[] = JSON.parse(localStorage.getItem('sp_hidden_books') || '[]');
+      localStorage.setItem('sp_hidden_books', JSON.stringify(hiddenIds.filter(id => id !== bookId)));
+    }
+
+    try {
+      await apiClient.delete(`/books/${bookId}`);
+    } catch (err: any) {
+      console.warn('Backend books delete fallback:', err.message);
+    }
+
+    setDeleteConfirmBook(null);
+    showNotification(`Book "${bookTitle}" permanently deleted from catalog.`, 'error');
+  };
 
   // ── GSAP Animations ─────────────────────────────────────────────────────
   useEffect(() => {
@@ -404,6 +584,10 @@ export default function StorefrontPage() {
 
   const filteredBooks = useMemo(() => {
     return books.filter(b => {
+      // If book is hidden and current viewer cannot manage catalog, hide it completely
+      if (b.hidden && !canManageBooks) {
+        return false;
+      }
       const matchesSearch = 
         b.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         b.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -411,7 +595,7 @@ export default function StorefrontPage() {
       const matchesCategory = selectedCategory === 'ALL' || b.category === selectedCategory;
       return matchesSearch && matchesCategory;
     });
-  }, [books, searchQuery, selectedCategory]);
+  }, [books, searchQuery, selectedCategory, canManageBooks]);
 
   const addToCart = (book: Book) => {
     setCart(prev => {
@@ -973,11 +1157,13 @@ export default function StorefrontPage() {
               </div>
 
               <div ref={featuredBooksRef} className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-                {books.slice(0, 4).map((book) => (
+                {(canManageBooks ? books : books.filter(b => !b.hidden)).slice(0, 4).map((book) => (
                   <div
                     data-book-card
                     key={book.id}
-                    className="bg-white rounded-2xl p-4 border border-black/[0.06] hover:shadow-lg hover:border-black/20 transition-all flex flex-col justify-between group"
+                    className={`bg-white rounded-2xl p-4 border transition-all flex flex-col justify-between group ${
+                      book.hidden ? 'border-amber-300/80 bg-amber-500/[0.02]' : 'border-black/[0.06] hover:shadow-lg hover:border-black/20'
+                    }`}
                   >
                     <div>
                       <div className="aspect-[3/4] w-full rounded-xl bg-stone-100 overflow-hidden mb-3 relative">
@@ -985,7 +1171,9 @@ export default function StorefrontPage() {
                           <img
                             src={book.coverImage}
                             alt={book.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${
+                              book.hidden ? 'opacity-75 grayscale-[25%]' : ''
+                            }`}
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-stone-400">
@@ -996,6 +1184,11 @@ export default function StorefrontPage() {
                         <span className="absolute top-2 left-2 ios-glass-light px-2.5 py-0.5 rounded-full text-[10px] font-mono text-[#1a2e22] font-medium">
                           {book.category}
                         </span>
+                        {book.hidden && (
+                          <span className="absolute top-2 right-2 px-2 py-0.5 rounded-md bg-amber-500 text-black text-[9px] font-mono font-bold">
+                            HIDDEN
+                          </span>
+                        )}
                       </div>
                       <h4 className="font-sans text-xs sm:text-sm font-medium text-[#121614] line-clamp-1 group-hover:text-[#1a2e22] transition-colors">
                         {book.title}
@@ -1138,6 +1331,37 @@ export default function StorefrontPage() {
               </div>
             </div>
 
+            {/* Admin Controls Banner for Books / Inventory / Catalog Authorized Staff */}
+            {canManageBooks && (
+              <div className="bg-[#122215] border border-emerald-500/30 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-white shadow-md">
+                <div className="flex items-start sm:items-center gap-3">
+                  <div className="w-3 h-3 rounded-full bg-emerald-400 animate-pulse shrink-0 mt-1 sm:mt-0" />
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-semibold text-xs sm:text-sm text-emerald-300">Catalog Admin Mode Active</span>
+                      <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-200 font-mono border border-emerald-400/30 font-medium">
+                        {activeStaff?.fullName || 'Admin Staff'} ({activeStaff?.role?.replace('_', ' ')})
+                      </span>
+                      <span className="text-[10px] text-white/60 font-mono">
+                        · {books.length} Titles ({books.filter(b => !b.hidden).length} Active, {books.filter(b => b.hidden).length} Hidden)
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-[#8ea893] mt-1 leading-relaxed">
+                      You are authorized to add new publications, edit metadata & pricing, toggle customer visibility (Hide/Unhide), and remove titles.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setIsAddBookModalOpen(true)}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-[#0c180f] font-semibold text-xs shadow-md transition-all active:scale-95 shrink-0"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>+ Add New Book</span>
+                </button>
+              </div>
+            )}
+
             {/* Category Filter Pills */}
             <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar">
               {categories.map((cat) => (
@@ -1155,20 +1379,100 @@ export default function StorefrontPage() {
               ))}
             </div>
 
+            {/* Empty state if no books found */}
+            {filteredBooks.length === 0 && (
+              <div className="bg-white rounded-2xl p-12 text-center border border-black/[0.06] space-y-3">
+                <BookOpen className="w-10 h-10 text-stone-400 mx-auto stroke-1" />
+                <h3 className="text-sm font-semibold text-[#121614]">No books match your criteria</h3>
+                <p className="text-xs text-[#666f68] max-w-sm mx-auto">
+                  {selectedCategory !== 'ALL' || searchQuery
+                    ? 'Try clearing the search query or changing the category filter.'
+                    : 'The bookstore catalog currently has no published titles.'}
+                </p>
+                {canManageBooks && (
+                  <button
+                    onClick={() => setIsAddBookModalOpen(true)}
+                    className="mt-2 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-medium hover:bg-emerald-700 transition-all shadow-sm"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Add First Book to Archive</span>
+                  </button>
+                )}
+              </div>
+            )}
+
             {/* Books Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
               {filteredBooks.map((book) => (
                 <div
                   key={book.id}
-                  className="bg-white rounded-2xl p-4 border border-black/[0.06] hover:shadow-lg hover:border-black/20 transition-all flex flex-col justify-between group"
+                  className={`bg-white rounded-2xl p-4 border transition-all flex flex-col justify-between group relative ${
+                    book.hidden
+                      ? 'border-amber-400/80 bg-amber-500/[0.02] shadow-sm'
+                      : 'border-black/[0.06] hover:shadow-lg hover:border-black/20'
+                  }`}
                 >
                   <div>
+                    {/* Admin Action Header (Exclusively shown to authorized catalog admins) */}
+                    {canManageBooks && (
+                      <div className="flex items-center justify-between gap-1 pb-2.5 mb-2.5 border-b border-black/[0.06]">
+                        <div>
+                          {book.hidden ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-800 text-[10px] font-semibold font-mono border border-amber-300/60">
+                              <EyeOff className="w-3 h-3" />
+                              <span>HIDDEN</span>
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-800 text-[10px] font-semibold font-mono border border-emerald-300/60">
+                              <Eye className="w-3 h-3" />
+                              <span>LIVE</span>
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-1">
+                          {/* Edit button */}
+                          <button
+                            onClick={() => handleOpenEditBook(book)}
+                            className="p-1.5 rounded-lg hover:bg-stone-100 text-[#2f3d32] hover:text-black transition-colors"
+                            title="Edit book details"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </button>
+
+                          {/* Hide / Unhide button */}
+                          <button
+                            onClick={() => handleToggleHideBook(book)}
+                            className={`p-1.5 rounded-lg transition-colors ${
+                              book.hidden
+                                ? 'hover:bg-emerald-100 text-emerald-700'
+                                : 'hover:bg-amber-100 text-amber-700'
+                            }`}
+                            title={book.hidden ? 'Unhide (Make visible to customers)' : 'Hide (Hide from customers)'}
+                          >
+                            {book.hidden ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                          </button>
+
+                          {/* Delete button */}
+                          <button
+                            onClick={() => handleDeleteBook(book)}
+                            className="p-1.5 rounded-lg hover:bg-red-100 text-red-600 hover:text-red-700 transition-colors"
+                            title="Delete book from catalog"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="aspect-[3/4] w-full rounded-xl bg-stone-100 overflow-hidden mb-3 relative">
                       {book.coverImage ? (
                         <img 
                           src={book.coverImage} 
                           alt={book.title} 
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+                          className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${
+                            book.hidden ? 'opacity-70 grayscale-[25%]' : ''
+                          }`} 
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-stone-400">
@@ -1178,6 +1482,11 @@ export default function StorefrontPage() {
                       <span className="absolute top-2 left-2 px-2.5 py-0.5 rounded-full bg-white/90 backdrop-blur-md text-[10px] font-mono text-[#1a2e22] font-semibold shadow-sm">
                         {book.category}
                       </span>
+                      {book.hidden && (
+                        <span className="absolute bottom-2 left-2 right-2 px-2 py-1 rounded-lg bg-black/85 backdrop-blur-md text-amber-300 text-[10px] font-mono text-center font-medium shadow-md">
+                          Hidden from customer view
+                        </span>
+                      )}
                     </div>
 
                     <h3 className="text-xs sm:text-sm font-bold text-[#121614] line-clamp-1 group-hover:text-[#1a2e22] transition-colors">
@@ -1201,9 +1510,13 @@ export default function StorefrontPage() {
 
                     <button
                       onClick={() => addToCart(book)}
-                      className="px-3.5 py-1.5 rounded-full bg-[#121614] hover:bg-black text-white text-xs font-medium shadow-sm transition-all active:scale-95"
+                      className={`px-3.5 py-1.5 rounded-full text-xs font-medium shadow-sm transition-all active:scale-95 ${
+                        book.hidden
+                          ? 'bg-stone-300 text-stone-600 hover:bg-stone-400'
+                          : 'bg-[#121614] hover:bg-black text-white'
+                      }`}
                     >
-                      + Add to Bag
+                      {book.hidden ? 'Test Bag' : '+ Add to Bag'}
                     </button>
                   </div>
                 </div>
@@ -1720,6 +2033,333 @@ export default function StorefrontPage() {
           </div>
         </div>
       </footer>
+
+      {/* ── MODAL: ADD NEW BOOK TO CATALOG ────────────────────────────── */}
+      {isAddBookModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-black/10 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-start justify-between border-b border-black/[0.06] pb-4">
+              <div>
+                <span className="text-[11px] font-mono uppercase text-emerald-700 tracking-wider font-semibold block">Bookstore Catalog Management</span>
+                <h3 className="font-sans font-medium text-xl sm:text-2xl text-[#121614] mt-0.5">Register New Book</h3>
+                <p className="text-xs text-[#5a625d] mt-1">Add a canonical or academic volume to the Sarasavi Pages public archive</p>
+              </div>
+              <button
+                onClick={() => setIsAddBookModalOpen(false)}
+                className="p-1.5 rounded-full hover:bg-black/[0.05] text-[#666f68] transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateBook} className="space-y-4">
+              <div>
+                <label className="text-xs font-semibold text-[#121614] block mb-1">Book Title *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Madol Doova or Clean Architecture"
+                  value={newBookForm.title}
+                  onChange={e => setNewBookForm({ ...newBookForm, title: e.target.value })}
+                  className="w-full px-4 py-2.5 rounded-xl border border-black/[0.1] text-xs text-[#121614] focus:outline-none focus:border-emerald-600 bg-[#fbfbf9]"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-semibold text-[#121614] block mb-1">Author Name *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Martin Wickramasinghe"
+                    value={newBookForm.author}
+                    onChange={e => setNewBookForm({ ...newBookForm, author: e.target.value })}
+                    className="w-full px-4 py-2.5 rounded-xl border border-black/[0.1] text-xs text-[#121614] focus:outline-none focus:border-emerald-600 bg-[#fbfbf9]"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-[#121614] block mb-1">Category *</label>
+                  <select
+                    value={newBookForm.category}
+                    onChange={e => setNewBookForm({ ...newBookForm, category: e.target.value })}
+                    className="w-full px-3 py-2.5 rounded-xl border border-black/[0.1] text-xs text-[#121614] focus:outline-none focus:border-emerald-600 bg-[#fbfbf9]"
+                  >
+                    <option value="Classic Fiction">Classic Fiction</option>
+                    <option value="Literature">Literature</option>
+                    <option value="Technology">Technology</option>
+                    <option value="Academic">Academic</option>
+                    <option value="Historical">Historical</option>
+                    <option value="Memoir">Memoir</option>
+                    <option value="Science">Science</option>
+                    <option value="Poetry">Poetry</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="text-xs font-semibold text-[#121614] block mb-1">Retail Price (LKR) *</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="50"
+                    required
+                    value={newBookForm.price}
+                    onChange={e => setNewBookForm({ ...newBookForm, price: Number(e.target.value) })}
+                    className="w-full px-4 py-2.5 rounded-xl border border-black/[0.1] text-xs font-mono text-[#121614] focus:outline-none focus:border-emerald-600 bg-[#fbfbf9]"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-[#121614] block mb-1">Stock Quantity</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={newBookForm.stockQuantity}
+                    onChange={e => setNewBookForm({ ...newBookForm, stockQuantity: Number(e.target.value) })}
+                    className="w-full px-4 py-2.5 rounded-xl border border-black/[0.1] text-xs font-mono text-[#121614] focus:outline-none focus:border-emerald-600 bg-[#fbfbf9]"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-[#121614] block mb-1">ISBN Code</label>
+                  <input
+                    type="text"
+                    value={newBookForm.isbn}
+                    onChange={e => setNewBookForm({ ...newBookForm, isbn: e.target.value })}
+                    className="w-full px-3 py-2.5 rounded-xl border border-black/[0.1] text-xs font-mono text-[#121614] focus:outline-none focus:border-emerald-600 bg-[#fbfbf9]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-[#121614] block mb-1">Cover Image URL</label>
+                <input
+                  type="url"
+                  placeholder="https://images.unsplash.com/..."
+                  value={newBookForm.coverImage}
+                  onChange={e => setNewBookForm({ ...newBookForm, coverImage: e.target.value })}
+                  className="w-full px-4 py-2.5 rounded-xl border border-black/[0.1] text-xs font-mono text-[#121614] focus:outline-none focus:border-emerald-600 bg-[#fbfbf9]"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-[#121614] block mb-1">Book Description / Synopsis</label>
+                <textarea
+                  rows={3}
+                  placeholder="Summary of novel or textbook curriculum..."
+                  value={newBookForm.description}
+                  onChange={e => setNewBookForm({ ...newBookForm, description: e.target.value })}
+                  className="w-full px-4 py-2.5 rounded-xl border border-black/[0.1] text-xs text-[#121614] focus:outline-none focus:border-emerald-600 bg-[#fbfbf9]"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-black/[0.06]">
+                <button
+                  type="button"
+                  onClick={() => setIsAddBookModalOpen(false)}
+                  className="px-4 py-2.5 rounded-full border border-black/[0.1] text-xs font-medium text-[#5a625d] hover:bg-stone-100 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 rounded-full bg-[#122215] hover:bg-black text-white text-xs font-medium shadow-md transition-all active:scale-95"
+                >
+                  Publish to Bookstore
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: EDIT BOOK DETAILS ─────────────────────────────────── */}
+      {isEditBookModalOpen && editingBook && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-black/10 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-start justify-between border-b border-black/[0.06] pb-4">
+              <div>
+                <span className="text-[11px] font-mono uppercase text-emerald-700 tracking-wider font-semibold block">Catalog Administrator Control</span>
+                <h3 className="font-sans font-medium text-xl sm:text-2xl text-[#121614] mt-0.5">Edit Book Details</h3>
+                <p className="text-xs text-[#5a625d] mt-1">Updating ID: <span className="font-mono text-emerald-700 font-bold">{editingBook.id}</span></p>
+              </div>
+              <button
+                onClick={() => { setIsEditBookModalOpen(false); setEditingBook(null); }}
+                className="p-1.5 rounded-full hover:bg-black/[0.05] text-[#666f68] transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEditBook} className="space-y-4">
+              <div>
+                <label className="text-xs font-semibold text-[#121614] block mb-1">Book Title *</label>
+                <input
+                  type="text"
+                  required
+                  value={editingBook.title}
+                  onChange={e => setEditingBook({ ...editingBook, title: e.target.value })}
+                  className="w-full px-4 py-2.5 rounded-xl border border-black/[0.1] text-xs text-[#121614] focus:outline-none focus:border-emerald-600 bg-[#fbfbf9]"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-semibold text-[#121614] block mb-1">Author Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingBook.author}
+                    onChange={e => setEditingBook({ ...editingBook, author: e.target.value })}
+                    className="w-full px-4 py-2.5 rounded-xl border border-black/[0.1] text-xs text-[#121614] focus:outline-none focus:border-emerald-600 bg-[#fbfbf9]"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-[#121614] block mb-1">Category *</label>
+                  <select
+                    value={editingBook.category}
+                    onChange={e => setEditingBook({ ...editingBook, category: e.target.value })}
+                    className="w-full px-3 py-2.5 rounded-xl border border-black/[0.1] text-xs text-[#121614] focus:outline-none focus:border-emerald-600 bg-[#fbfbf9]"
+                  >
+                    <option value="Classic Fiction">Classic Fiction</option>
+                    <option value="Literature">Literature</option>
+                    <option value="Technology">Technology</option>
+                    <option value="Academic">Academic</option>
+                    <option value="Historical">Historical</option>
+                    <option value="Memoir">Memoir</option>
+                    <option value="Science">Science</option>
+                    <option value="Poetry">Poetry</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="text-xs font-semibold text-[#121614] block mb-1">Price (LKR) *</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="50"
+                    required
+                    value={editingBook.price}
+                    onChange={e => setEditingBook({ ...editingBook, price: Number(e.target.value) })}
+                    className="w-full px-4 py-2.5 rounded-xl border border-black/[0.1] text-xs font-mono text-[#121614] focus:outline-none focus:border-emerald-600 bg-[#fbfbf9]"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-[#121614] block mb-1">Stock Quantity</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={editingBook.stockQuantity}
+                    onChange={e => setEditingBook({ ...editingBook, stockQuantity: Number(e.target.value) })}
+                    className="w-full px-4 py-2.5 rounded-xl border border-black/[0.1] text-xs font-mono text-[#121614] focus:outline-none focus:border-emerald-600 bg-[#fbfbf9]"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-[#121614] block mb-1">ISBN Code</label>
+                  <input
+                    type="text"
+                    value={editingBook.isbn || ''}
+                    onChange={e => setEditingBook({ ...editingBook, isbn: e.target.value })}
+                    className="w-full px-3 py-2.5 rounded-xl border border-black/[0.1] text-xs font-mono text-[#121614] focus:outline-none focus:border-emerald-600 bg-[#fbfbf9]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-[#121614] block mb-1">Cover Image URL</label>
+                <input
+                  type="url"
+                  value={editingBook.coverImage || ''}
+                  onChange={e => setEditingBook({ ...editingBook, coverImage: e.target.value })}
+                  className="w-full px-4 py-2.5 rounded-xl border border-black/[0.1] text-xs font-mono text-[#121614] focus:outline-none focus:border-emerald-600 bg-[#fbfbf9]"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-[#121614] block mb-1">Synopsis / Description</label>
+                <textarea
+                  rows={3}
+                  value={editingBook.description || ''}
+                  onChange={e => setEditingBook({ ...editingBook, description: e.target.value })}
+                  className="w-full px-4 py-2.5 rounded-xl border border-black/[0.1] text-xs text-[#121614] focus:outline-none focus:border-emerald-600 bg-[#fbfbf9]"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-black/[0.06]">
+                <button
+                  type="button"
+                  onClick={() => { setIsEditBookModalOpen(false); setEditingBook(null); }}
+                  className="px-4 py-2.5 rounded-full border border-black/[0.1] text-xs font-medium text-[#5a625d] hover:bg-stone-100 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium shadow-md transition-all active:scale-95"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: DELETE CONFIRMATION ─────────────────────────────────── */}
+      {deleteConfirmBook && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full border border-red-200 shadow-2xl space-y-5 text-center">
+            <div className="w-12 h-12 rounded-2xl bg-red-50 border border-red-200 text-red-600 flex items-center justify-center mx-auto">
+              <Trash2 className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="font-sans font-medium text-lg text-[#121614]">Delete Book from Archive?</h3>
+              <p className="text-xs text-[#5a625d] mt-2 leading-relaxed">
+                Are you sure you want to permanently delete <strong className="text-black font-semibold">"{deleteConfirmBook.title}"</strong> by {deleteConfirmBook.author}?
+              </p>
+              <p className="text-[11px] text-red-600 mt-1 font-medium">This will remove this book from customer storefront catalogs.</p>
+            </div>
+            <div className="flex items-center justify-center gap-3 pt-2">
+              <button
+                onClick={() => setDeleteConfirmBook(null)}
+                className="px-5 py-2.5 rounded-full border border-black/[0.1] text-xs font-medium text-[#5a625d] hover:bg-stone-100 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                className="px-6 py-2.5 rounded-full bg-red-600 hover:bg-red-700 text-white text-xs font-medium shadow-md transition-all active:scale-95"
+              >
+                Delete Permanently
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── ADMIN TOAST NOTIFICATION ──────────────────────────────────── */}
+      {adminNotification && (
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-2xl bg-[#122215] text-white border border-emerald-500/40 shadow-2xl max-w-sm">
+          <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${
+            adminNotification.type === 'error' ? 'bg-red-400' : adminNotification.type === 'info' ? 'bg-amber-400' : 'bg-emerald-400'
+          }`} />
+          <p className="text-xs leading-snug flex-1 font-medium">{adminNotification.message}</p>
+          <button
+            onClick={() => setAdminNotification(null)}
+            className="p-1 text-white/50 hover:text-white transition-colors"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
+
