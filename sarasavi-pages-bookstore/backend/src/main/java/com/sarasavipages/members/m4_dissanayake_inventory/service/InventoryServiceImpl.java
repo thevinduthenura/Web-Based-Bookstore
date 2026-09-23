@@ -162,8 +162,10 @@ public class InventoryServiceImpl implements InventoryService {
         item.setIsbn(req.getIsbn());
         item.setCategory(req.getCategory());
         item.setLocation(req.getLocation());
-        item.setUnitPrice(req.getUnitPrice());
         item.setSafetyStockLevel(req.getSafetyStockLevel());
+        item.setReorderQuantity(req.getReorderQuantity());
+        item.setUnitCost(req.getUnitCost());
+        item.setSellingPrice(req.getSellingPrice());
         item.setSupplier(req.getSupplier());
 
         InventoryItem updated = inventoryRepository.save(item);
