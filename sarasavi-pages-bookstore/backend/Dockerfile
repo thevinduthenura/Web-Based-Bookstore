@@ -20,8 +20,11 @@ RUN ./mvnw clean package -DskipTests -B
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 
-# Run as non-root user
-RUN addgroup -S spring && adduser -S spring -G spring
+# Create directory with full permissions for spring user
+RUN addgroup -S spring && adduser -S spring -G spring && \
+    mkdir -p /app/data /tmp && \
+    chown -R spring:spring /app
+
 USER spring:spring
 
 COPY --from=builder /workspace/target/*.jar app.jar

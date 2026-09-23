@@ -1,9 +1,9 @@
 # ==============================================================================
-# H2 Embedded / In-Memory Profile (h2)
+# H2 Embedded Profile (h2) for Cloud (Render) & Instant Local Running
 # ==============================================================================
 spring:
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:h2:file:./data/sarasavi_db;DB_CLOSE_DELAY=-1;AUTO_SERVER=TRUE}
+    url: ${SPRING_DATASOURCE_URL:jdbc:h2:mem:sarasavi_db;DB_CLOSE_DELAY=-1}
     username: ${DB_USER:sa}
     password: ${DB_PASSWORD:}
     driver-class-name: ${DB_DRIVER:org.h2.Driver}
@@ -19,11 +19,8 @@ spring:
         format_sql: true
 
   flyway:
-    enabled: ${FLYWAY_ENABLED:false}
-    locations: classpath:db/migration
-    baseline-on-migrate: true
+    enabled: false
 
   h2:
     console:
-      enabled: true
-      path: /h2-console
+      enabled: false
