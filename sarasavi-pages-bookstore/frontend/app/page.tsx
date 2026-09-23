@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { scrambleTextReveal, addMagneticEffect } from '@/hooks/useGsapAnimations';
+import { addMagneticEffect } from '@/hooks/useGsapAnimations';
 import Link from 'next/link';
 import Cookies from 'js-cookie';
 import AdminModeBar from '@/components/admin/AdminModeBar';
@@ -404,23 +404,20 @@ export default function StorefrontPage() {
     gsap.registerPlugin(ScrollTrigger);
 
     const ctx = gsap.context(() => {
-      // ─── 1. Hero Scramble Text ───────────────────────────────────────────
+      // ─── 1. Clean Hero Title & Subtitle Fade-up ─────────────────────────
       if (heroTitleRef.current) {
-        const titleEl = heroTitleRef.current;
-        scrambleTextReveal(titleEl, titleEl.textContent || '', 1.8, 0.2);
         gsap.fromTo(
-          titleEl,
-          { opacity: 0, y: 30 },
-          { opacity: 1, y: 0, duration: 1.0, ease: 'power3.out', delay: 0.1 }
+          heroTitleRef.current,
+          { opacity: 0, y: 20 },
+          { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out', delay: 0.1 }
         );
       }
 
-      // ─── 2. Hero Subtitle Parallax Slide ─────────────────────────────────
       if (heroSubtitleRef.current) {
         gsap.fromTo(
           heroSubtitleRef.current,
-          { opacity: 0, x: 40, filter: 'blur(8px)' },
-          { opacity: 1, x: 0, filter: 'blur(0px)', duration: 1.2, ease: 'expo.out', delay: 0.4 }
+          { opacity: 0, y: 15 },
+          { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out', delay: 0.25 }
         );
       }
 
@@ -675,15 +672,15 @@ export default function StorefrontPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#c8d8c6] bg-gradient-to-b from-[#bed4bc] via-[#cadbc8] to-[#e0ede0] text-[#122215] font-sans antialiased selection:bg-[#122215] selection:text-white pb-20">
+    <div className="min-h-screen bg-[#fcfdfc] text-[#122215] font-sans antialiased selection:bg-[#122215] selection:text-white flex flex-col">
       {/* ── CINEVAULT-STYLE ADMIN MODE TOP BAR (Visible only to Admins) ── */}
       {loggedInStaff && (
         <AdminModeBar showOnStorefront={true} />
       )}
 
       {/* ── HEALIUM AUTHENTIC FLOATING PILL NAVIGATION ───────── */}
-      <header className="sticky top-4 z-40 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-4">
-        <div className="ios-glass bg-white/85 backdrop-blur-xl border border-white/60 shadow-[0_4px_24px_rgba(0,0,0,0.06)] rounded-full h-16 px-6 flex items-center justify-between gap-4 transition-all">
+      <header className={`sticky top-4 z-40 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pointer-events-none ${activeNavTab === 'home' ? '-mb-20' : 'mb-8'}`}>
+        <div className="pointer-events-auto ios-glass bg-white/90 backdrop-blur-xl border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.08)] rounded-full h-16 px-6 flex items-center justify-between gap-4 transition-all">
           {/* Left: Healium Organic Emblem + Wordmark */}
           <button 
             onClick={() => {
@@ -782,57 +779,55 @@ export default function StorefrontPage() {
         </div>
       </header>
 
-      {/* ── MAIN VIEWPORT ──────────────────────────────────────── */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-20">
+      {/* ── MAIN VIEWPORT / CONTENT ROUTING ────────────────────── */}
+      {/* ========================================================= */}
+      {/* TAB 1: HOME (LUMÓRA / HEALIUM EDITORIAL SHOWCASE)         */}
+      {/* ========================================================= */}
+      {activeNavTab === 'home' && (
+        <>
+          {/* ── HEALIUM AUTHENTIC FULL-BLEED HERO CANVAS ──────────────────────── */}
+          <section ref={heroSectionRef} className="relative w-full overflow-hidden bg-[#142316] text-white flex flex-col pt-24 sm:pt-28 pb-0">
+            
+            {/* Forest & Morning Sunlight Atmosphere Background */}
+            <div
+              className="absolute inset-0 bg-cover bg-center"
+              style={{
+                backgroundImage: `url('/images/healium-moss-book.jpg')`,
+                filter: 'brightness(0.65) saturate(1.2)'
+              }}
+            />
+            {/* Healium Green Atmospheric Gradient Overlays */}
+            <div className="absolute inset-0 bg-gradient-to-b from-[#162719]/80 via-[#182d1c]/50 to-[#0e1b10]/95" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-500/20 via-transparent to-transparent pointer-events-none" />
 
-        {/* ========================================================= */}
-        {/* TAB 1: HOME (LUMÓRA / HEALIUM EDITORIAL SHOWCASE)         */}
-        {/* ========================================================= */}
-        {activeNavTab === 'home' && (
-          <>
-            {/* ── HEALIUM AUTHENTIC FULL-BLEED HERO CANVAS ──────────────────────── */}
-            <section ref={heroSectionRef} className="relative rounded-[36px] sm:rounded-[44px] overflow-hidden shadow-2xl bg-[#142316] text-white flex flex-col pt-6 pb-0">
-              
-              {/* Forest & Morning Sunlight Atmosphere Background */}
-              <div
-                className="absolute inset-0 bg-cover bg-center"
-                style={{
-                  backgroundImage: `url('/images/healium-moss-book.jpg')`,
-                  filter: 'brightness(0.65) saturate(1.2)'
-                }}
-              />
-              {/* Healium Green Atmospheric Gradient Overlays */}
-              <div className="absolute inset-0 bg-gradient-to-b from-[#162719]/80 via-[#182d1c]/50 to-[#0e1b10]/95" />
-              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-500/20 via-transparent to-transparent pointer-events-none" />
-
-              {/* ── TOP PILL INFO BADGES (INSIDE HERO) ── */}
-              <div className="relative z-20 px-6 sm:px-10 pt-2 flex items-center justify-between">
-                <div className="ios-glass inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-white text-xs font-medium shadow-md">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
-                  </span>
-                  <span>islandwide express · all 25 districts</span>
-                </div>
-                <div className="hidden sm:flex ios-glass items-center gap-1.5 px-3.5 py-1.5 rounded-full text-white text-xs font-medium shadow-md">
-                  <Bookmark className="w-3.5 h-3.5 text-amber-300" />
-                  <span>{books.length > 0 ? `${books.length}+ titles` : '1,500+ curated titles'}</span>
-                </div>
+            {/* ── TOP PILL INFO BADGES (INSIDE HERO) ── */}
+            <div className="relative z-20 max-w-7xl mx-auto w-full px-6 sm:px-10 pt-2 flex items-center justify-between">
+              <div className="ios-glass inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-white text-xs font-medium shadow-md">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
+                </span>
+                <span>islandwide express · all 25 districts</span>
               </div>
-
-              {/* ── BOOKSTORE HERO HEADLINE SECTION ── */}
-              <div className="relative z-10 px-6 sm:px-10 pt-6 pb-2 text-center max-w-4xl mx-auto">
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-xs font-semibold mb-4 backdrop-blur-md">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                  <span>Sri Lanka&apos;s Trusted Online Bookstore</span>
-                </div>
-                <h1 ref={heroTitleRef} className="font-sans font-bold text-4xl sm:text-6xl lg:text-7xl text-white tracking-tight leading-[1.08] drop-shadow-md">
-                  Your Stories, Literature & Academic Textbooks
-                </h1>
-                <p className="text-white/80 text-xs sm:text-sm font-normal leading-relaxed max-w-xl mx-auto mt-4 drop-shadow-sm">
-                  From celebrated Sinhala literary classics by Martin Wickramasinghe to SLIIT engineering & computing course texts. Delivered safely to your doorstep across all 25 districts.
-                </p>
+              <div className="hidden sm:flex ios-glass items-center gap-1.5 px-3.5 py-1.5 rounded-full text-white text-xs font-medium shadow-md">
+                <Bookmark className="w-3.5 h-3.5 text-amber-300" />
+                <span>{books.length > 0 ? `${books.length}+ titles` : '1,500+ curated titles'}</span>
               </div>
+            </div>
+
+            {/* ── BOOKSTORE HERO HEADLINE SECTION ── */}
+            <div className="relative z-10 px-6 sm:px-10 pt-6 pb-2 text-center max-w-4xl mx-auto">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-xs font-semibold mb-4 backdrop-blur-md">
+                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                <span>Sri Lanka&apos;s Trusted Online Bookstore</span>
+              </div>
+              <h1 ref={heroTitleRef} className="font-sans font-bold text-4xl sm:text-6xl lg:text-7xl text-white tracking-tight leading-[1.08] drop-shadow-md">
+                Your Stories, Literature & Academic Textbooks
+              </h1>
+              <p ref={heroSubtitleRef} className="text-white/80 text-xs sm:text-sm font-normal leading-relaxed max-w-xl mx-auto mt-4 drop-shadow-sm">
+                From celebrated Sinhala literary classics by Martin Wickramasinghe to SLIIT engineering & computing course texts. Delivered safely to your doorstep across all 25 districts.
+              </p>
+            </div>
 
               {/* ── CENTER BOOKSTORE SEARCH BAR & CATEGORY CHIPS ── */}
               <div className="relative z-10 max-w-2xl mx-auto w-full px-6 py-6 flex flex-col items-center">
@@ -883,8 +878,8 @@ export default function StorefrontPage() {
               </div>
 
               {/* ── BOOKSTORE CORE VALUE PROPOSITIONS DOCK ── */}
-              <div className="relative z-20 bg-[#162719]/95 backdrop-blur-2xl rounded-t-[36px] sm:rounded-t-[44px] border-t border-white/20 p-6 sm:p-8 mt-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              <div className="relative z-20 w-full bg-[#162719]/95 backdrop-blur-2xl border-t border-white/10 p-6 sm:p-10 mt-6">
+                <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
                   {/* Feature 1 */}
                   <div className="bg-white/95 rounded-3xl p-6 shadow-md border border-black/[0.04] space-y-3">
                     <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-800 flex items-center justify-center border border-emerald-100 shadow-xs">
@@ -923,7 +918,7 @@ export default function StorefrontPage() {
             </section>
 
             {/* ── GSAP INFINITE MARQUEE TICKER ──────────────────────────── */}
-            <div ref={marqueeRef} className="overflow-hidden py-4 -mx-4 sm:-mx-6 lg:-mx-8 select-none">
+            <div ref={marqueeRef} className="w-full overflow-hidden py-4 bg-white border-y border-black/[0.06] select-none">
               <div data-marquee-track className="flex items-center gap-8 will-change-transform">
                 {/* Duplicate items for seamless loop */}
                 {[...Array(2)].map((_, repeatIdx) => (
@@ -943,6 +938,9 @@ export default function StorefrontPage() {
                 ))}
               </div>
             </div>
+
+            {/* ── MAIN CONTENT SECTIONS CONTAINER ────────────────────────── */}
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-20 w-full flex-1">
 
             {/* ── BOOKSTORE "HOW IT WORKS - IN 3 SIMPLE STEPS" SECTION ─── */}
             <section ref={stepsRef as React.RefObject<HTMLElement>} className="bg-white rounded-[36px] sm:rounded-[44px] p-8 sm:p-12 lg:p-16 border border-black/[0.06] shadow-sm space-y-12">
@@ -1303,13 +1301,19 @@ export default function StorefrontPage() {
                 </div>
               </div>
             </section>
-          </>
-        )}
+          </main>
+        </>
+      )}
 
         {/* ========================================================= */}
-        {/* TAB 2: CATALOG (FULL BOOKS STOREFRONT)                    */}
+        {/* OTHER TABS: CATALOG, PEOPLE, RENTALS, ABOUT              */}
         {/* ========================================================= */}
-        {activeNavTab === 'books' && (
+        {activeNavTab !== 'home' && (
+          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16 space-y-12 w-full flex-1">
+            {/* ========================================================= */}
+            {/* TAB 2: CATALOG (FULL BOOKS STOREFRONT)                    */}
+            {/* ========================================================= */}
+            {activeNavTab === 'books' && (
           <div className="space-y-8">
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-black/[0.06]">
               <div>
@@ -1739,7 +1743,8 @@ export default function StorefrontPage() {
           </div>
         )}
 
-      </main>
+          </main>
+        )}
 
       {/* ── CUSTOMER SUPPORT TICKET MODAL (MODULE M3) ──────────── */}
       {isTicketModalOpen && (
@@ -1980,7 +1985,7 @@ export default function StorefrontPage() {
       )}
 
       {/* ── GRAND EDITORIAL FOOTER (LUMÓRA SIGNATURE FOOTER) ───── */}
-      <footer className="bg-[#0d110e] text-white rounded-t-[40px] sm:rounded-t-[48px] pt-16 pb-12 px-6 sm:px-12 mt-20">
+      <footer className="w-full bg-[#0d110e] text-white pt-16 pb-12 px-6 sm:px-12 mt-20">
         <div className="max-w-7xl mx-auto space-y-16">
           
           {/* Top Inquiries & Quick Links */}
