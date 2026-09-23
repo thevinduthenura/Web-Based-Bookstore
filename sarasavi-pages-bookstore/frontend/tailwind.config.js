@@ -70,7 +70,7 @@ module.exports = {
       },
       fontFamily: {
         sans:    ['var(--font-inter)', 'Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
-        display: ['Reina Neue', 'Arial', 'Helvetica', 'sans-serif'],
+        display: ['var(--font-inter)', 'Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
         serif:   ['Georgia', 'Times New Roman', 'serif'],
         mono:    ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'monospace'],
       },

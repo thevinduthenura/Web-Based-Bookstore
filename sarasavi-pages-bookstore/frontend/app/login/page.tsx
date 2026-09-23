@@ -73,11 +73,14 @@ function LoginForm() {
 
   // Customer registration modal toggle
   const [showRegisterModal, setShowRegisterModal] = useState(false);
+  const [showRegPassword, setShowRegPassword] = useState(false);
+  const [showRegConfirmPassword, setShowRegConfirmPassword] = useState(false);
   const [regForm, setRegForm] = useState({
     firstName: '',
     lastName: '',
     email: '',
     password: '',
+    confirmPassword: '',
     phone: '',
     city: 'Colombo',
     addressLine1: ''
@@ -85,6 +88,16 @@ function LoginForm() {
   const [regLoading, setRegLoading] = useState(false);
   const [modalError, setModalError] = useState<string | null>(null);
   const [modalSuccess, setModalSuccess] = useState<string | null>(null);
+
+  // Live password validation rules
+  const hasMinLength = regForm.password.length >= 8;
+  const hasUppercase = /[A-Z]/.test(regForm.password);
+  const hasNumber = /[0-9]/.test(regForm.password);
+  const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(regForm.password);
+  const passwordsMatch = regForm.password.length > 0 && regForm.password === regForm.confirmPassword;
+  const phoneClean = regForm.phone.replace(/[\s-]/g, '');
+  const isPhoneValid = !regForm.phone.trim() || /^(\+94|0)?7[0-9]{8}$/.test(phoneClean);
+  const passwordStrengthScore = [hasMinLength, hasUppercase, hasNumber, hasSpecial].filter(Boolean).length;
 
   // ── Unified Sign-In Handler ───────────────────────────────────────────────
   // Works seamlessly for both Staff/Administrators and Regular Customers
@@ -203,19 +216,50 @@ function LoginForm() {
     setModalError(null);
     setModalSuccess(null);
 
+    const firstName = regForm.firstName.trim();
+    const lastName = regForm.lastName.trim();
     const email = regForm.email.trim().toLowerCase();
-    if (!email || !email.includes('@')) {
-      setModalError('Please enter a valid email address.');
+
+    if (firstName.length < 2 || lastName.length < 2) {
+      setModalError('First name and Last name must each be at least 2 characters long.');
       return;
     }
 
-    if (!regForm.password || regForm.password.length < 6) {
-      setModalError('Password must be at least 6 characters long.');
+    if (!/^[a-zA-Z\s.'-]+$/.test(firstName) || !/^[a-zA-Z\s.'-]+$/.test(lastName)) {
+      setModalError('Names may only contain alphabetic letters.');
       return;
     }
 
-    if (!regForm.firstName.trim() || !regForm.lastName.trim()) {
-      setModalError('First name and Last name are required.');
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setModalError('Please enter a valid, properly formatted email address.');
+      return;
+    }
+
+    // Password rules validation
+    if (!hasMinLength) {
+      setModalError('Password must be at least 8 characters long.');
+      return;
+    }
+    if (!hasUppercase) {
+      setModalError('Password must include at least one uppercase letter (A-Z).');
+      return;
+    }
+    if (!hasNumber) {
+      setModalError('Password must include at least one number (0-9).');
+      return;
+    }
+    if (!hasSpecial) {
+      setModalError('Password must include at least one special character (!@#$%^&* etc).');
+      return;
+    }
+    if (!passwordsMatch) {
+      setModalError('Passwords do not match. Please re-enter confirmation password.');
+      return;
+    }
+
+    // Phone validation (if provided)
+    if (regForm.phone.trim() && !isPhoneValid) {
+      setModalError('Please enter a valid Sri Lankan phone number (e.g. 077 123 4567 or +94 77 123 4567).');
       return;
     }
 
@@ -225,9 +269,9 @@ function LoginForm() {
 
       try {
         const res = await apiClient.post('/accounts/register', {
-          firstName: regForm.firstName.trim(),
-          lastName: regForm.lastName.trim(),
-          email: email,
+          firstName,
+          lastName,
+          email,
           password: regForm.password,
           phone: regForm.phone.trim() || '+94 77 123 4567',
           city: regForm.city.trim() || 'Colombo',
@@ -242,22 +286,29 @@ function LoginForm() {
         console.warn('Backend API note:', apiErr.response?.data || apiErr.message);
       }
 
+      // Fresh new customer profile
       const createdCustomer = {
         customerId,
-        name: `${regForm.firstName.trim()} ${regForm.lastName.trim()}`,
+        name: `${firstName} ${lastName}`,
         email: email,
         password: regForm.password,
         tier: 'BRONZE' as const,
-        points: 50,
+        points: 50, // Welcome loyalty reward
         phone: regForm.phone.trim() || '+94 77 123 4567',
         address: regForm.addressLine1.trim() ? `${regForm.addressLine1.trim()}, ${regForm.city}` : 'Colombo, Sri Lanka',
-        kycVerified: false
+        kycVerified: false,
+        isNewUser: true
       };
 
       if (typeof window !== 'undefined') {
         const existing = JSON.parse(localStorage.getItem('sp_registered_customers') || '[]');
         const updated = [createdCustomer, ...existing.filter((c: any) => c.email !== email)];
         localStorage.setItem('sp_registered_customers', JSON.stringify(updated));
+
+        // CRITICAL: Ensure this fresh customer starts with 0 orders, 0 tickets, 0 payments
+        localStorage.setItem(`sp_orders_${customerId}`, JSON.stringify([]));
+        localStorage.setItem(`sp_tickets_${customerId}`, JSON.stringify([]));
+        localStorage.setItem(`sp_payments_${customerId}`, JSON.stringify([]));
       }
 
       Cookies.set('sp_customer', JSON.stringify(createdCustomer), { expires: 7 });
@@ -265,14 +316,14 @@ function LoginForm() {
         localStorage.setItem('sp_customer', JSON.stringify(createdCustomer));
       }
 
-      setModalSuccess(`Account created successfully! Redirecting...`);
+      setModalSuccess(`Welcome to Sarasavi Pages! Account created with 50 bonus loyalty points.`);
       setIdentifier(email);
       setPassword(regForm.password);
 
       setTimeout(() => {
         setShowRegisterModal(false);
-        router.push('/');
-      }, 1000);
+        router.push('/account');
+      }, 1200);
     } catch (err: any) {
       setModalError(err.message || 'Registration failed. Please check your inputs.');
     } finally {
@@ -474,16 +525,108 @@ function LoginForm() {
               </div>
 
               <div>
-                <label className="block text-[#3b4e40] font-medium mb-1">Password (min 6 characters) *</label>
-                <input
-                  type="password"
-                  required
-                  minLength={6}
-                  value={regForm.password}
-                  onChange={(e) => setRegForm({ ...regForm, password: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-full bg-white border border-black/[0.08] text-[#122215] font-mono placeholder:text-[#8a998e] focus:outline-none focus:border-[#122215]"
-                  placeholder="••••••••"
-                />
+                <label className="block text-[#3b4e40] font-medium mb-1">
+                  Password <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type={showRegPassword ? 'text' : 'password'}
+                    required
+                    value={regForm.password}
+                    onChange={(e) => setRegForm({ ...regForm, password: e.target.value })}
+                    className="w-full pl-3.5 pr-10 py-2.5 rounded-full bg-white border border-black/[0.08] text-[#122215] font-mono text-xs placeholder:text-[#8a998e] focus:outline-none focus:border-[#122215]"
+                    placeholder="Create secure password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowRegPassword(!showRegPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#738477] hover:text-[#122215]"
+                  >
+                    {showRegPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+
+                {/* Password Strength Meter */}
+                {regForm.password.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    <div className="flex items-center justify-between text-[10px]">
+                      <span className="text-[#556358]">Password Security:</span>
+                      <span className={`font-semibold ${
+                        passwordStrengthScore <= 1 ? 'text-red-600' :
+                        passwordStrengthScore <= 3 ? 'text-amber-600' : 'text-emerald-700'
+                      }`}>
+                        {passwordStrengthScore <= 1 ? 'Weak' :
+                         passwordStrengthScore <= 3 ? 'Medium' : 'Strong'}
+                      </span>
+                    </div>
+                    <div className="h-1.5 w-full bg-black/5 rounded-full overflow-hidden flex gap-1">
+                      <div className={`h-full flex-1 rounded-full transition-all ${
+                        passwordStrengthScore >= 1 ? (passwordStrengthScore <= 1 ? 'bg-red-500' : passwordStrengthScore <= 3 ? 'bg-amber-500' : 'bg-emerald-500') : 'bg-transparent'
+                      }`} />
+                      <div className={`h-full flex-1 rounded-full transition-all ${
+                        passwordStrengthScore >= 2 ? (passwordStrengthScore <= 3 ? 'bg-amber-500' : 'bg-emerald-500') : 'bg-transparent'
+                      }`} />
+                      <div className={`h-full flex-1 rounded-full transition-all ${
+                        passwordStrengthScore >= 3 ? (passwordStrengthScore <= 3 ? 'bg-amber-500' : 'bg-emerald-500') : 'bg-transparent'
+                      }`} />
+                      <div className={`h-full flex-1 rounded-full transition-all ${
+                        passwordStrengthScore >= 4 ? 'bg-emerald-500' : 'bg-transparent'
+                      }`} />
+                    </div>
+                  </div>
+                )}
+
+                {/* Live Password Rules Checklist */}
+                <div className="mt-2 p-2.5 rounded-xl bg-black/[0.03] border border-black/[0.05] grid grid-cols-2 gap-1 text-[10px]">
+                  <div className={`flex items-center gap-1.5 ${hasMinLength ? 'text-emerald-700 font-medium' : 'text-stone-500'}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${hasMinLength ? 'bg-emerald-500' : 'bg-stone-300'}`} />
+                    <span>8+ characters</span>
+                  </div>
+                  <div className={`flex items-center gap-1.5 ${hasUppercase ? 'text-emerald-700 font-medium' : 'text-stone-500'}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${hasUppercase ? 'bg-emerald-500' : 'bg-stone-300'}`} />
+                    <span>1 uppercase (A-Z)</span>
+                  </div>
+                  <div className={`flex items-center gap-1.5 ${hasNumber ? 'text-emerald-700 font-medium' : 'text-stone-500'}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${hasNumber ? 'bg-emerald-500' : 'bg-stone-300'}`} />
+                    <span>1 number (0-9)</span>
+                  </div>
+                  <div className={`flex items-center gap-1.5 ${hasSpecial ? 'text-emerald-700 font-medium' : 'text-stone-500'}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${hasSpecial ? 'bg-emerald-500' : 'bg-stone-300'}`} />
+                    <span>1 special symbol</span>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[#3b4e40] font-medium mb-1">
+                  Confirm Password <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type={showRegConfirmPassword ? 'text' : 'password'}
+                    required
+                    value={regForm.confirmPassword}
+                    onChange={(e) => setRegForm({ ...regForm, confirmPassword: e.target.value })}
+                    className={`w-full pl-3.5 pr-10 py-2.5 rounded-full bg-white border text-[#122215] font-mono text-xs placeholder:text-[#8a998e] focus:outline-none ${
+                      regForm.confirmPassword.length > 0
+                        ? (passwordsMatch ? 'border-emerald-500 focus:border-emerald-600' : 'border-red-400 focus:border-red-500')
+                        : 'border-black/[0.08] focus:border-[#122215]'
+                    }`}
+                    placeholder="Re-enter password to match"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowRegConfirmPassword(!showRegConfirmPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#738477] hover:text-[#122215]"
+                  >
+                    {showRegConfirmPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+                {regForm.confirmPassword.length > 0 && (
+                  <p className={`text-[10px] mt-1 font-medium ${passwordsMatch ? 'text-emerald-700' : 'text-red-600'}`}>
+                    {passwordsMatch ? '✓ Passwords match perfectly' : '✕ Passwords do not match'}
+                  </p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-2.5">
@@ -493,9 +636,14 @@ function LoginForm() {
                     type="text"
                     value={regForm.phone}
                     onChange={(e) => setRegForm({ ...regForm, phone: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-full bg-white border border-black/[0.08] text-[#122215] placeholder:text-[#8a998e] focus:outline-none focus:border-[#122215]"
-                    placeholder="+94 77 123 4567"
+                    className={`w-full px-3.5 py-2.5 rounded-full bg-white border text-[#122215] text-xs placeholder:text-[#8a998e] focus:outline-none ${
+                      regForm.phone.trim() && !isPhoneValid ? 'border-red-400' : 'border-black/[0.08] focus:border-[#122215]'
+                    }`}
+                    placeholder="077 123 4567"
                   />
+                  {regForm.phone.trim() && !isPhoneValid && (
+                    <p className="text-[9px] text-red-500 mt-0.5">Use 07XXXXXXXX or +947XXXXXXXX</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-[#3b4e40] font-medium mb-1">City</label>
@@ -503,20 +651,20 @@ function LoginForm() {
                     type="text"
                     value={regForm.city}
                     onChange={(e) => setRegForm({ ...regForm, city: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-full bg-white border border-black/[0.08] text-[#122215] placeholder:text-[#8a998e] focus:outline-none focus:border-[#122215]"
+                    className="w-full px-3.5 py-2.5 rounded-full bg-white border border-black/[0.08] text-[#122215] text-xs placeholder:text-[#8a998e] focus:outline-none focus:border-[#122215]"
                     placeholder="Colombo"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[#3b4e40] font-medium mb-1">Address Line</label>
+                <label className="block text-[#3b4e40] font-medium mb-1">Delivery Address Line</label>
                 <input
                   type="text"
                   value={regForm.addressLine1}
                   onChange={(e) => setRegForm({ ...regForm, addressLine1: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-full bg-white border border-black/[0.08] text-[#122215] placeholder:text-[#8a998e] focus:outline-none focus:border-[#122215]"
-                  placeholder="No 25, Main Street"
+                  className="w-full px-3.5 py-2.5 rounded-full bg-white border border-black/[0.08] text-[#122215] text-xs placeholder:text-[#8a998e] focus:outline-none focus:border-[#122215]"
+                  placeholder="No 25, Main Street, Colombo 03"
                 />
               </div>
 

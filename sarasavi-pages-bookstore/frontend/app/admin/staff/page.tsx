@@ -470,19 +470,19 @@ export default function StaffManagementPage() {
         </div>
         <div className="flex flex-wrap items-center gap-2 text-[11px] font-sans">
           <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-950 border border-emerald-300 font-semibold">
-            [C] Create (Rules Enforced)
+            Create Staff (Rules Enforced)
           </span>
           <span className="px-2.5 py-1 rounded-full bg-sky-100 text-sky-950 border border-sky-300 font-semibold">
-            [R] Search & Role Filtering
+            Search & Role Filtering
           </span>
           <span className="px-2.5 py-1 rounded-full bg-amber-100 text-amber-950 border border-amber-300 font-semibold">
-            [U] Edit Name, Username & Role
+            Edit Name & Role
           </span>
           <span className="px-2.5 py-1 rounded-full bg-teal-100 text-teal-950 border border-teal-300 font-semibold">
-            [A/D] Activate / Deactivate
+            Activate / Deactivate
           </span>
           <span className="px-2.5 py-1 rounded-full bg-rose-100 text-rose-950 border border-rose-300 font-semibold">
-            [DEL] Permanent Delete
+            Permanent Delete
           </span>
         </div>
       </div>

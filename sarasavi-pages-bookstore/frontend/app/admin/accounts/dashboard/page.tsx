@@ -249,19 +249,19 @@ export default function AccountsDashboardPage() {
             <UserCheck className="w-3.5 h-3.5" />
             Module 5: User Accounts Administration
           </div>
-          <h1 className="text-2xl font-bold font-display text-white">Customer Profiles & KYC Security</h1>
+          <h1 className="text-2xl font-bold text-slate-900">Customer Profiles & KYC Security</h1>
           <p className="text-xs text-ink-muted mt-1">
-            Assigned Owner: <span className="text-pink-400 font-semibold">Gayathmi P.G.R. (IT25103013)</span> | Role: <span className="font-mono text-white">ACCOUNT_ADMIN</span>
+            Assigned Owner: <span className="text-pink-600 font-semibold">Gayathmi P.G.R. (IT25103013)</span> | Role: <span className="font-mono text-slate-900 font-bold">ACCOUNT_ADMIN</span>
           </p>
         </div>
 
         <div className="flex items-center gap-2.5">
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-pink-600 hover:bg-pink-500 text-white text-xs font-semibold shadow-lg shadow-pink-900/30 transition-all"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-pink-600 hover:bg-pink-700 text-white text-xs font-semibold shadow-md transition-all active:scale-95"
           >
             <UserPlus className="w-4 h-4" />
-            <span>[C] Register New Customer</span>
+            <span>+ Register New Customer</span>
           </button>
           <button
             onClick={fetchCustomers}
@@ -274,23 +274,23 @@ export default function AccountsDashboardPage() {
       </div>
 
       {/* CRUD Capability Legend */}
-      <div className="glass-card p-3.5 rounded-xl border border-pink-500/20 bg-pink-950/10 flex flex-wrap items-center justify-between gap-3 text-xs">
-        <div className="flex items-center gap-2 font-semibold text-pink-400">
+      <div className="glass-card p-3.5 rounded-xl border border-pink-500/20 bg-pink-50/60 flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div className="flex items-center gap-2 font-semibold text-pink-700">
           <Layers className="w-4 h-4" />
-          <span>Member 5 CRUD Operations Active:</span>
+          <span>Member 5 Capabilities:</span>
         </div>
-        <div className="flex flex-wrap items-center gap-2 font-mono text-[11px]">
-          <span className="px-2.5 py-1 rounded-md bg-pink-500/20 text-pink-300 border border-pink-500/30">
-            [C] Register Account
+        <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium">
+          <span className="px-2.5 py-1 rounded-md bg-pink-100 text-pink-800 border border-pink-200">
+            Register Account
           </span>
-          <span className="px-2.5 py-1 rounded-md bg-sky-500/20 text-sky-300 border border-sky-500/30">
-            [R] Search & Profiles
+          <span className="px-2.5 py-1 rounded-md bg-sky-100 text-sky-800 border border-sky-200">
+            Search & Profiles
           </span>
-          <span className="px-2.5 py-1 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/30">
-            [U] Edit & KYC Toggle
+          <span className="px-2.5 py-1 rounded-md bg-amber-100 text-amber-800 border border-amber-200">
+            Edit & KYC Status
           </span>
-          <span className="px-2.5 py-1 rounded-md bg-red-500/20 text-red-300 border border-red-500/30">
-            [D] Delete Account
+          <span className="px-2.5 py-1 rounded-md bg-rose-100 text-rose-800 border border-rose-200">
+            Delete Account
           </span>
         </div>
       </div>
@@ -311,62 +311,62 @@ export default function AccountsDashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="glass-card p-5 rounded-2xl">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-ink-muted">Registered Customers</span>
-            <div className="h-8 w-8 rounded-lg bg-pink-500/10 text-pink-400 flex items-center justify-center">
+            <span className="text-xs font-semibold text-slate-700">Registered Customers</span>
+            <div className="h-8 w-8 rounded-lg bg-pink-500/10 text-pink-600 flex items-center justify-center">
               <Users className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-bold text-white font-display">{totalUsers}</span>
+            <span className="text-2xl font-bold text-slate-900">{totalUsers}</span>
           </div>
-          <p className="text-[11px] text-pink-400 mt-1">Verified Member Directory</p>
+          <p className="text-[11px] text-pink-700 font-medium mt-1">Verified Member Directory</p>
         </div>
 
         <div className="glass-card p-5 rounded-2xl">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-ink-muted">KYC Verified Ratio</span>
-            <div className="h-8 w-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+            <span className="text-xs font-semibold text-slate-700">KYC Verified Ratio</span>
+            <div className="h-8 w-8 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
               <ShieldCheck className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-bold text-white font-display">
+            <span className="text-2xl font-bold text-slate-900">
               {totalUsers > 0 ? Math.round((verifiedCount / totalUsers) * 100) : 0}%
             </span>
           </div>
-          <p className="text-[11px] text-emerald-400 mt-1">{verifiedCount} of {totalUsers} KYC Cleared</p>
+          <p className="text-[11px] text-emerald-700 font-medium mt-1">{verifiedCount} of {totalUsers} KYC Cleared</p>
         </div>
 
         <div className="glass-card p-5 rounded-2xl">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-ink-muted">Gold / VIP Tier</span>
-            <div className="h-8 w-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center">
+            <span className="text-xs font-semibold text-slate-700">Gold / VIP Tier</span>
+            <div className="h-8 w-8 rounded-lg bg-amber-500/10 text-amber-600 flex items-center justify-center">
               <Award className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-bold text-white font-display">{goldCount} Members</span>
+            <span className="text-2xl font-bold text-slate-900">{goldCount} Members</span>
           </div>
-          <p className="text-[11px] text-amber-400 mt-1">Eligible for Exclusive Discounts</p>
+          <p className="text-[11px] text-amber-700 font-medium mt-1">Eligible for Exclusive Discounts</p>
         </div>
 
         <div className="glass-card p-5 rounded-2xl">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-ink-muted">Suspended Accounts</span>
-            <div className="h-8 w-8 rounded-lg bg-red-500/10 text-red-400 flex items-center justify-center">
+            <span className="text-xs font-semibold text-slate-700">Suspended Accounts</span>
+            <div className="h-8 w-8 rounded-lg bg-red-500/10 text-red-600 flex items-center justify-center">
               <XCircle className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-bold text-white font-display">
+            <span className="text-2xl font-bold text-slate-900">
               {customers.filter(c => c.status === 'SUSPENDED').length}
             </span>
           </div>
-          <p className="text-[11px] text-ink-faint mt-1">Security hold accounts</p>
+          <p className="text-[11px] text-slate-500 mt-1">Security hold accounts</p>
         </div>
       </div>
 
-      {/* Filter and Search Bar [R] */}
+      {/* Filter and Search Bar */}
       <div className="glass-card p-4 rounded-2xl flex flex-col md:flex-row gap-3 items-center justify-between">
         <div className="relative w-full md:w-80">
           <Search className="w-4 h-4 text-ink-faint absolute left-3 top-1/2 -translate-y-1/2" />
@@ -374,8 +374,8 @@ export default function AccountsDashboardPage() {
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="[R] Search by Name, Email, or Customer ID..."
-            className="w-full pl-9 pr-4 py-2 rounded-xl bg-surface border border-surface-border text-xs text-white placeholder:text-ink-faint focus:outline-none focus:border-pink-500 transition-all"
+            placeholder="Search by Name, Email, or Customer ID..."
+            className="w-full pl-9 pr-4 py-2 rounded-xl bg-surface border border-surface-border text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-pink-500 transition-all"
           />
         </div>
 
@@ -384,7 +384,7 @@ export default function AccountsDashboardPage() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-full md:w-auto px-3 py-2 rounded-xl bg-surface border border-surface-border text-xs text-white focus:outline-none focus:border-pink-500 font-mono transition-all"
+            className="w-full md:w-auto px-3 py-2 rounded-xl bg-surface border border-surface-border text-xs text-slate-900 focus:outline-none focus:border-pink-500 font-medium transition-all"
           >
             <option value="ALL">All Statuses ({customers.length})</option>
             <option value="ACTIVE">Active Only</option>
@@ -394,18 +394,18 @@ export default function AccountsDashboardPage() {
         </div>
       </div>
 
-      {/* Customer Directory Table [R, U, D] */}
+      {/* Customer Directory Table */}
       <div className="glass-card rounded-2xl overflow-hidden border border-surface-border">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-surface-border bg-surface-card/60 text-[11px] font-mono uppercase tracking-wider text-ink-muted">
+              <tr className="border-b border-surface-border bg-slate-50 text-[11px] font-bold uppercase tracking-wider text-slate-700">
                 <th className="py-3 px-4">Customer Details</th>
                 <th className="py-3 px-4">Contact / City</th>
                 <th className="py-3 px-4">Loyalty Tier</th>
                 <th className="py-3 px-4">KYC Verified</th>
                 <th className="py-3 px-4">Account Status</th>
-                <th className="py-3 px-4 text-right">Actions (CRUD)</th>
+                <th className="py-3 px-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-surface-border/50 text-xs">

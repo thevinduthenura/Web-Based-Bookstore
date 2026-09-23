@@ -255,7 +255,7 @@ export default function CustomerServiceDashboardPage() {
             <Headphones className="w-3.5 h-3.5" />
             Module 3: Customer Service & Complaints
           </div>
-          <h1 className="text-2xl font-bold font-display text-white">Customer Support Helpdesk</h1>
+          <h1 className="text-2xl font-bold text-white">Customer Support Helpdesk</h1>
           <p className="text-xs text-ink-muted mt-1">
             Assigned Owner: <span className="text-sky-400 font-semibold">Zeen A.C. (IT25103342)</span> | Role: <span className="font-mono text-white">CUSTOMER_SERVICE_ADMIN</span>
           </p>
@@ -267,7 +267,7 @@ export default function CustomerServiceDashboardPage() {
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold shadow-lg shadow-sky-900/30 transition-all"
           >
             <Plus className="w-4 h-4" />
-            <span>[C] Log New Ticket</span>
+            <span>+ Log New Ticket</span>
           </button>
           <button
             onClick={fetchTickets}
@@ -279,24 +279,24 @@ export default function CustomerServiceDashboardPage() {
         </div>
       </div>
 
-      {/* CRUD Capability Legend */}
+      {/* Operations Legend */}
       <div className="glass-card p-3.5 rounded-xl border border-sky-500/20 bg-sky-950/10 flex flex-wrap items-center justify-between gap-3 text-xs">
         <div className="flex items-center gap-2 font-semibold text-sky-400">
           <Layers className="w-4 h-4" />
-          <span>Member 3 CRUD Operations Active:</span>
+          <span>Support Operations:</span>
         </div>
         <div className="flex flex-wrap items-center gap-2 font-mono text-[11px]">
           <span className="px-2.5 py-1 rounded-md bg-sky-500/20 text-sky-300 border border-sky-500/30">
-            [C] Create Ticket
+            Create Ticket
           </span>
           <span className="px-2.5 py-1 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-            [R] Live Ticket Feed
+            Live Ticket Feed
           </span>
           <span className="px-2.5 py-1 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/30">
-            [U] Resolve & Notes
+            Resolve & Notes
           </span>
           <span className="px-2.5 py-1 rounded-md bg-red-500/20 text-red-300 border border-red-500/30">
-            [D] Delete / Close
+            Delete / Close
           </span>
         </div>
       </div>
@@ -428,20 +428,20 @@ export default function CustomerServiceDashboardPage() {
                 </div>
 
                 <div className="flex items-center gap-1.5 self-end sm:self-auto">
-                  {/* [U] Resolve / Update Button */}
+                  {/* Resolve / Update Button */}
                   <button
                     onClick={() => handleOpenUpdate(ticket)}
                     className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-surface border border-surface-border hover:border-sky-500/50 text-sky-400 text-xs font-medium transition-all"
                   >
                     <Edit3 className="w-3.5 h-3.5" />
-                    <span>[U] Update / Resolve</span>
+                    <span>Update / Resolve</span>
                   </button>
 
-                  {/* [D] Delete Button */}
+                  {/* Delete Button */}
                   <button
                     onClick={() => handleDeleteTicket(ticket.id)}
                     className="p-1.5 rounded-xl bg-surface border border-surface-border hover:bg-red-500/10 text-red-400 transition-all"
-                    title="[D] Delete Ticket"
+                    title="Delete Ticket"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -490,7 +490,7 @@ export default function CustomerServiceDashboardPage() {
             <div className="flex items-center justify-between border-b border-surface-border pb-3">
               <h3 className="text-base font-bold text-white flex items-center gap-2">
                 <Headphones className="w-5 h-5 text-sky-400" />
-                <span>[C] Log New Support Ticket</span>
+                <span>Log New Support Ticket</span>
               </h3>
               <button onClick={() => setIsCreateModalOpen(false)} className="text-ink-muted hover:text-white">
                 <X className="w-5 h-5" />
@@ -560,7 +560,7 @@ export default function CustomerServiceDashboardPage() {
             <div className="flex items-center justify-between border-b border-surface-border pb-3">
               <h3 className="text-base font-bold text-white flex items-center gap-2">
                 <Edit3 className="w-5 h-5 text-sky-400" />
-                <span>[U] Resolve Ticket #{activeTicket.id}</span>
+                <span>Resolve Ticket #{activeTicket.id}</span>
               </h3>
               <button onClick={() => setIsUpdateModalOpen(false)} className="text-ink-muted hover:text-white">
                 <X className="w-5 h-5" />

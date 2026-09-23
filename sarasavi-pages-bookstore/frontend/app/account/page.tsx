@@ -62,60 +62,14 @@ export default function CustomerAccountPage() {
     address: ''
   });
 
-  // Sample Customer Orders (M6)
-  const [orders, setOrders] = useState([
-    {
-      id: 'ORD-90211',
-      items: 'Madol Doova (x2), Gamperaliya (x1)',
-      amount: 3850,
-      status: 'OUT_FOR_DELIVERY',
-      courier: 'Domex Express',
-      tracking: 'DX-982101',
-      date: 'Today, 09:30'
-    },
-    {
-      id: 'ORD-89420',
-      items: 'The Village in the Jungle (x1)',
-      amount: 1850,
-      status: 'DELIVERED',
-      courier: 'SL Post (Registered)',
-      tracking: 'SLP-44019',
-      date: 'Last week'
-    }
-  ]);
+  // Dynamic Customer Orders (M6)
+  const [orders, setOrders] = useState<any[]>([]);
 
-  // Sample Customer Tickets (M3)
-  const [tickets, setTickets] = useState([
-    {
-      id: 4011,
-      subject: 'Order delivery delayed past estimated date',
-      status: 'IN_PROGRESS',
-      date: '15 mins ago',
-      resolution: 'Contacted logistics courier partner (Domex). Package scheduled for priority dispatch tomorrow morning.'
-    }
-  ]);
+  // Dynamic Customer Tickets (M3)
+  const [tickets, setTickets] = useState<any[]>([]);
 
-  // Sample Customer Payments (M2)
-  const [payments, setPayments] = useState([
-    {
-      id: 1,
-      reference: 'TXN-80921-VISA',
-      invoice: 'INV-2026-00101',
-      amount: 4200,
-      method: 'CARD (Visa)',
-      status: 'PAID',
-      date: 'Today, 14:20'
-    },
-    {
-      id: 2,
-      reference: 'TXN-80918-STRIPE',
-      invoice: 'INV-2026-00104',
-      amount: 1850,
-      method: 'STRIPE',
-      status: 'REFUNDED',
-      date: 'Yesterday, 16:30'
-    }
-  ]);
+  // Dynamic Customer Payments (M2)
+  const [payments, setPayments] = useState<any[]>([]);
 
   useEffect(() => {
     // Check if customer cookie / localStorage exists
@@ -129,6 +83,87 @@ export default function CustomerAccountPage() {
           phone: parsed.phone || '',
           address: parsed.address || ''
         });
+
+        const custId = parsed.customerId;
+        if (typeof window !== 'undefined') {
+          // Check for user-specific orders
+          const savedOrders = localStorage.getItem(`sp_orders_${custId}`);
+          if (savedOrders !== null) {
+            setOrders(JSON.parse(savedOrders));
+          } else if (custId === 'CUST-1001') {
+            // Preset demo user sample orders
+            setOrders([
+              {
+                id: 'ORD-90211',
+                items: 'Madol Doova (x2), Gamperaliya (x1)',
+                amount: 3850,
+                status: 'OUT_FOR_DELIVERY',
+                courier: 'Domex Express',
+                tracking: 'DX-982101',
+                date: 'Today, 09:30'
+              },
+              {
+                id: 'ORD-89420',
+                items: 'The Village in the Jungle (x1)',
+                amount: 1850,
+                status: 'DELIVERED',
+                courier: 'SL Post (Registered)',
+                tracking: 'SLP-44019',
+                date: 'Last week'
+              }
+            ]);
+          } else {
+            // Fresh newly registered user starts with empty orders
+            setOrders([]);
+          }
+
+          // Check for user-specific tickets
+          const savedTickets = localStorage.getItem(`sp_tickets_${custId}`);
+          if (savedTickets !== null) {
+            setTickets(JSON.parse(savedTickets));
+          } else if (custId === 'CUST-1001') {
+            setTickets([
+              {
+                id: 4011,
+                subject: 'Order delivery delayed past estimated date',
+                status: 'IN_PROGRESS',
+                date: '15 mins ago',
+                resolution: 'Contacted logistics courier partner (Domex). Package scheduled for priority dispatch tomorrow morning.'
+              }
+            ]);
+          } else {
+            setTickets([]);
+          }
+
+          // Check for user-specific payments
+          const savedPayments = localStorage.getItem(`sp_payments_${custId}`);
+          if (savedPayments !== null) {
+            setPayments(JSON.parse(savedPayments));
+          } else if (custId === 'CUST-1001') {
+            setPayments([
+              {
+                id: 1,
+                reference: 'TXN-80921-VISA',
+                invoice: 'INV-2026-00101',
+                amount: 4200,
+                method: 'CARD (Visa)',
+                status: 'PAID',
+                date: 'Today, 14:20'
+              },
+              {
+                id: 2,
+                reference: 'TXN-80918-STRIPE',
+                invoice: 'INV-2026-00104',
+                amount: 1850,
+                method: 'STRIPE',
+                status: 'REFUNDED',
+                date: 'Yesterday, 16:30'
+              }
+            ]);
+          } else {
+            setPayments([]);
+          }
+        }
       } catch (e) {
         console.error(e);
       }
@@ -138,6 +173,10 @@ export default function CustomerAccountPage() {
         phone: DEFAULT_CUSTOMER.phone,
         address: DEFAULT_CUSTOMER.address
       });
+      // Default guest view
+      setOrders([]);
+      setTickets([]);
+      setPayments([]);
     }
   }, []);
 
@@ -414,39 +453,62 @@ Thank you for shopping with Sarasavi Pages!
         {/* ── TAB 2: MY ORDERS ──────────────────────────────────────── */}
         {activeTab === 'orders' && (
           <div className="space-y-4">
-            {orders.map((ord) => (
-              <div key={ord.id} className="ios-glass bg-white/85 backdrop-blur-xl p-6 rounded-2xl border border-white/70 shadow-[0_4px_20px_rgba(0,0,0,0.03)] space-y-3">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-black/[0.06] pb-3">
-                  <div className="flex items-center gap-3">
-                    <span className="font-mono font-medium text-sm text-[#122215]">{ord.id}</span>
-                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-medium border ${
-                      ord.status === 'DELIVERED'
-                        ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-                        : 'bg-sky-50 border-sky-200 text-sky-700'
-                    }`}>
-                      {ord.status}
-                    </span>
-                  </div>
-                  <span className="text-xs text-[#6b7c6f] font-mono">{ord.date}</span>
+            {orders.length === 0 ? (
+              <div className="ios-glass bg-white/85 backdrop-blur-xl p-10 sm:p-12 rounded-3xl border border-white/70 shadow-[0_4px_20px_rgba(0,0,0,0.03)] text-center space-y-4">
+                <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center mx-auto border border-emerald-100 shadow-xs">
+                  <Package className="w-7 h-7" />
                 </div>
-
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div>
-                    <h4 className="text-sm font-medium text-[#122215]">{ord.items}</h4>
-                    <p className="text-xs text-[#526456] mt-1 flex items-center gap-1.5 font-mono">
-                      <Truck className="w-3.5 h-3.5 text-emerald-700" />
-                      <span>{ord.courier} (Tracking: {ord.tracking})</span>
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-xs text-[#6b7c6f] block">Total Paid</span>
-                    <span className="text-base font-medium font-mono text-[#122215]">
-                      LKR {ord.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                    </span>
-                  </div>
+                <div>
+                  <h4 className="text-base font-medium text-[#122215]">No orders placed yet</h4>
+                  <p className="text-xs text-[#526456] max-w-md mx-auto mt-1 leading-relaxed">
+                    Your reading shelf is waiting! Browse our extensive collection of classic Sinhala literature, global fiction, and academic textbooks.
+                  </p>
+                </div>
+                <div className="pt-2">
+                  <Link
+                    href="/"
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#122215] hover:bg-black text-white text-xs font-medium transition-all shadow-md active:scale-95"
+                  >
+                    <BookOpen className="w-4 h-4" />
+                    <span>Explore Bookstore Catalog</span>
+                  </Link>
                 </div>
               </div>
-            ))}
+            ) : (
+              orders.map((ord) => (
+                <div key={ord.id} className="ios-glass bg-white/85 backdrop-blur-xl p-6 rounded-2xl border border-white/70 shadow-[0_4px_20px_rgba(0,0,0,0.03)] space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-black/[0.06] pb-3">
+                    <div className="flex items-center gap-3">
+                      <span className="font-mono font-medium text-sm text-[#122215]">{ord.id}</span>
+                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-medium border ${
+                        ord.status === 'DELIVERED'
+                          ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                          : 'bg-sky-50 border-sky-200 text-sky-700'
+                      }`}>
+                        {ord.status}
+                      </span>
+                    </div>
+                    <span className="text-xs text-[#6b7c6f] font-mono">{ord.date}</span>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                      <h4 className="text-sm font-medium text-[#122215]">{ord.items}</h4>
+                      <p className="text-xs text-[#526456] mt-1 flex items-center gap-1.5 font-mono">
+                        <Truck className="w-3.5 h-3.5 text-emerald-700" />
+                        <span>{ord.courier} (Tracking: {ord.tracking})</span>
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xs text-[#6b7c6f] block">Total Paid</span>
+                      <span className="text-base font-medium font-mono text-[#122215]">
+                        LKR {ord.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         )}
 
@@ -464,74 +526,119 @@ Thank you for shopping with Sarasavi Pages!
               </Link>
             </div>
 
-            {tickets.map((t) => (
-              <div key={t.id} className="ios-glass bg-white/85 backdrop-blur-xl p-6 rounded-2xl border border-white/70 shadow-[0_4px_20px_rgba(0,0,0,0.03)] space-y-3">
-                <div className="flex items-center justify-between border-b border-black/[0.06] pb-3">
-                  <div className="flex items-center gap-2.5">
-                    <span className="font-mono font-medium text-xs text-[#122215]">#{t.id}</span>
-                    <span className="px-2.5 py-0.5 rounded-full bg-sky-50 border border-sky-200 text-sky-700 text-[10px] font-medium">
-                      {t.status}
-                    </span>
-                  </div>
-                  <span className="text-xs text-[#6b7c6f] font-mono">{t.date}</span>
+            {tickets.length === 0 ? (
+              <div className="ios-glass bg-white/85 backdrop-blur-xl p-10 sm:p-12 rounded-3xl border border-white/70 shadow-[0_4px_20px_rgba(0,0,0,0.03)] text-center space-y-4">
+                <div className="w-14 h-14 rounded-2xl bg-sky-50 text-sky-700 flex items-center justify-center mx-auto border border-sky-100 shadow-xs">
+                  <Headphones className="w-7 h-7" />
                 </div>
-                <h4 className="text-sm font-medium text-[#122215]">{t.subject}</h4>
-                {t.resolution && (
-                  <div className="p-3.5 rounded-xl bg-[#f4f7f4] border border-[#d8e2d8] text-xs space-y-1">
-                    <span className="text-emerald-800 font-medium text-[11px] block">Customer Service Response:</span>
-                    <p className="text-[#334237] leading-relaxed">{t.resolution}</p>
-                  </div>
-                )}
+                <div>
+                  <h4 className="text-base font-medium text-[#122215]">No active support inquiries</h4>
+                  <p className="text-xs text-[#526456] max-w-md mx-auto mt-1 leading-relaxed">
+                    Everything looks peaceful! If you ever need help with order dispatch, damaged books, or textbook rentals, our customer service officers are available 24/7.
+                  </p>
+                </div>
+                <div className="pt-2">
+                  <Link
+                    href="/#contact-section"
+                    className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-sky-700 hover:bg-sky-800 text-white text-xs font-medium transition-all shadow-md active:scale-95"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Open a Support Request</span>
+                  </Link>
+                </div>
               </div>
-            ))}
+            ) : (
+              tickets.map((t) => (
+                <div key={t.id} className="ios-glass bg-white/85 backdrop-blur-xl p-6 rounded-2xl border border-white/70 shadow-[0_4px_20px_rgba(0,0,0,0.03)] space-y-3">
+                  <div className="flex items-center justify-between border-b border-black/[0.06] pb-3">
+                    <div className="flex items-center gap-2.5">
+                      <span className="font-mono font-medium text-xs text-[#122215]">#{t.id}</span>
+                      <span className="px-2.5 py-0.5 rounded-full bg-sky-50 border border-sky-200 text-sky-700 text-[10px] font-medium">
+                        {t.status}
+                      </span>
+                    </div>
+                    <span className="text-xs text-[#6b7c6f] font-mono">{t.date}</span>
+                  </div>
+                  <h4 className="text-sm font-medium text-[#122215]">{t.subject}</h4>
+                  {t.resolution && (
+                    <div className="p-3.5 rounded-xl bg-[#f4f7f4] border border-[#d8e2d8] text-xs space-y-1">
+                      <span className="text-emerald-800 font-medium text-[11px] block">Customer Service Response:</span>
+                      <p className="text-[#334237] leading-relaxed">{t.resolution}</p>
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
           </div>
         )}
 
         {/* ── TAB 4: INVOICES & RECEIPTS ────────────────────────────── */}
         {activeTab === 'payments' && (
           <div className="ios-glass bg-white/85 backdrop-blur-xl rounded-2xl overflow-hidden border border-white/70 shadow-[0_4px_20px_rgba(0,0,0,0.03)]">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="border-b border-black/[0.06] bg-[#f4f7f4] text-[11px] font-mono uppercase text-[#6b7c6f]">
-                    <th className="py-3 px-4">Invoice #</th>
-                    <th className="py-3 px-4">Transaction Ref</th>
-                    <th className="py-3 px-4">Method</th>
-                    <th className="py-3 px-4">Amount</th>
-                    <th className="py-3 px-4">Status</th>
-                    <th className="py-3 px-4 text-right">Receipt</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-black/[0.04]">
-                  {payments.map((p) => (
-                    <tr key={p.id} className="hover:bg-black/[0.01]">
-                      <td className="py-3.5 px-4 font-mono font-medium text-[#122215]">{p.invoice}</td>
-                      <td className="py-3.5 px-4 font-mono text-[#6b7c6f]">{p.reference}</td>
-                      <td className="py-3.5 px-4 text-[#334237]">{p.method}</td>
-                      <td className="py-3.5 px-4 font-mono font-medium text-[#122215]">LKR {p.amount.toFixed(2)}</td>
-                      <td className="py-3.5 px-4">
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${
-                          p.status === 'PAID'
-                            ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-                            : 'bg-sky-50 border-sky-200 text-sky-700'
-                        }`}>
-                          {p.status}
-                        </span>
-                      </td>
-                      <td className="py-3.5 px-4 text-right">
-                        <button
-                          onClick={() => handleDownloadInvoice(p)}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white border border-black/[0.08] text-emerald-800 hover:bg-emerald-50 text-xs font-medium transition-all shadow-xs"
-                        >
-                          <Download className="w-3 h-3 text-emerald-700" />
-                          <span>Receipt</span>
-                        </button>
-                      </td>
+            {payments.length === 0 ? (
+              <div className="p-10 sm:p-12 text-center space-y-4">
+                <div className="w-14 h-14 rounded-2xl bg-stone-100 text-stone-600 flex items-center justify-center mx-auto border border-stone-200 shadow-xs">
+                  <CreditCard className="w-7 h-7" />
+                </div>
+                <div>
+                  <h4 className="text-base font-medium text-[#122215]">No payment transactions yet</h4>
+                  <p className="text-xs text-[#526456] max-w-md mx-auto mt-1 leading-relaxed">
+                    When you order books online, your automated digital invoices, receipts, and payment authorizations will be safely archived here.
+                  </p>
+                </div>
+                <div className="pt-2">
+                  <Link
+                    href="/"
+                    className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#122215] hover:bg-black text-white text-xs font-medium transition-all shadow-md active:scale-95"
+                  >
+                    <span>Browse Books</span>
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-black/[0.06] bg-[#f4f7f4] text-[11px] font-mono uppercase text-[#6b7c6f]">
+                      <th className="py-3 px-4">Invoice #</th>
+                      <th className="py-3 px-4">Transaction Ref</th>
+                      <th className="py-3 px-4">Method</th>
+                      <th className="py-3 px-4">Amount</th>
+                      <th className="py-3 px-4">Status</th>
+                      <th className="py-3 px-4 text-right">Receipt</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-black/[0.04]">
+                    {payments.map((p) => (
+                      <tr key={p.id} className="hover:bg-black/[0.01]">
+                        <td className="py-3.5 px-4 font-mono font-medium text-[#122215]">{p.invoice}</td>
+                        <td className="py-3.5 px-4 font-mono text-[#6b7c6f]">{p.reference}</td>
+                        <td className="py-3.5 px-4 text-[#334237]">{p.method}</td>
+                        <td className="py-3.5 px-4 font-mono font-medium text-[#122215]">LKR {p.amount.toFixed(2)}</td>
+                        <td className="py-3.5 px-4">
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${
+                            p.status === 'PAID'
+                              ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                              : 'bg-sky-50 border-sky-200 text-sky-700'
+                          }`}>
+                            {p.status}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4 text-right">
+                          <button
+                            onClick={() => handleDownloadInvoice(p)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white border border-black/[0.08] text-emerald-800 hover:bg-emerald-50 text-xs font-medium transition-all shadow-xs"
+                          >
+                            <Download className="w-3 h-3 text-emerald-700" />
+                            <span>Receipt</span>
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         )}
       </main>

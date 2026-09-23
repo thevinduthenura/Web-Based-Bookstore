@@ -636,58 +636,27 @@ export default function StorefrontPage() {
                 </div>
               </div>
 
-              {/* ── HEALIUM HEADLINE SECTION (REINA NEUE LIGHTWEIGHT LOWERCASE) ── */}
-              <div className="relative z-10 px-6 sm:px-10 pt-4 pb-2 text-center">
-                <h1 ref={heroTitleRef} className="font-display font-normal text-4xl sm:text-6xl lg:text-[76px] text-white tracking-tight leading-[1.05] drop-shadow-sm lowercase">
-                  your stories, our passion -
+              {/* ── BOOKSTORE HERO HEADLINE SECTION ── */}
+              <div className="relative z-10 px-6 sm:px-10 pt-6 pb-2 text-center max-w-4xl mx-auto">
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-xs font-semibold mb-4 backdrop-blur-md">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                  <span>Sri Lanka&apos;s Trusted Online Bookstore</span>
+                </div>
+                <h1 ref={heroTitleRef} className="font-sans font-bold text-4xl sm:text-6xl lg:text-7xl text-white tracking-tight leading-[1.08] drop-shadow-md">
+                  Your Stories, Literature & Academic Textbooks
                 </h1>
+                <p className="text-white/80 text-xs sm:text-sm font-normal leading-relaxed max-w-xl mx-auto mt-4 drop-shadow-sm">
+                  From celebrated Sinhala literary classics by Martin Wickramasinghe to SLIIT engineering & computing course texts. Delivered safely to your doorstep across all 25 districts.
+                </p>
               </div>
 
-              <div className="relative z-10 max-w-5xl mx-auto w-full px-6 sm:px-10 grid grid-cols-1 md:grid-cols-2 gap-6 items-center py-2">
-                {/* Left: Subtitle paragraph & Reader Avatars with green plus */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3.5">
-                  <div className="flex -space-x-2 shrink-0">
-                    <img className="w-9 h-9 rounded-full border-2 border-white/60 object-cover shadow-sm" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=90&h=90&fit=crop" alt="Reader" />
-                    <img className="w-9 h-9 rounded-full border-2 border-white/60 object-cover shadow-sm" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=90&h=90&fit=crop" alt="Reader" />
-                    <img className="w-9 h-9 rounded-full border-2 border-white/60 object-cover shadow-sm" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=90&h=90&fit=crop" alt="Reader" />
-                    <div className="w-9 h-9 rounded-full bg-emerald-500 border-2 border-white/60 flex items-center justify-center text-white text-sm font-medium shadow-sm">
-                      +
-                    </div>
-                  </div>
-                  <p className="text-white/90 text-xs sm:text-sm font-normal leading-relaxed max-w-xs drop-shadow-sm">
-                    affordable literature & academic textbooks delivered safely to your doorstep.
-                  </p>
-                </div>
-
-                {/* Right: online bookstore made simple */}
-                <div className="md:text-right">
-                  <h2 ref={heroSubtitleRef} className="font-sans text-3xl sm:text-5xl lg:text-[52px] font-normal text-white tracking-tight leading-[1.0] drop-shadow-sm lowercase">
-                    online bookstore<br />
-                    <span className="font-display font-normal text-emerald-300 lowercase">made simple</span>
-                  </h2>
-                </div>
-              </div>
-
-              {/* ── CENTER VISUAL CALLOUTS (Directly on canvas with NO nested box!) ── */}
-              <div className="relative z-10 max-w-4xl mx-auto w-full px-6 py-8 flex flex-col items-center">
-                {/* 4 Floating Callout Pills with dashed connector lines */}
-                <div className="w-full flex justify-between items-center mb-6 px-4">
-                  <div className="hidden sm:flex items-center gap-1.5 ios-glass px-3.5 py-1.5 rounded-full text-xs font-medium text-white shadow-lg animate-float">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                    <span>rare literature search</span>
-                  </div>
-                  <div className="hidden sm:flex items-center gap-1.5 ios-glass px-3.5 py-1.5 rounded-full text-xs font-medium text-white shadow-lg animate-float" style={{ animationDelay: '1s' }}>
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                    <span>academic syllabi</span>
-                  </div>
-                </div>
-
-                {/* Floating Search Pill directly in center (Healium Get Started pill) */}
-                <div className="ios-glass-dark p-1.5 rounded-full flex items-center gap-2 shadow-2xl max-w-md w-full border border-white/30 backdrop-blur-2xl">
-                  <Search className="w-4 h-4 text-emerald-300 ml-3 shrink-0" />
+              {/* ── CENTER BOOKSTORE SEARCH BAR & CATEGORY CHIPS ── */}
+              <div className="relative z-10 max-w-2xl mx-auto w-full px-6 py-6 flex flex-col items-center">
+                <div className="ios-glass-dark p-2 rounded-full flex items-center gap-2 shadow-2xl w-full border border-white/30 backdrop-blur-2xl">
+                  <Search className="w-5 h-5 text-emerald-300 ml-4 shrink-0" />
                   <input
                     type="text"
-                    placeholder="Search title, author, or curriculum..."
+                    placeholder="Search by book title, author, category, or ISBN..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={(e) => {
@@ -696,142 +665,74 @@ export default function StorefrontPage() {
                         window.scrollTo({ top: 500, behavior: 'smooth' });
                       }
                     }}
-                    className="bg-transparent text-white placeholder-white/60 text-xs sm:text-sm focus:outline-none flex-1 min-w-0"
+                    className="bg-transparent text-white placeholder-white/60 text-xs sm:text-sm focus:outline-none flex-1 min-w-0 px-2"
                   />
                   <button
                     onClick={() => {
                       setActiveNavTab('books');
                       window.scrollTo({ top: 500, behavior: 'smooth' });
                     }}
-                    className="px-5 py-2 rounded-full bg-white hover:bg-emerald-50 text-[#0f2115] text-xs font-medium transition-all shadow-md shrink-0 flex items-center gap-1.5 active:scale-95"
+                    className="px-6 py-2.5 rounded-full bg-emerald-500 hover:bg-emerald-400 text-black font-semibold text-xs transition-all shadow-lg shrink-0 flex items-center gap-1.5 active:scale-95"
                   >
-                    <span>Get Started</span>
+                    <span>Browse Catalog</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
 
-                <div className="w-full flex justify-between items-center mt-6 px-4">
-                  <div className="hidden sm:flex items-center gap-1.5 ios-glass px-3.5 py-1.5 rounded-full text-xs font-medium text-white shadow-lg animate-float" style={{ animationDelay: '2s' }}>
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                    <span>archival restorations</span>
-                  </div>
-                  <div className="hidden sm:flex items-center gap-1.5 ios-glass px-3.5 py-1.5 rounded-full text-xs font-medium text-white shadow-lg animate-float" style={{ animationDelay: '1.5s' }}>
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                    <span>islandwide delivery</span>
-                  </div>
+                {/* Popular Genre Quick Filters */}
+                <div className="flex flex-wrap items-center justify-center gap-2 mt-4 text-xs">
+                  <span className="text-white/70 text-[11px] font-medium">Browse:</span>
+                  {['ALL', 'FICTION', 'LITERATURE', 'TECHNOLOGY', 'ACADEMIC'].map((cat) => (
+                    <button
+                      key={cat}
+                      onClick={() => {
+                        setSelectedCategory(cat);
+                        setActiveNavTab('books');
+                        window.scrollTo({ top: 500, behavior: 'smooth' });
+                      }}
+                      className="px-3.5 py-1 rounded-full bg-white/10 hover:bg-white/20 text-white text-[11px] font-medium backdrop-blur-md border border-white/15 transition-all"
+                    >
+                      {cat}
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              {/* ── HEALIUM SIGNATURE BOTTOM DARK CURVED DOCK ── */}
+              {/* ── BOOKSTORE CORE VALUE PROPOSITIONS DOCK ── */}
               <div className="relative z-20 bg-[#162719]/95 backdrop-blur-2xl rounded-t-[36px] sm:rounded-t-[44px] border-t border-white/20 p-6 sm:p-8 mt-6">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
-                  
-                  {/* Card 1: Evolving Reading Habits */}
-                  <div className="bg-white/95 rounded-3xl p-5 sm:p-6 shadow-md border border-black/[0.04] flex flex-col justify-between space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium text-[#122215] text-sm sm:text-base">evolving reading habits</span>
-                      <div className="w-7 h-7 rounded-full bg-stone-100 flex items-center justify-center text-[#1a2e20]">
-                        <ArrowUpRight className="w-4 h-4" />
-                      </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                  {/* Feature 1 */}
+                  <div className="bg-white/95 rounded-3xl p-6 shadow-md border border-black/[0.04] space-y-3">
+                    <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-800 flex items-center justify-center border border-emerald-100 shadow-xs">
+                      <BookOpen className="w-5 h-5 text-emerald-700" />
                     </div>
-                    <div className="flex items-baseline justify-between text-xs text-[#556358]">
-                      <span>increase in online readers in 2026</span>
-                      <span className="text-xl font-medium text-emerald-600 font-mono">+12%</span>
-                    </div>
-                    {/* Progress Bar with 0, 50, 100 markers */}
-                    <div>
-                      <div className="h-2.5 w-full bg-emerald-100/60 rounded-full overflow-hidden p-0.5">
-                        <div className="h-full bg-gradient-to-r from-emerald-400 to-emerald-600 rounded-full" style={{ width: '74%' }} />
-                      </div>
-                      <div className="flex justify-between text-[9px] text-[#78887b] mt-1.5 font-mono">
-                        <span>0</span>
-                        <span>50</span>
-                        <span>100</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Center: Community & Social Links */}
-                  <div className="text-center px-4 py-2 flex flex-col items-center justify-center space-y-3">
-                    <p className="text-white/90 text-xs sm:text-sm font-light leading-relaxed max-w-xs">
-                      join our community and stay updated: follow us on social media for the latest book drops and literary updates!
+                    <h3 className="font-bold text-[#122215] text-base">100% Genuine Print Editions</h3>
+                    <p className="text-xs text-[#556358] leading-relaxed">
+                      Sourced directly from premier Sri Lankan publishers and international university presses. Guaranteed crisp, authentic paperbacks and hardcovers.
                     </p>
-                    <div className="flex items-center gap-3">
-                      <a
-                        href="https://instagram.com"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="w-9 h-9 rounded-full ios-glass hover:bg-white/20 flex items-center justify-center text-white transition-transform hover:scale-105"
-                      >
-                        <Instagram className="w-4 h-4" />
-                      </a>
-                      <a
-                        href="https://facebook.com"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="w-9 h-9 rounded-full ios-glass hover:bg-white/20 flex items-center justify-center text-white transition-transform hover:scale-105"
-                      >
-                        <Facebook className="w-4 h-4" />
-                      </a>
-                      <a
-                        href="https://twitter.com"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="w-9 h-9 rounded-full ios-glass hover:bg-white/20 flex items-center justify-center text-white transition-transform hover:scale-105"
-                      >
-                        <Twitter className="w-4 h-4" />
-                      </a>
-                    </div>
                   </div>
 
-                  {/* Card 2: Customers Satisfaction with SVG Area Curve */}
-                  <div className="bg-white/95 rounded-3xl p-5 sm:p-6 shadow-md border border-black/[0.04] flex flex-col justify-between space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium text-[#122215] text-sm sm:text-base">customers satisfaction</span>
-                      <div className="flex items-center gap-2">
-                        <span className="px-2.5 py-0.5 rounded-full bg-emerald-500 text-white text-[11px] font-medium">+92%</span>
-                        <div className="w-7 h-7 rounded-full bg-stone-100 flex items-center justify-center text-[#1a2e20]">
-                          <ArrowUpRight className="w-4 h-4" />
-                        </div>
-                      </div>
+                  {/* Feature 2 */}
+                  <div className="bg-white/95 rounded-3xl p-6 shadow-md border border-black/[0.04] space-y-3">
+                    <div className="w-10 h-10 rounded-2xl bg-sky-50 text-sky-800 flex items-center justify-center border border-sky-100 shadow-xs">
+                      <Truck className="w-5 h-5 text-sky-700" />
                     </div>
-                    {/* Real Area Curve SVG Chart */}
-                    <div className="flex items-center gap-2 pt-1">
-                      <div className="flex flex-col justify-between text-[8px] text-[#859588] font-mono h-16 shrink-0">
-                        <span>100%</span>
-                        <span>60%</span>
-                        <span>20%</span>
-                      </div>
-                      <div className="flex-1 h-16 relative">
-                        <svg className="w-full h-full" viewBox="0 0 100 50" preserveAspectRatio="none">
-                          <defs>
-                            <linearGradient id="satisfactionWave" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="0%" stopColor="#10b981" stopOpacity="0.45" />
-                              <stop offset="100%" stopColor="#10b981" stopOpacity="0.0" />
-                            </linearGradient>
-                          </defs>
-                          <path
-                            d="M0,42 C20,38 35,40 50,26 C65,16 80,10 100,4 L100,50 L0,50 Z"
-                            fill="url(#satisfactionWave)"
-                          />
-                          <path
-                            d="M0,42 C20,38 35,40 50,26 C65,16 80,10 100,4"
-                            fill="none"
-                            stroke="#10b981"
-                            strokeWidth="2.5"
-                          />
-                        </svg>
-                      </div>
-                    </div>
-                    <div className="flex justify-between text-[9px] text-[#78887b] font-mono pl-7">
-                      <span>2020</span>
-                      <span>2021</span>
-                      <span>2022</span>
-                      <span>2023</span>
-                      <span>2024</span>
-                    </div>
+                    <h3 className="font-bold text-[#122215] text-base">Islandwide Express Courier</h3>
+                    <p className="text-xs text-[#556358] leading-relaxed">
+                      Doorstep parcel delivery within 24–48 hours across all 25 districts of Sri Lanka. Transparent live tracking via Domex Express and SL Post.
+                    </p>
                   </div>
 
+                  {/* Feature 3 */}
+                  <div className="bg-white/95 rounded-3xl p-6 shadow-md border border-black/[0.04] space-y-3">
+                    <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-800 flex items-center justify-center border border-amber-100 shadow-xs">
+                      <Shield className="w-5 h-5 text-amber-700" />
+                    </div>
+                    <h3 className="font-bold text-[#122215] text-base">Safe Payments & Cash on Delivery</h3>
+                    <p className="text-xs text-[#556358] leading-relaxed">
+                      Encrypted card gateways with Visa, Mastercard, PayHere, and Stripe. Convenient Cash on Delivery available at your doorstep with hassle-free returns.
+                    </p>
+                  </div>
                 </div>
               </div>
 
@@ -859,18 +760,17 @@ export default function StorefrontPage() {
               </div>
             </div>
 
-            {/* ── HEALIUM "FROM PRESCRIPTION TO DOORSTEP - IN 3 STEPS" SECTION ─── */}
+            {/* ── BOOKSTORE "HOW IT WORKS - IN 3 SIMPLE STEPS" SECTION ─── */}
             <section ref={stepsRef as React.RefObject<HTMLElement>} className="bg-white rounded-[36px] sm:rounded-[44px] p-8 sm:p-12 lg:p-16 border border-black/[0.06] shadow-sm space-y-12">
               
-              {/* Centered Small Label & Headline (Healium Typography) */}
+              {/* Centered Small Label & Headline */}
               <div className="text-center space-y-3 max-w-2xl mx-auto">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#f0f6f2] text-emerald-700 text-xs font-mono font-medium">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#f0f6f2] text-emerald-800 text-xs font-mono font-medium">
                   <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                  <span>how it works</span>
+                  <span>How Sarasavi Pages Works</span>
                 </div>
-                <h2 className="font-sans text-3xl sm:text-5xl lg:text-6xl font-normal text-[#122215] leading-[1.05] tracking-tight lowercase">
-                  from prescription to<br />
-                  <span className="font-display font-normal text-emerald-800 lowercase">doorstep - in 3 steps</span>
+                <h2 className="font-sans text-3xl sm:text-5xl font-bold text-[#122215] leading-[1.1] tracking-tight">
+                  From Our Bookshelf to Your Doorstep in 3 Simple Steps
                 </h2>
               </div>
 
@@ -879,14 +779,14 @@ export default function StorefrontPage() {
                 {/* Left Column (5 cols): Numbered Steps */}
                 <div className="lg:col-span-5 space-y-6">
                   {[
-                    { n: '01/', title: 'upload your prescription', desc: 'Select from 1,500+ curated volumes, academic syllabi, or enter requested titles.' },
-                    { n: '02/', title: 'ai verification', desc: 'Every edition is authenticated, physical condition checked, and sealed sustainably.' },
-                    { n: '03/', title: 'delivered to your door', desc: 'Swift 24-48h express courier across all 25 districts with prepaid return satchels.' },
+                    { n: '01/', title: 'Browse & Choose Books', desc: 'Explore 1,500+ curated volumes, Sinhala classics, SLIIT computing textbooks, and international bestsellers.' },
+                    { n: '02/', title: 'Instant Order or Rental', desc: 'Checkout with secure card/COD or choose discounted student semester lending with zero late fees.' },
+                    { n: '03/', title: 'Islandwide Doorstep Delivery', desc: 'Securely packaged in protective eco-friendly wrap and delivered in 24–48 hours across all 25 districts.' },
                   ].map((step) => (
                     <div data-step-item key={step.n} className="flex items-start gap-4 p-4 rounded-2xl hover:bg-[#f6f9f6] transition-colors cursor-default group">
-                      <span className="font-mono text-base font-medium text-emerald-600 shrink-0">{step.n}</span>
+                      <span className="font-mono text-base font-bold text-emerald-700 shrink-0">{step.n}</span>
                       <div className="space-y-1">
-                        <h4 className="font-sans text-base sm:text-lg font-medium text-[#142618] group-hover:text-emerald-700 transition-colors lowercase">
+                        <h4 className="font-sans text-base sm:text-lg font-bold text-[#142618] group-hover:text-emerald-800 transition-colors">
                           {step.title}
                         </h4>
                         <p className="text-xs text-[#5a685e] leading-relaxed">
@@ -902,26 +802,25 @@ export default function StorefrontPage() {
                   {/* Top Stats Bar */}
                   <div className="grid grid-cols-3 gap-4 pb-6 border-b border-black/[0.08] text-center">
                     <div>
-                      <div className="text-[11px] font-mono text-[#66756a] uppercase">orders</div>
-                      <div className="font-sans text-2xl sm:text-3xl font-medium text-[#142618]">2M+</div>
+                      <div className="text-[11px] font-mono text-[#66756a] uppercase">Catalog Titles</div>
+                      <div className="font-sans text-2xl sm:text-3xl font-bold text-[#142618]">1,500+</div>
                     </div>
                     <div className="border-x border-black/[0.08]">
-                      <div className="text-[11px] font-mono text-[#66756a] uppercase">accuracy</div>
-                      <div className="font-sans text-2xl sm:text-3xl font-medium text-[#142618]">98.7%</div>
+                      <div className="text-[11px] font-mono text-[#66756a] uppercase">Satisfaction</div>
+                      <div className="font-sans text-2xl sm:text-3xl font-bold text-[#142618]">98.7%</div>
                     </div>
                     <div>
-                      <div className="text-[11px] font-mono text-[#66756a] uppercase">cities</div>
-                      <div className="font-sans text-2xl sm:text-3xl font-medium text-[#142618]">50+</div>
+                      <div className="text-[11px] font-mono text-[#66756a] uppercase">Districts</div>
+                      <div className="font-sans text-2xl sm:text-3xl font-bold text-[#142618]">25</div>
                     </div>
                   </div>
 
-                  {/* 3 Overlapping Cards Stack (Exact composition of Healium!) */}
+                  {/* 3 Overlapping Cards Stack */}
                   <div className="relative h-[340px] sm:h-[380px] max-w-lg mx-auto w-full flex items-center justify-center">
                     
-                    {/* Card 1: Top-Left Green App Icon Card with Radar Circles */}
-                    <div className="absolute top-0 left-4 sm:left-8 w-24 h-24 sm:w-28 sm:h-28 rounded-3xl bg-gradient-to-br from-emerald-400 to-emerald-600 p-4 shadow-xl flex items-center justify-center z-10 animate-float">
+                    {/* Card 1: Top-Left Green App Icon Card */}
+                    <div className="absolute top-0 left-4 sm:left-8 w-24 h-24 sm:w-28 sm:h-28 rounded-3xl bg-gradient-to-br from-emerald-500 to-emerald-700 p-4 shadow-xl flex items-center justify-center z-10 animate-float">
                       <div className="relative flex items-center justify-center w-full h-full">
-                        <div className="absolute inset-0 rounded-full border-2 border-white/20 animate-ping opacity-25" />
                         <div className="w-12 h-12 rounded-full border-2 border-white/40 flex items-center justify-center">
                           <BookOpen className="w-6 h-6 text-white stroke-[2]" />
                         </div>
@@ -931,26 +830,26 @@ export default function StorefrontPage() {
                     {/* Card 2: Center Portrait Photo Card */}
                     <div className="relative w-44 sm:w-56 h-64 sm:h-72 rounded-3xl overflow-hidden shadow-2xl border-4 border-white z-20">
                       <img
-                        src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80"
-                        alt="Verified Reader"
+                        src="https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=500&auto=format&fit=crop&q=80"
+                        alt="Reading Book"
                         className="w-full h-full object-cover"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                       <div className="absolute bottom-3 left-3 right-3 text-white text-[11px] font-medium drop-shadow-sm">
-                        <span>verified literary subscriber</span>
+                        <span>Verified Sarasavi Reader</span>
                       </div>
                     </div>
 
-                    {/* Card 3: Bottom-Right Glass Capsule with avg 4.2 hours badge */}
+                    {/* Card 3: Bottom-Right Delivery Guarantee badge */}
                     <div className="absolute bottom-0 right-4 sm:right-8 w-36 sm:w-44 h-48 sm:h-56 rounded-3xl overflow-hidden shadow-2xl border-4 border-white z-30 animate-float" style={{ animationDelay: '1.5s' }}>
                       <img
-                        src="/images/healium-capsule.jpg"
-                        alt="Eco Capsule Packaging"
+                        src="https://images.unsplash.com/photo-1512820790803-83ca734da794?w=500&auto=format&fit=crop&q=80"
+                        alt="Book Stack"
                         className="w-full h-full object-cover"
                       />
                       <div className="absolute bottom-3 right-3 ios-glass px-2.5 py-1 rounded-xl text-white text-[10px] font-mono font-bold shadow-md flex items-center gap-1">
-                        <Clock className="w-3 h-3 text-emerald-300" />
-                        <span>avg 4.2 hours</span>
+                        <Truck className="w-3 h-3 text-emerald-300" />
+                        <span>24–48h Dispatch</span>
                       </div>
                     </div>
 
