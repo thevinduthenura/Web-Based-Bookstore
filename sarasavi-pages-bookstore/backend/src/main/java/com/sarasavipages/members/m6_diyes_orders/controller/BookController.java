@@ -70,7 +70,7 @@ public class BookController {
                     existing.setStockQuantity(book.getStockQuantity());
                     existing.setDescription(book.getDescription());
                     existing.setIsbn(book.getIsbn());
-                    existing.setImageUrl(book.getImageUrl());
+                    existing.setCoverImage(book.getCoverImage());
                     Book updated = bookRepository.save(existing);
                     return ResponseEntity.ok(ApiResponse.success("Book updated successfully", updated));
                 })
