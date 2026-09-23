@@ -253,11 +253,11 @@ export default function CustomerServiceDashboardPage() {
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-400 text-xs font-semibold mb-2">
             <Headphones className="w-3.5 h-3.5" />
-            Module 3 — Customer Service & Complaints
+            Module 3: Customer Service & Complaints
           </div>
           <h1 className="text-2xl font-bold font-display text-white">Customer Support Helpdesk</h1>
           <p className="text-xs text-ink-muted mt-1">
-            Assigned Owner: <span className="text-sky-400 font-semibold">Zeen A.C. (IT25103342)</span> • Role: <span className="font-mono text-white">CUSTOMER_SERVICE_ADMIN</span>
+            Assigned Owner: <span className="text-sky-400 font-semibold">Zeen A.C. (IT25103342)</span> | Role: <span className="font-mono text-white">CUSTOMER_SERVICE_ADMIN</span>
           </p>
         </div>
 

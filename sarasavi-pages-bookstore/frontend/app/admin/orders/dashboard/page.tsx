@@ -178,11 +178,11 @@ export default function OrdersDashboardPage() {
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold mb-2">
             <ShoppingCart className="w-3.5 h-3.5" />
-            Module 6 — Orders & Cart Administration
+            Module 6: Orders & Cart Administration
           </div>
           <h1 className="text-2xl font-bold font-display text-white">Orders & Logistics Management</h1>
           <p className="text-xs text-ink-muted mt-1">
-            Assigned Owner: <span className="text-amber-400 font-semibold">Diyes C.L. (IT25100263)</span> • Role: <span className="font-mono text-white">ORDER_ADMIN</span>
+            Assigned Owner: <span className="text-amber-400 font-semibold">Diyes C.L. (IT25100263)</span> | Role: <span className="font-mono text-white">ORDER_ADMIN</span>
           </p>
         </div>
 

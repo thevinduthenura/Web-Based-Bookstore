@@ -316,11 +316,11 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold mb-2">
             <CreditCard className="w-3.5 h-3.5" />
-            Module 2 — Payment Administration
+            Module 2: Payment Administration
           </div>
           <h1 className="text-2xl font-bold font-display text-white">Payment & Gateway Operations</h1>
           <p className="text-xs text-ink-muted mt-1">
-            Assigned Owner: <span className="text-emerald-400 font-semibold">Anaf M.K.A.S. (IT25102345)</span> • Role: <span className="font-mono text-white">PAYMENT_ADMIN</span>
+            Assigned Owner: <span className="text-emerald-400 font-semibold">Anaf M.K.A.S. (IT25102345)</span> | Role: <span className="font-mono text-white">PAYMENT_ADMIN</span>
           </p>
         </div>
 

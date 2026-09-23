@@ -151,7 +151,7 @@ export default function CartManager() {
                   <div key={item.bookId} className="p-2.5 rounded-xl bg-surface/40 border border-surface-border/50 flex items-center justify-between gap-2 text-xs">
                     <div className="min-w-0 flex-1">
                       <p className="font-semibold text-white truncate">{item.title}</p>
-                      <p className="text-[10px] text-ink-muted font-mono">LKR {item.price.toLocaleString()} × {item.quantity}</p>
+                      <p className="text-[10px] text-ink-muted font-mono">LKR {item.price.toLocaleString()} x {item.quantity}</p>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <button

@@ -275,11 +275,11 @@ export default function InventoryDashboardPage() {
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-400 text-xs font-semibold mb-2">
             <Boxes className="w-3.5 h-3.5" />
-            Module 4 — Inventory & Catalog
+            Module 4: Inventory & Catalog
           </div>
           <h1 className="text-2xl font-bold font-display text-white">Book Catalog & Stock Control</h1>
           <p className="text-xs text-ink-muted mt-1">
-            Assigned Owner: <span className="text-violet-400 font-semibold">Dissanayake S.A.S.D. (IT25101062)</span> • Role: <span className="font-mono text-white">INVENTORY_ADMIN</span>
+            Assigned Owner: <span className="text-violet-400 font-semibold">Dissanayake S.A.S.D. (IT25101062)</span> | Role: <span className="font-mono text-white">INVENTORY_ADMIN</span>
           </p>
         </div>
 
@@ -448,9 +448,9 @@ export default function InventoryDashboardPage() {
                       <div className="font-semibold text-white">{item.title}</div>
                       <div className="text-[11px] text-ink-muted flex items-center gap-2 mt-0.5">
                         <span>{item.author}</span>
-                        <span>•</span>
+                        <span className="opacity-40">|</span>
                         <span className="font-mono text-[10px] text-violet-400">{item.bookId}</span>
-                        <span>•</span>
+                        <span className="opacity-40">|</span>
                         <span className="font-mono text-[10px] text-ink-faint">{item.isbn}</span>
                       </div>
                     </td>

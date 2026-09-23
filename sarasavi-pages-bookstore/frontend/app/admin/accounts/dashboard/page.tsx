@@ -247,11 +247,11 @@ export default function AccountsDashboardPage() {
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pink-500/10 border border-pink-500/20 text-pink-400 text-xs font-semibold mb-2">
             <UserCheck className="w-3.5 h-3.5" />
-            Module 5 — User Accounts Administration
+            Module 5: User Accounts Administration
           </div>
           <h1 className="text-2xl font-bold font-display text-white">Customer Profiles & KYC Security</h1>
           <p className="text-xs text-ink-muted mt-1">
-            Assigned Owner: <span className="text-pink-400 font-semibold">Gayathmi P.G.R. (IT25103013)</span> • Role: <span className="font-mono text-white">ACCOUNT_ADMIN</span>
+            Assigned Owner: <span className="text-pink-400 font-semibold">Gayathmi P.G.R. (IT25103013)</span> | Role: <span className="font-mono text-white">ACCOUNT_ADMIN</span>
           </p>
         </div>
 
@@ -423,7 +423,7 @@ export default function AccountsDashboardPage() {
                       <div className="text-[11px] text-ink-muted flex items-center gap-1 mt-0.5">
                         <Mail className="w-3 h-3 text-pink-400" />
                         <span>{cust.email}</span>
-                        <span>•</span>
+                        <span className="opacity-40">|</span>
                         <span className="font-mono text-[10px] text-pink-400">{cust.customerId}</span>
                       </div>
                     </td>

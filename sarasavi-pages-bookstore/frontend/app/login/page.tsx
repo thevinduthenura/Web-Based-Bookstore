@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Cookies from 'js-cookie';
 import { useAuth } from '@/hooks/useAuth';
@@ -9,95 +9,15 @@ import apiClient from '@/lib/api-client';
 import { 
   Lock, 
   User, 
-  BookOpen, 
   ArrowRight, 
   Eye, 
   EyeOff, 
-  Sparkles,
   AlertCircle,
-  Globe,
   CheckCircle2,
-  Mail,
-  ShieldCheck,
-  UserPlus
+  UserPlus,
+  ArrowLeft,
+  X
 } from 'lucide-react';
-
-const QUICK_DEMO_ACCOUNTS = [
-  // Customers
-  {
-    type: 'customer',
-    label: 'Customer',
-    name: 'Kamal Perera',
-    identifier: 'kamal.perera@gmail.com',
-    password: 'Password@123',
-    badge: 'Gold Customer',
-    color: 'border-amber-500/30 text-amber-400 bg-amber-500/10'
-  },
-  {
-    type: 'customer',
-    label: 'Customer',
-    name: 'Nimal Fernando',
-    identifier: 'nimal.fernando@yahoo.com',
-    password: 'Password@123',
-    badge: 'Silver Customer',
-    color: 'border-zinc-500/30 text-zinc-300 bg-zinc-500/10'
-  },
-  // Staff / Admins
-  {
-    type: 'staff',
-    label: 'M1 Super Admin',
-    name: 'Gunathilaka H.D.T.T.',
-    identifier: 'GunathilakaT1540',
-    password: '1540',
-    badge: 'Super Admin',
-    color: 'border-[#ff7a00]/40 text-[#ff7a00] bg-[#ff7a00]/10'
-  },
-  {
-    type: 'staff',
-    label: 'M2 Payment Admin',
-    name: 'Anaf M.K.A.S.',
-    identifier: 'AnafS2345',
-    password: '2345',
-    badge: 'Payment Admin',
-    color: 'border-emerald-500/30 text-emerald-400 bg-emerald-500/10'
-  },
-  {
-    type: 'staff',
-    label: 'M3 Support Admin',
-    name: 'Zeen A.C.',
-    identifier: 'ZeenC3342',
-    password: '3342',
-    badge: 'Support Admin',
-    color: 'border-sky-500/30 text-sky-400 bg-sky-500/10'
-  },
-  {
-    type: 'staff',
-    label: 'M4 Inventory Admin',
-    name: 'Dissanayake S.A.S.D.',
-    identifier: 'DissanayakeD1062',
-    password: '1062',
-    badge: 'Inventory Admin',
-    color: 'border-violet-500/30 text-violet-400 bg-violet-500/10'
-  },
-  {
-    type: 'staff',
-    label: 'M5 Accounts Admin',
-    name: 'Gayathmi P.G.R.',
-    identifier: 'GayathmiR3013',
-    password: '3013',
-    badge: 'Accounts Admin',
-    color: 'border-pink-500/30 text-pink-400 bg-pink-500/10'
-  },
-  {
-    type: 'staff',
-    label: 'M6 Order Admin',
-    name: 'Diyes C.L.',
-    identifier: 'DiyesL0263',
-    password: '0263',
-    badge: 'Order Admin',
-    color: 'border-amber-500/30 text-amber-400 bg-amber-500/10'
-  },
-];
 
 const CUSTOMER_PRESETS = [
   {
@@ -129,9 +49,12 @@ const CUSTOMER_PRESETS = [
   },
 ];
 
-export default function UnifiedLoginPage() {
+// ── Inner component: needs useSearchParams so must be inside <Suspense> ────
+function LoginForm() {
   const { login } = useAuth();
   const router = useRouter();
+  // useSearchParams is the Next.js-idiomatic way to read URL query params
+  const searchParams = useSearchParams();
 
   // Single unified form state
   const [identifier, setIdentifier] = useState('');
@@ -139,6 +62,14 @@ export default function UnifiedLoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Read ?error= param via Next.js useSearchParams (replaces window.location.search)
+  useEffect(() => {
+    const errorParam = searchParams.get('error');
+    if (errorParam === 'admin_required') {
+      setError('Access restricted. Please sign in with an authorized account.');
+    }
+  }, [searchParams]);
 
   // Customer registration modal toggle
   const [showRegisterModal, setShowRegisterModal] = useState(false);
@@ -156,13 +87,14 @@ export default function UnifiedLoginPage() {
   const [modalSuccess, setModalSuccess] = useState<string | null>(null);
 
   // ── Unified Sign-In Handler ───────────────────────────────────────────────
+  // Works seamlessly for both Staff/Administrators and Regular Customers
   const handleUnifiedSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanId = identifier.trim();
     const cleanPass = password.trim();
 
     if (!cleanId || !cleanPass) {
-      setError('Please enter your email/username and password.');
+      setError('Please enter your email or username and password.');
       return;
     }
 
@@ -170,39 +102,34 @@ export default function UnifiedLoginPage() {
       setIsSubmitting(true);
       setError(null);
 
-      // 1. Check if identifier matches known staff username or IT number
-      const isStaffCandidate = QUICK_DEMO_ACCOUNTS.some(
-        (acc) =>
-          acc.type === 'staff' &&
-          (acc.identifier.toLowerCase() === cleanId.toLowerCase() ||
-           cleanId.toLowerCase().startsWith('it25'))
-      );
-
-      if (isStaffCandidate || cleanId.toLowerCase().includes('admin') || !cleanId.includes('@')) {
-        // Attempt Staff login via backend Spring Boot JWT
-        try {
-          await login({ username: cleanId, password: cleanPass });
-          return; // Auth hook redirects to appropriate admin route
-        } catch (staffErr: any) {
-          // If explicit staff username failed, display message
-          if (isStaffCandidate) {
-            const msg = staffErr.response?.data?.message || 'Invalid staff credentials. Check your username and password.';
-            setError(msg);
-            setIsSubmitting(false);
-            return;
-          }
-          // If not confirmed staff, proceed to check customer
+      // 1. Try Staff / Administrator login first via backend Spring Boot JWT
+      try {
+        // Clear prior customer session
+        Cookies.remove('sp_customer');
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('sp_customer');
         }
+        await login({ username: cleanId, password: cleanPass });
+        // If staff authentication succeeded, useAuth.login redirects automatically to /admin/dashboard
+        return;
+      } catch {
+        // If staff login fails, seamlessly fall through to customer authentication
       }
 
       // 2. Customer Authentication Flow
+      Cookies.remove('sp_token');
+      Cookies.remove('sp_user');
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('sp_user');
+      }
+
       let customer = CUSTOMER_PRESETS.find(
         (c) =>
           c.email.toLowerCase() === cleanId.toLowerCase() ||
           c.customerId.toLowerCase() === cleanId.toLowerCase()
       );
 
-      // Also check local registry of created customers
+      // Check local registry of created customers
       if (!customer && typeof window !== 'undefined') {
         try {
           const registered = JSON.parse(localStorage.getItem('sp_registered_customers') || '[]');
@@ -220,7 +147,7 @@ export default function UnifiedLoginPage() {
       }
 
       // Check backend accounts API if not in presets
-      if (!customer) {
+      if (!customer && cleanId.includes('@')) {
         try {
           const res = await apiClient.get(`/accounts/${cleanId}`);
           if (res.data?.data) {
@@ -236,11 +163,11 @@ export default function UnifiedLoginPage() {
             };
           }
         } catch {
-          // Fallback: create persistent customer profile for any valid customer email
+          // Standard customer profile fallback for customer emails
           customer = {
             customerId: `CUST-${Math.floor(1000 + Math.random() * 9000)}`,
-            name: cleanId.includes('@') ? cleanId.split('@')[0] : cleanId,
-            email: cleanId.includes('@') ? cleanId.toLowerCase() : `${cleanId.toLowerCase()}@example.com`,
+            name: cleanId.split('@')[0],
+            email: cleanId.toLowerCase(),
             tier: 'BRONZE',
             points: 50,
             phone: '+94 77 123 4567',
@@ -249,28 +176,28 @@ export default function UnifiedLoginPage() {
         }
       }
 
-      // Store in cookie and localStorage for customer account view
-      Cookies.set('sp_customer', JSON.stringify(customer), { expires: 7 });
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('sp_customer', JSON.stringify(customer));
+      if (customer) {
+        // Store in cookie and localStorage for customer account view
+        Cookies.set('sp_customer', JSON.stringify(customer), { expires: 7 });
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('sp_customer', JSON.stringify(customer));
+        }
+
+        // Customer redirects straight to the storefront
+        router.push('/');
+        return;
       }
 
-      router.push('/account');
-    } catch (err: any) {
-      setError('Authentication failed. Please check your credentials.');
+      // If neither staff nor customer could be authenticated
+      setError('Invalid credentials. Please verify your email or username and password.');
+    } catch {
+      setError('Authentication failed. Please check your network and credentials.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // ── Quick-Fill Preset ──────────────────────────────────────────────────────
-  const handleQuickFill = (acc: typeof QUICK_DEMO_ACCOUNTS[0]) => {
-    setIdentifier(acc.identifier);
-    setPassword(acc.password);
-    setError(null);
-  };
-
-  // ── Register New Customer (Module 5 - Gayathmi) ───────────────────────────
+  // ── Register New Customer ──────────────────────────────────────────────────
   const handleRegisterCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
     setModalError(null);
@@ -295,7 +222,6 @@ export default function UnifiedLoginPage() {
     try {
       setRegLoading(true);
       let customerId = `CUST-${Math.floor(2000 + Math.random() * 8000)}`;
-      let backendStatus = '';
 
       try {
         const res = await apiClient.post('/accounts/register', {
@@ -311,7 +237,6 @@ export default function UnifiedLoginPage() {
 
         if (res.data?.data?.customerId) {
           customerId = res.data.data.customerId;
-          backendStatus = ' (Synced to Backend Database)';
         }
       } catch (apiErr: any) {
         console.warn('Backend API note:', apiErr.response?.data || apiErr.message);
@@ -329,28 +254,25 @@ export default function UnifiedLoginPage() {
         kycVerified: false
       };
 
-      // 1. Store in localStorage registry so customer can sign in anytime
       if (typeof window !== 'undefined') {
         const existing = JSON.parse(localStorage.getItem('sp_registered_customers') || '[]');
         const updated = [createdCustomer, ...existing.filter((c: any) => c.email !== email)];
         localStorage.setItem('sp_registered_customers', JSON.stringify(updated));
       }
 
-      // 2. Set active customer session
       Cookies.set('sp_customer', JSON.stringify(createdCustomer), { expires: 7 });
       if (typeof window !== 'undefined') {
         localStorage.setItem('sp_customer', JSON.stringify(createdCustomer));
       }
 
-      setModalSuccess(`Account created! Customer ID: ${customerId}${backendStatus}. Redirecting to your account...`);
+      setModalSuccess(`Account created successfully! Redirecting...`);
       setIdentifier(email);
       setPassword(regForm.password);
 
-      // Auto-redirect directly to customer account dashboard
       setTimeout(() => {
         setShowRegisterModal(false);
-        router.push('/account');
-      }, 1300);
+        router.push('/');
+      }, 1000);
     } catch (err: any) {
       setModalError(err.message || 'Registration failed. Please check your inputs.');
     } finally {
@@ -359,42 +281,47 @@ export default function UnifiedLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#07080a] text-zinc-200 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden selection:bg-[#ff7a00]/30 selection:text-white">
-      {/* Background Glows */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#ff7a00]/10 rounded-full blur-[140px] pointer-events-none" />
-      <div className="absolute bottom-10 right-10 w-96 h-96 bg-indigo-600/10 rounded-full blur-[120px] pointer-events-none" />
+    <div className="min-h-screen bg-[#c8d8c6] bg-gradient-to-b from-[#bed4bc] via-[#cadbc8] to-[#e0ede0] text-[#122215] flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden font-sans selection:bg-[#122215] selection:text-white">
+      
+      {/* Soft Ambient Botanical Glow */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-emerald-500/10 rounded-full blur-[160px] pointer-events-none" />
+      <div className="absolute bottom-10 right-10 w-96 h-96 bg-white/40 rounded-full blur-[140px] pointer-events-none" />
 
-      {/* Top Bar: Back to Main Storefront */}
-      <div className="sm:mx-auto sm:w-full sm:max-w-md px-4 mb-4 flex items-center justify-between">
+      {/* Top Header Bar */}
+      <div className="sm:mx-auto sm:w-full sm:max-w-md px-4 mb-6 flex items-center justify-between">
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-xs font-semibold text-zinc-400 hover:text-white transition-colors"
+          className="inline-flex items-center gap-2 text-xs font-medium text-[#3b4e40] hover:text-[#122215] transition-colors"
         >
-          <Globe className="w-4 h-4 text-[#ff7a00]" />
-          <span>&larr; Back to Bookstore</span>
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back to Bookstore</span>
         </Link>
-        <span className="text-[11px] font-mono text-zinc-500">SE2030 Group B9G2</span>
       </div>
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md px-4">
-        {/* Unified Login Card */}
-        <div className="bg-[#12141a]/95 backdrop-blur-2xl p-8 rounded-3xl border border-white/10 shadow-2xl shadow-black/80 relative">
-          {/* Logo & Title */}
-          <div className="text-center space-y-2.5 mb-7">
-            <div className="inline-flex items-center justify-center h-12 w-12 rounded-2xl bg-[#ff7a00] shadow-[0_0_24px_rgba(255,122,0,0.35)] mb-1">
-              <BookOpen className="w-6 h-6 text-black stroke-[2.5]" />
-            </div>
-            <h2 className="text-2xl font-black tracking-tight text-white font-display">
-              sarasavi<span className="font-light text-zinc-300">pages</span>
-            </h2>
-            <p className="text-xs text-zinc-400">
-              Enter your email or username to sign in to your account or admin dashboard.
+        {/* Unified Light iOS Glass Login Card */}
+        <div className="ios-glass bg-white/85 backdrop-blur-2xl p-8 sm:p-10 rounded-[32px] sm:rounded-[40px] border border-white/70 shadow-[0_8px_32px_rgba(0,0,0,0.08)] relative">
+          
+          {/* Logo & Clean Organic Emblem */}
+          <div className="text-center space-y-2.5 mb-8">
+            <Link href="/" className="inline-flex items-center gap-2 mb-1 group">
+              <div className="flex items-center -space-x-1">
+                <div className="w-3.5 h-3.5 rounded-full bg-[#122215] group-hover:scale-110 transition-transform" />
+                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 group-hover:scale-110 transition-transform" />
+                <div className="w-3.5 h-3.5 rounded-full bg-[#122215] group-hover:scale-110 transition-transform" />
+              </div>
+              <span className="font-medium text-xl tracking-tight text-[#122215]">
+                sarasavi<span className="font-normal text-[#526456]">pages</span>
+              </span>
+            </Link>
+            <p className="text-xs text-[#526456] max-w-xs mx-auto leading-relaxed">
+              sign in to access your personal library, orders, and bookstore services.
             </p>
           </div>
 
           {/* Error Alert */}
           {error && (
-            <div className="mb-5 p-3.5 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center gap-2.5 animate-shake">
+            <div className="mb-5 p-3.5 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-700 text-xs flex items-center gap-2.5">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{error}</span>
             </div>
@@ -403,25 +330,25 @@ export default function UnifiedLoginPage() {
           {/* ── THE SINGLE UNIFIED LOGIN FORM ───────────────────────────── */}
           <form onSubmit={handleUnifiedSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
+              <label className="block text-xs font-medium text-[#2d3e31] mb-1.5">
                 Email or Username
               </label>
               <div className="relative">
-                <User className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <User className="w-4 h-4 text-[#738477] absolute left-4 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   required
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
-                  placeholder="e.g. kamal.perera@gmail.com or GunathilakaT1540"
-                  className="w-full pl-10 pr-4 py-3 rounded-full bg-[#0a0c10] border border-white/10 text-xs text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#ff7a00] focus:ring-1 focus:ring-[#ff7a00] transition-all"
+                  placeholder="Enter your email or username"
+                  className="w-full pl-11 pr-4 py-3 rounded-full bg-white/90 border border-black/[0.08] text-xs text-[#122215] placeholder:text-[#8a998e] focus:outline-none focus:border-[#122215] focus:ring-1 focus:ring-[#122215] transition-all shadow-sm"
                 />
               </div>
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-xs font-semibold text-zinc-300">
+                <label className="block text-xs font-medium text-[#2d3e31]">
                   Password
                 </label>
                 <button
@@ -431,110 +358,78 @@ export default function UnifiedLoginPage() {
                     setModalSuccess(null);
                     setShowRegisterModal(true);
                   }}
-                  className="text-[11px] text-[#ff7a00] hover:underline flex items-center gap-1 font-semibold"
+                  className="text-[11px] text-emerald-700 hover:text-emerald-800 hover:underline flex items-center gap-1 font-medium transition-colors"
                 >
                   <UserPlus className="w-3 h-3" />
-                  <span>Create new customer?</span>
+                  <span>Create new account?</span>
                 </button>
               </div>
               <div className="relative">
-                <Lock className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <Lock className="w-4 h-4 text-[#738477] absolute left-4 top-1/2 -translate-y-1/2" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
-                  className="w-full pl-10 pr-10 py-3 rounded-full bg-[#0a0c10] border border-white/10 text-xs text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#ff7a00] focus:ring-1 focus:ring-[#ff7a00] transition-all font-mono"
+                  className="w-full pl-11 pr-11 py-3 rounded-full bg-white/90 border border-black/[0.08] text-xs text-[#122215] placeholder:text-[#8a998e] focus:outline-none focus:border-[#122215] focus:ring-1 focus:ring-[#122215] transition-all font-mono shadow-sm"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#738477] hover:text-[#122215] transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
 
-            {/* Cinevault-style Orange Pill Sign In Button */}
+            {/* Sleek Black Pill Sign In Button */}
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-3.5 rounded-full bg-[#ff7a00] hover:bg-[#ff8c1a] text-black font-bold text-sm shadow-[0_4px_20px_rgba(255,122,0,0.3)] active:scale-98 transition-all flex items-center justify-center gap-2 disabled:opacity-50 mt-2"
+              className="w-full py-3.5 rounded-full bg-[#122215] hover:bg-black text-white font-medium text-xs shadow-md active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 mt-4"
             >
-              <span>{isSubmitting ? 'Signing In...' : 'Sign In'}</span>
-              <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+              <span>{isSubmitting ? 'Signing in...' : 'Sign In'}</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </form>
-
-          {/* ── QUICK DEMO LOGINS (Click to autofill single form) ───────── */}
-          <div className="pt-6 mt-6 border-t border-white/10 space-y-3">
-            <div className="flex items-center justify-between text-[11px] text-zinc-400">
-              <span className="font-semibold uppercase tracking-wider text-zinc-500">
-                Quick Demo Accounts (Click to Autofill)
-              </span>
-              <Sparkles className="w-3.5 h-3.5 text-[#ff7a00]" />
-            </div>
-
-            <div className="grid grid-cols-2 gap-2 max-h-56 overflow-y-auto pr-1 no-scrollbar">
-              {QUICK_DEMO_ACCOUNTS.map((acc) => (
-                <button
-                  key={acc.identifier}
-                  type="button"
-                  onClick={() => handleQuickFill(acc)}
-                  className={`p-2.5 rounded-xl border text-left transition-all hover:scale-[1.02] active:scale-95 ${acc.color}`}
-                >
-                  <div className="flex items-center justify-between gap-1">
-                    <span className="text-xs font-bold text-white truncate">
-                      {acc.name.split(' ')[0]}
-                    </span>
-                    <span className="text-[9px] font-mono uppercase opacity-80">
-                      {acc.label.split(' ')[0]}
-                    </span>
-                  </div>
-                  <div className="text-[10px] font-mono text-zinc-400 truncate mt-0.5">
-                    {acc.identifier}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
       </div>
 
-      {/* ── REGISTER CUSTOMER MODAL (Module 5 - Gayathmi) ───────────── */}
+      {/* ── REGISTER CUSTOMER MODAL (Light iOS Glass Style) ─────────── */}
       {showRegisterModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
-          <div className="bg-[#12141a] border border-white/15 rounded-3xl p-6 max-w-md w-full shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between mb-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+          <div className="bg-white/95 backdrop-blur-2xl border border-white/60 rounded-[32px] p-7 max-w-md w-full shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between mb-5 pb-3 border-b border-black/[0.06]">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-[#ff7a00] flex items-center justify-center shadow-[0_0_15px_rgba(255,122,0,0.3)]">
-                  <UserPlus className="w-5 h-5 text-black" />
+                <div className="w-9 h-9 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center">
+                  <UserPlus className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-white">Create Customer Account</h3>
-                  <p className="text-[11px] text-zinc-400">Module 5 (Gayathmi) - Customer Registration</p>
+                  <h3 className="text-sm font-medium text-[#122215]">Create Reader Account</h3>
+                  <p className="text-[11px] text-[#526456]">Join the Sarasavi Pages literary community</p>
                 </div>
               </div>
               <button
                 onClick={() => setShowRegisterModal(false)}
-                className="w-7 h-7 rounded-full bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white flex items-center justify-center transition-colors text-xs"
+                className="w-7 h-7 rounded-full bg-black/[0.04] hover:bg-black/[0.08] text-[#526456] hover:text-[#122215] flex items-center justify-center transition-colors"
+                title="Close"
               >
-                ✕
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
 
             {/* Modal Alerts */}
             {modalError && (
-              <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center gap-2">
+              <div className="mb-4 p-3 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-700 text-xs flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 shrink-0" />
                 <span>{modalError}</span>
               </div>
             )}
 
             {modalSuccess && (
-              <div className="mb-4 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs flex items-center gap-2">
+              <div className="mb-4 p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 text-xs flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 shrink-0" />
                 <span>{modalSuccess}</span>
               </div>
@@ -543,84 +438,84 @@ export default function UnifiedLoginPage() {
             <form onSubmit={handleRegisterCustomer} className="space-y-3 text-xs">
               <div className="grid grid-cols-2 gap-2.5">
                 <div>
-                  <label className="block text-zinc-300 font-medium mb-1">First Name *</label>
+                  <label className="block text-[#3b4e40] font-medium mb-1">First Name *</label>
                   <input
                     type="text"
                     required
                     value={regForm.firstName}
                     onChange={(e) => setRegForm({ ...regForm, firstName: e.target.value })}
-                    className="w-full px-3 py-2.5 rounded-xl bg-[#0a0c10] border border-white/10 text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#ff7a00]"
+                    className="w-full px-3.5 py-2.5 rounded-full bg-white border border-black/[0.08] text-[#122215] placeholder:text-[#8a998e] focus:outline-none focus:border-[#122215]"
                     placeholder="e.g. Kasun"
                   />
                 </div>
                 <div>
-                  <label className="block text-zinc-300 font-medium mb-1">Last Name *</label>
+                  <label className="block text-[#3b4e40] font-medium mb-1">Last Name *</label>
                   <input
                     type="text"
                     required
                     value={regForm.lastName}
                     onChange={(e) => setRegForm({ ...regForm, lastName: e.target.value })}
-                    className="w-full px-3 py-2.5 rounded-xl bg-[#0a0c10] border border-white/10 text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#ff7a00]"
-                    placeholder="e.g. Silva"
+                    className="w-full px-3.5 py-2.5 rounded-full bg-white border border-black/[0.08] text-[#122215] placeholder:text-[#8a998e] focus:outline-none focus:border-[#122215]"
+                    placeholder="e.g. Perera"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-zinc-300 font-medium mb-1">Email Address *</label>
+                <label className="block text-[#3b4e40] font-medium mb-1">Email Address *</label>
                 <input
                   type="email"
                   required
                   value={regForm.email}
                   onChange={(e) => setRegForm({ ...regForm, email: e.target.value })}
-                  className="w-full px-3 py-2.5 rounded-xl bg-[#0a0c10] border border-white/10 text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#ff7a00]"
-                  placeholder="e.g. kasun.silva@gmail.com"
+                  className="w-full px-3.5 py-2.5 rounded-full bg-white border border-black/[0.08] text-[#122215] placeholder:text-[#8a998e] focus:outline-none focus:border-[#122215]"
+                  placeholder="e.g. kasun.perera@gmail.com"
                 />
               </div>
 
               <div>
-                <label className="block text-zinc-300 font-medium mb-1">Password (min 6 characters) *</label>
+                <label className="block text-[#3b4e40] font-medium mb-1">Password (min 6 characters) *</label>
                 <input
                   type="password"
                   required
                   minLength={6}
                   value={regForm.password}
                   onChange={(e) => setRegForm({ ...regForm, password: e.target.value })}
-                  className="w-full px-3 py-2.5 rounded-xl bg-[#0a0c10] border border-white/10 text-white font-mono placeholder:text-zinc-600 focus:outline-none focus:border-[#ff7a00]"
+                  className="w-full px-3.5 py-2.5 rounded-full bg-white border border-black/[0.08] text-[#122215] font-mono placeholder:text-[#8a998e] focus:outline-none focus:border-[#122215]"
                   placeholder="••••••••"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-2.5">
                 <div>
-                  <label className="block text-zinc-300 font-medium mb-1">Phone Number</label>
+                  <label className="block text-[#3b4e40] font-medium mb-1">Phone Number</label>
                   <input
                     type="text"
                     value={regForm.phone}
                     onChange={(e) => setRegForm({ ...regForm, phone: e.target.value })}
-                    className="w-full px-3 py-2.5 rounded-xl bg-[#0a0c10] border border-white/10 text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#ff7a00]"
+                    className="w-full px-3.5 py-2.5 rounded-full bg-white border border-black/[0.08] text-[#122215] placeholder:text-[#8a998e] focus:outline-none focus:border-[#122215]"
                     placeholder="+94 77 123 4567"
                   />
                 </div>
                 <div>
-                  <label className="block text-zinc-300 font-medium mb-1">City</label>
+                  <label className="block text-[#3b4e40] font-medium mb-1">City</label>
                   <input
                     type="text"
                     value={regForm.city}
                     onChange={(e) => setRegForm({ ...regForm, city: e.target.value })}
-                    className="w-full px-3 py-2.5 rounded-xl bg-[#0a0c10] border border-white/10 text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#ff7a00]"
+                    className="w-full px-3.5 py-2.5 rounded-full bg-white border border-black/[0.08] text-[#122215] placeholder:text-[#8a998e] focus:outline-none focus:border-[#122215]"
                     placeholder="Colombo"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-zinc-300 font-medium mb-1">Address Line</label>
+                <label className="block text-[#3b4e40] font-medium mb-1">Address Line</label>
                 <input
                   type="text"
                   value={regForm.addressLine1}
                   onChange={(e) => setRegForm({ ...regForm, addressLine1: e.target.value })}
-                  className="w-full px-3 py-2.5 rounded-xl bg-[#0a0c10] border border-white/10 text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#ff7a00]"
+                  className="w-full px-3.5 py-2.5 rounded-full bg-white border border-black/[0.08] text-[#122215] placeholder:text-[#8a998e] focus:outline-none focus:border-[#122215]"
                   placeholder="No 25, Main Street"
                 />
               </div>
@@ -628,14 +523,33 @@ export default function UnifiedLoginPage() {
               <button
                 type="submit"
                 disabled={regLoading}
-                className="w-full py-3 rounded-full bg-[#ff7a00] hover:bg-[#ff8c1a] text-black font-bold text-xs shadow-lg shadow-orange-500/20 active:scale-98 transition-all mt-4 flex items-center justify-center gap-2 disabled:opacity-50"
+                className="w-full py-3.5 rounded-full bg-[#122215] hover:bg-black text-white font-medium text-xs shadow-md active:scale-95 transition-all mt-4 flex items-center justify-center gap-2 disabled:opacity-50"
               >
-                {regLoading ? 'Creating Customer Account...' : 'Complete Registration & Sign In'}
+                {regLoading ? 'Creating Account...' : 'Complete Registration & Sign In'}
               </button>
             </form>
           </div>
         </div>
       )}
     </div>
+  );
+}
+
+// ── Loading fallback for Suspense ─────────────────────────────────────────
+function LoginSkeleton() {
+  return (
+    <div className="min-h-screen bg-[#c8d8c6] flex items-center justify-center">
+      <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#122215] border-t-transparent" />
+    </div>
+  );
+}
+
+// ── Default export: wraps LoginForm in Suspense (required by Next.js) ──────
+// useSearchParams() inside LoginForm needs a Suspense boundary above it.
+export default function UnifiedLoginPage() {
+  return (
+    <Suspense fallback={<LoginSkeleton />}>
+      <LoginForm />
+    </Suspense>
   );
 }
