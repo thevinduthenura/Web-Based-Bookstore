@@ -7,7 +7,7 @@ spring:
     allow-circular-references: true
 
 server:
-  port: ${SERVER_PORT:8080}
+  port: ${PORT:${SERVER_PORT:8080}}
   servlet:
     context-path: /api
 
@@ -27,7 +27,7 @@ springdoc:
 
 # CORS — allow frontend (Next.js on Vercel or localhost:3000)
 cors:
-  allowed-origins: ${CORS_ORIGINS:http://localhost:3000,http://localhost:3001}
+  allowed-origins: ${CORS_ORIGINS:http://localhost:3000,http://localhost:3001,https://*.vercel.app}
 
 logging:
   level:

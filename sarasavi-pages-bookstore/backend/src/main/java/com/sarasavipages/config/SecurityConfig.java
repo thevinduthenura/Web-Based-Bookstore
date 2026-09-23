@@ -64,7 +64,8 @@ public class SecurityConfig {
                     "/v3/api-docs/**",
                     "/swagger-ui/**",
                     "/swagger-ui.html",
-                    "/h2-console/**"
+                    "/h2-console/**",
+                    "/health"
                 ).permitAll()
 
                 // ── M1: Admin & Staff Management ──────────────────────────────
@@ -112,7 +113,15 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         List<String> origins = Arrays.asList(allowedOrigins.split(","));
-        config.setAllowedOrigins(origins);
+        for (String origin : origins) {
+            String trimmed = origin.trim();
+            if (trimmed.isEmpty()) continue;
+            if (trimmed.contains("*")) {
+                config.addAllowedOriginPattern(trimmed);
+            } else {
+                config.addAllowedOrigin(trimmed);
+            }
+        }
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
