@@ -25,7 +25,7 @@
 |---|-------------|------------|--------------|------|--------------|
 | 1 | **Gunathilaka H.D.T.T.** | **IT25101540** | **Module 1: Admin & Staff Management** | `SUPER_ADMIN` | **Full Access** (All Modules + Staff CRUD + Audit Trail) |
 | 2 | Anaf M.K.A.S. | IT25102345 | Module 2: Payment Management | `PAYMENT_ADMIN` | Payment & Gateway Operations only |
-| 3 | Zeen A.C. | IT25103342 | Module 3: Customer Service & Tickets | `CUSTOMER_SERVICE_ADMIN` | Helpdesk & Support Tickets only |
+| 3 | ffZeen A.C. | IT25103342 | Module 3: Customer Service & Tickets | `CUSTOMER_SERVICE_ADMIN` | Helpdesk & Support Tickets only |
 | 4 | Dissanayake S.A.S.D. | IT25101062 | Module 4: Inventory & Catalog | `INVENTORY_ADMIN` | Book Inventory & Genre Catalog only |
 | 5 | Gayathmi P.G.R. | IT25103013 | Module 5: User Accounts & Profiles | `ACCOUNT_ADMIN` | Customer Accounts & KYC only |
 | 6 | Diyes C.L. | IT25100263 | Module 6: Orders & Shopping Cart | `ORDER_ADMIN` | Order Fulfillment & Logistics only |

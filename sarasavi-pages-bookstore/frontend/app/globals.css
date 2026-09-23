@@ -1,53 +1,377 @@
+/* ─────────────────────────────────────────────────────────────────
+   REINA NEUE - Premium Display Typeface (@font-face declarations)
+   Place your licensed .woff2 files inside: /public/fonts/
+   Download / purchase: https://www.fenotype.com/fonts/reina
+   ──────────────────────────────────────────────────────────────── */
+@font-face {
+  font-family: 'Reina Neue';
+  src: url('/fonts/ReinaNeue-Light.woff2') format('woff2');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Reina Neue';
+  src: url('/fonts/ReinaNeue-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Reina Neue';
+  src: url('/fonts/ReinaNeue-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Reina Neue';
+  src: url('/fonts/ReinaNeue-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Reina Neue';
+  src: url('/fonts/ReinaNeue-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Reina Neue';
+  src: url('/fonts/ReinaNeue-ExtraBold.woff2') format('woff2');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Reina Neue';
+  src: url('/fonts/ReinaNeue-Black.woff2') format('woff2');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Reina Neue';
+  src: url('/fonts/ReinaNeue-LightItalic.woff2') format('woff2');
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Reina Neue';
+  src: url('/fonts/ReinaNeue-Italic.woff2') format('woff2');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Reina Neue';
+  src: url('/fonts/ReinaNeue-BoldItalic.woff2') format('woff2');
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   CSS CUSTOM PROPERTIES
+   ──────────────────────────────────────────────────────────────── */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --background: #0f1117;
-  --foreground: #f8f9fb;
+  --background: #f7f7f4;
+  --foreground: #121614;
+
+  /* Font stacks */
+  --font-display: 'Reina Neue', Arial, Helvetica, sans-serif;
+  --font-body:    'var(--font-inter)', Arial, Helvetica, sans-serif;
+  --font-mono:    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   BASE RESET
+   ──────────────────────────────────────────────────────────────── */
+html {
+  font-family: var(--font-body);
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-feature-settings: "rlig" 1, "calt" 1;
+  font-family: var(--font-body);
+  font-feature-settings: 'kern' 1, 'liga' 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
 }
 
-/* Custom sleek scrollbars */
+/* ─────────────────────────────────────────────────────────────────
+   HEADING DEFAULTS - Clean Sans-Serif (Arial) with normal/medium weights
+   ──────────────────────────────────────────────────────────────── */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-body);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   REINA NEUE DISPLAY FONT (Only used on specific editorial elements)
+   Strict user rule: No bold weight (normal/light only), strictly lowercase (no capital letters)
+   ──────────────────────────────────────────────────────────────── */
+.font-display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  text-transform: lowercase;
+  letter-spacing: -0.015em;
+}
+
+.font-display-italic {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-style: italic;
+  text-transform: lowercase;
+  letter-spacing: -0.015em;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   SCROLLBARS
+   ──────────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0f1117;
+  background: #f0f0eb;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #2a2d3a;
+  background: #c8ccc9;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #f0720f;
+  background: #1a3d28;
 }
 
-/* Glassmorphism helpers */
+/* ─────────────────────────────────────────────────────────────────
+   iOS-GRADE GLASSMORPHISM UTILITIES
+   ──────────────────────────────────────────────────────────────── */
+
+/* Standard iOS glass - for use on dark/nature backgrounds */
+.ios-glass {
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(40px) saturate(1.8);
+  -webkit-backdrop-filter: blur(40px) saturate(1.8);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+
+/* Lighter iOS glass - for lighter/white backgrounds */
+.ios-glass-light {
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(40px) saturate(1.8);
+  -webkit-backdrop-filter: blur(40px) saturate(1.8);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+/* Dark iOS glass - for deep overlays */
+.ios-glass-dark {
+  background: rgba(10, 18, 12, 0.55);
+  backdrop-filter: blur(40px) saturate(1.6);
+  -webkit-backdrop-filter: blur(40px) saturate(1.6);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.40),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+/* Green-tinted iOS glass - for forest/nature themes */
+.ios-glass-green {
+  background: rgba(26, 61, 40, 0.45);
+  backdrop-filter: blur(40px) saturate(1.8);
+  -webkit-backdrop-filter: blur(40px) saturate(1.8);
+  border: 1px solid rgba(100, 200, 130, 0.20);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(150, 255, 180, 0.15);
+}
+
+/* White card glass (Healium-style stat cards) */
 .glass-panel {
-  background: rgba(26, 29, 39, 0.75);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.90);
+  backdrop-filter: blur(40px) saturate(1.8);
+  -webkit-backdrop-filter: blur(40px) saturate(1.8);
+  border: 1px solid rgba(255, 255, 255, 0.70);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 1);
 }
 
 .glass-card {
-  background: linear-gradient(135deg, rgba(26, 29, 39, 0.85) 0%, rgba(15, 17, 23, 0.9) 100%);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(40px) saturate(1.8);
+  -webkit-backdrop-filter: blur(40px) saturate(1.8);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.10),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .glass-card:hover {
-  border-color: rgba(240, 114, 15, 0.3);
-  box-shadow: 0 8px 32px rgba(240, 114, 15, 0.08);
+  border-color: rgba(45, 106, 69, 0.25);
+  box-shadow:
+    0 8px 40px rgba(0, 0, 0, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
+
+/* ─────────────────────────────────────────────────────────────────
+   ANIMATIONS
+   ──────────────────────────────────────────────────────────────── */
+
+/* Pulse ping for live indicators */
+@keyframes ping {
+  75%, 100% { transform: scale(2); opacity: 0; }
+}
+.animate-ping { animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite; }
+
+/* Horizontal ticker scroll */
+@keyframes ticker {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.animate-ticker {
+  display: flex;
+  animation: ticker 22s linear infinite;
+  will-change: transform;
+}
+
+/* Float bob for hero elements */
+@keyframes floatBob {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-8px); }
+}
+.animate-float {
+  animation: floatBob 4s ease-in-out infinite;
+}
+
+/* Shimmer for skeleton loaders */
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.animate-shimmer {
+  background: linear-gradient(90deg, #f0f0eb 25%, #e8e8e0 50%, #f0f0eb 75%);
+  background-size: 200% auto;
+  animation: shimmer 1.8s linear infinite;
+}
+
+/* Fade slide-up reveal */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+.animate-fade-up {
+  animation: fadeSlideUp 0.5s ease-out forwards;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   UTILITIES
+   ──────────────────────────────────────────────────────────────── */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ─────────────────────────────────────────────────────────────────
+   ADMIN THEME ADAPTATION FOR CRISP HIGH-CONTRAST READABILITY
+   Ensures all admin sub-pages (M1-M6) have crisp readable typography & sharp cards
+   ──────────────────────────────────────────────────────────────── */
+.admin-theme {
+  color: #0f172a;
+}
+
+.admin-theme h1,
+.admin-theme h2,
+.admin-theme h3,
+.admin-theme h4,
+.admin-theme h5,
+.admin-theme h6 {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.admin-theme .glass-card {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05) !important;
+}
+
+.admin-theme .glass-card .text-white,
+.admin-theme .glass-card h1,
+.admin-theme .glass-card h2,
+.admin-theme .glass-card h3,
+.admin-theme .glass-card .font-display {
+  color: #0f172a;
+}
+
+.admin-theme .glass-card .text-ink-muted,
+.admin-theme .text-ink-muted {
+  color: #475569;
+}
+
+.admin-theme .glass-card .text-ink-faint,
+.admin-theme .text-ink-faint {
+  color: #64748b;
+}
+
+.admin-theme input,
+.admin-theme select {
+  background-color: #ffffff;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+.admin-theme input::placeholder {
+  color: #94a3b8;
+}
+
+.admin-theme table thead {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  color: #334155 !important;
+  font-weight: 700 !important;
+}
+
+.admin-theme table tbody tr {
+  border-color: #f1f5f9 !important;
+}
+
+.admin-theme table tbody tr:hover {
+  background-color: #f8fafc !important;
+}
+
+.admin-theme table tbody td {
+  color: #1e293b;
+}
+
+.admin-theme table tbody td .text-white {
+  color: #0f172a !important;
+}
+
