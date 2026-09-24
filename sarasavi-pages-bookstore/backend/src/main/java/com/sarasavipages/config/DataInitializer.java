@@ -158,8 +158,8 @@ public class DataInitializer implements CommandLineRunner {
 
             log.info("Seeding payments...");
             LocalDateTime now = LocalDateTime.now();
-            jdbcTemplate.update("INSERT INTO payments (order_id, customer_id, amount, currency, payment_method, status, transaction_reference, gateway_message, invoice_number, created_at, updated_at) VALUES (1001, 1, 2050.00, 'LKR', 'CREDIT_CARD', 'COMPLETED', 'TXN-88239102-M2', 'Approved', 'INV-2026-0001', ?, ?)", now, now);
-            jdbcTemplate.update("INSERT INTO payments (order_id, customer_id, amount, currency, payment_method, status, transaction_reference, gateway_message, invoice_number, created_at, updated_at) VALUES (1002, 2, 4500.00, 'LKR', 'ONLINE_BANKING', 'COMPLETED', 'TXN-99182301-M2', 'Approved', 'INV-2026-0002', ?, ?)", now, now);
+            jdbcTemplate.update("INSERT INTO payments (order_id, customer_id, amount, currency, payment_method, status, transaction_reference, gateway_message, invoice_number, created_at, updated_at) VALUES (1001, 1, 2050.00, 'LKR', 'CARD', 'COMPLETED', 'TXN-88239102-M2', 'Approved', 'INV-2026-0001', ?, ?)", now, now);
+            jdbcTemplate.update("INSERT INTO payments (order_id, customer_id, amount, currency, payment_method, status, transaction_reference, gateway_message, invoice_number, created_at, updated_at) VALUES (1002, 2, 4500.00, 'LKR', 'PAYHERE', 'COMPLETED', 'TXN-99182301-M2', 'Approved', 'INV-2026-0002', ?, ?)", now, now);
             jdbcTemplate.update("INSERT INTO payments (order_id, customer_id, amount, currency, payment_method, status, transaction_reference, gateway_message, invoice_number, created_at, updated_at) VALUES (1003, 3, 850.00, 'LKR', 'CASH_ON_DELIVERY', 'PENDING', 'TXN-77382910-M2', 'Pending delivery confirmation', 'INV-2026-0003', ?, ?)", now, now);
         } catch (Exception e) {
             log.warn("Could not seed payments: {}", e.getMessage());

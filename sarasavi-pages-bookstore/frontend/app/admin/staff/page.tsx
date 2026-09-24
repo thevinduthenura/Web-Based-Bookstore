@@ -40,31 +40,31 @@ const ROLES: { value: StaffRole; label: string; desc: string; color: string }[] 
     value: 'PAYMENT_ADMIN', 
     label: 'M2: Payment Admin', 
     desc: 'Gateway integrations, invoices and refund transactions',
-    color: 'bg-[#E4E7D2] text-[#34451D] border-[#CDD3B5] font-semibold'
+    color: 'bg-[#F0F4E8] text-[#34451D] border-[#E2E7D8] font-semibold'
   },
   { 
     value: 'CUSTOMER_SERVICE_ADMIN', 
     label: 'M3: Customer Service Admin', 
     desc: 'Support inquiries, ticket triage and customer escalations',
-    color: 'bg-[#E4E7D2] text-[#34451D] border-[#CDD3B5] font-semibold'
+    color: 'bg-[#F0F4E8] text-[#34451D] border-[#E2E7D8] font-semibold'
   },
   { 
     value: 'INVENTORY_ADMIN', 
     label: 'M4: Inventory Admin', 
     desc: 'Book catalog, stock thresholds and restock orders',
-    color: 'bg-[#E4E7D2] text-[#34451D] border-[#CDD3B5] font-semibold'
+    color: 'bg-[#F0F4E8] text-[#34451D] border-[#E2E7D8] font-semibold'
   },
   { 
     value: 'ACCOUNT_ADMIN', 
     label: 'M5: Accounts Admin', 
     desc: 'Customer profile management, KYC audits and loyalty tiers',
-    color: 'bg-[#E4E7D2] text-[#34451D] border-[#CDD3B5] font-semibold'
+    color: 'bg-[#F0F4E8] text-[#34451D] border-[#E2E7D8] font-semibold'
   },
   { 
     value: 'ORDER_ADMIN', 
     label: 'M6: Order Admin', 
     desc: 'Order verification, delivery tracking and courier logistics',
-    color: 'bg-[#E4E7D2] text-[#34451D] border-[#CDD3B5] font-semibold'
+    color: 'bg-[#F0F4E8] text-[#34451D] border-[#E2E7D8] font-semibold'
   },
 ];
 
@@ -437,7 +437,7 @@ export default function StaffManagementPage() {
   };
 
   return (
-    <div className="space-y-6 pb-12 selection:bg-[#34451D] selection:text-[#efead5]">
+    <div className="space-y-6 pb-12 selection:bg-[#34451D] selection:text-white">
       {/* ── HEADER ────────────────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -455,7 +455,7 @@ export default function StaffManagementPage() {
             setFormError(null);
             setIsAddModalOpen(true);
           }}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#34451D] hover:bg-[#20231B] text-[#efead5] font-semibold text-xs shadow-xs active:scale-95 transition-all self-start sm:self-auto"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#34451D] hover:bg-[#20231B] text-white font-semibold text-xs shadow-xs active:scale-95 transition-all self-start sm:self-auto"
         >
           <UserPlus className="w-4 h-4" />
           <span>Add New Admin / Staff</span>
@@ -463,22 +463,22 @@ export default function StaffManagementPage() {
       </div>
 
       {/* ── CRUD CAPABILITY LEGEND ────────────────────────────────────────── */}
-      <div className="bg-[#efead5] p-3.5 rounded-2xl border border-[#CDD3B5] shadow-xs flex flex-wrap items-center justify-between gap-3 text-xs">
+      <div className="bg-white p-3.5 rounded-2xl border border-[#E2E7D8] shadow-xs flex flex-wrap items-center justify-between gap-3 text-xs">
         <div className="flex items-center gap-2 font-semibold text-[#34451D]">
           <Layers className="w-4 h-4 text-[#596B32]" />
           <span>Member 1 CRUD Actions:</span>
         </div>
         <div className="flex flex-wrap items-center gap-2 text-[11px] font-sans">
-          <span className="px-2.5 py-1 rounded-full bg-[#E4E7D2] text-[#34451D] border border-[#CDD3B5] font-semibold">
+          <span className="px-2.5 py-1 rounded-full bg-[#F0F4E8] text-[#34451D] border border-[#E2E7D8] font-semibold">
             Create Staff (Rules Enforced)
           </span>
-          <span className="px-2.5 py-1 rounded-full bg-[#E4E7D2] text-[#34451D] border border-[#CDD3B5] font-semibold">
+          <span className="px-2.5 py-1 rounded-full bg-[#F0F4E8] text-[#34451D] border border-[#E2E7D8] font-semibold">
             Search & Role Filtering
           </span>
-          <span className="px-2.5 py-1 rounded-full bg-[#E4E7D2] text-[#34451D] border border-[#CDD3B5] font-semibold">
+          <span className="px-2.5 py-1 rounded-full bg-[#F0F4E8] text-[#34451D] border border-[#E2E7D8] font-semibold">
             Edit Name & Role
           </span>
-          <span className="px-2.5 py-1 rounded-full bg-[#E4E7D2] text-[#34451D] border border-[#CDD3B5] font-semibold">
+          <span className="px-2.5 py-1 rounded-full bg-[#F0F4E8] text-[#34451D] border border-[#E2E7D8] font-semibold">
             Activate / Deactivate
           </span>
           <span className="px-2.5 py-1 rounded-full bg-rose-100 text-rose-950 border border-rose-300 font-semibold">
@@ -507,7 +507,7 @@ export default function StaffManagementPage() {
       )}
 
       {/* ── FILTER AND SEARCH BAR ─────────────────────────────────────────── */}
-      <div className="bg-[#efead5] p-4 rounded-2xl border border-[#CDD3B5] shadow-xs flex flex-col md:flex-row gap-3 items-center justify-between">
+      <div className="bg-white p-4 rounded-2xl border border-[#E2E7D8] shadow-xs flex flex-col md:flex-row gap-3 items-center justify-between">
         <div className="relative w-full md:w-80">
           <Search className="w-4 h-4 text-[#85887A] absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
@@ -515,7 +515,7 @@ export default function StaffManagementPage() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search staff by name, username, email..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-full bg-[#efead5] border border-[#CDD3B5] text-xs text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:border-[#596B32] focus:bg-[#efead5] font-medium transition-all shadow-xs"
+            className="w-full pl-10 pr-4 py-2.5 rounded-full bg-[#F8F9F5] border border-[#E2E7D8] text-xs text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:border-[#596B32] focus:bg-white font-medium transition-all shadow-xs"
           />
         </div>
 
@@ -524,7 +524,7 @@ export default function StaffManagementPage() {
           <select
             value={selectedRoleFilter}
             onChange={(e) => setSelectedRoleFilter(e.target.value)}
-            className="w-full md:w-auto px-4 py-2.5 rounded-full bg-[#efead5] border border-[#CDD3B5] text-xs text-[#20231B] focus:outline-none focus:border-[#596B32] font-semibold font-sans transition-all shadow-xs"
+            className="w-full md:w-auto px-4 py-2.5 rounded-full bg-[#F8F9F5] border border-[#E2E7D8] text-xs text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-white font-semibold font-sans transition-all shadow-xs"
           >
             <option value="ALL">All Roles ({staffList.length})</option>
             {ROLES.map((r) => (
@@ -537,7 +537,7 @@ export default function StaffManagementPage() {
       </div>
 
       {/* ── STAFF TABLE ───────────────────────────────────────────────────── */}
-      <div className="bg-[#efead5] rounded-2xl overflow-hidden border border-[#CDD3B5] shadow-xs">
+      <div className="bg-white rounded-2xl overflow-hidden border border-[#E2E7D8] shadow-xs">
         {isLoading ? (
           <div className="py-12 text-center text-xs text-[#85887A]">
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#596B32] border-t-transparent mx-auto mb-2" />
@@ -550,7 +550,7 @@ export default function StaffManagementPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs min-w-[700px]">
-              <thead className="bg-[#efead5]/60 border-b border-[#CDD3B5] text-[#596B32] uppercase tracking-wider text-[11px] font-semibold">
+              <thead className="bg-[#F8F9F5] border-b border-[#E2E7D8] text-[#596B32] uppercase tracking-wider text-[11px] font-semibold">
                 <tr>
                   <th className="py-3.5 px-4">Admin Member</th>
                   <th className="py-3.5 px-4">Username</th>
@@ -561,14 +561,14 @@ export default function StaffManagementPage() {
                   <th className="py-3.5 px-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#CDD3B5]/40 bg-[#efead5]">
+              <tbody className="divide-y divide-[#E2E7D8] bg-white">
                 {filteredStaff.map((staff) => {
                   const roleObj = ROLES.find(r => r.value === staff.role);
                   return (
-                    <tr key={staff.id} className="hover:bg-[#efead5]/50 transition-colors">
+                    <tr key={staff.id} className="hover:bg-[#F8F9F5] transition-colors">
                       <td className="py-3.5 px-4">
                         <div className="font-semibold text-[#20231B] flex items-center gap-2.5">
-                          <div className="w-7 h-7 rounded-full bg-[#efead5] text-[#34451D] border border-[#CDD3B5] flex items-center justify-center text-[11px] font-semibold font-sans">
+                          <div className="w-7 h-7 rounded-full bg-[#F0F4E8] text-[#34451D] border border-[#E2E7D8] flex items-center justify-center text-[11px] font-semibold font-sans">
                             {staff.fullName.charAt(0)}
                           </div>
                           <span className="text-[#20231B] font-display font-normal">{staff.fullName}</span>
@@ -587,7 +587,7 @@ export default function StaffManagementPage() {
                       <td className="py-3.5 px-4">
                         <span
                           className={`inline-block px-2.5 py-1 rounded-full border text-[11px] font-sans font-semibold ${
-                            roleObj ? roleObj.color : 'bg-[#efead5] border-[#CDD3B5] text-[#20231B]'
+                            roleObj ? roleObj.color : 'bg-[#F0F4E8] border-[#E2E7D8] text-[#20231B]'
                           }`}
                         >
                           {staff.role}
@@ -596,7 +596,7 @@ export default function StaffManagementPage() {
 
                       <td className="py-3.5 px-4">
                         {staff.active ? (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#E4E7D2] text-[#34451D] border border-[#CDD3B5] text-[11px] font-semibold font-sans">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#EBF0E4] text-[#34451D] border border-[#DCE3D2] text-[11px] font-semibold font-sans">
                             <CheckCircle className="w-3.5 h-3.5 text-[#596B32]" /> Active
                           </span>
                         ) : (
@@ -615,7 +615,7 @@ export default function StaffManagementPage() {
                           {/* Edit Details & Role */}
                           <button
                             onClick={() => handleOpenEditModal(staff)}
-                            className="p-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] hover:text-[#34451D] hover:bg-[#E4E7D2] transition-all shadow-xs"
+                            className="p-2 rounded-xl bg-white border border-[#E2E7D8] text-[#20231B] hover:text-[#34451D] hover:bg-[#F0F4E8] transition-all shadow-xs"
                             title="Edit Name, Username, Role or Password"
                           >
                             <Edit3 className="w-3.5 h-3.5" />
@@ -626,8 +626,8 @@ export default function StaffManagementPage() {
                             onClick={() => handleToggleActive(staff)}
                             className={`p-2 rounded-xl border transition-all shadow-xs ${
                               staff.active
-                                ? 'bg-[#efead5] border-[#CDD3B5] text-[#20231B] hover:text-[#34451D] hover:bg-[#E4E7D2]'
-                                : 'bg-[#E4E7D2] border-[#7F9148] text-[#34451D] hover:bg-[#CDD3B5]'
+                                ? 'bg-white border-[#E2E7D8] text-[#20231B] hover:text-[#34451D] hover:bg-[#F0F4E8]'
+                                : 'bg-[#EBF0E4] border-[#DCE3D2] text-[#34451D] hover:bg-[#DCE3D2]'
                             }`}
                             title={staff.active ? 'Deactivate Account' : 'Activate Account'}
                           >
@@ -659,10 +659,10 @@ export default function StaffManagementPage() {
       {/* ── MODAL 1: CREATE NEW ADMIN / STAFF ────────────────────────────── */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-[#efead5] border border-[#CDD3B5] rounded-3xl p-6 max-w-lg w-full shadow-2xl relative animate-in fade-in zoom-in-95 duration-200 text-[#20231B]">
-            <div className="flex items-center justify-between pb-4 border-b border-[#CDD3B5]/60">
+          <div className="bg-white border border-[#E2E7D8] rounded-3xl p-6 max-w-lg w-full shadow-2xl relative animate-in fade-in zoom-in-95 duration-200 text-[#20231B]">
+            <div className="flex items-center justify-between pb-4 border-b border-[#E2E7D8]">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-2xl bg-[#34451D] text-[#efead5] flex items-center justify-center shadow-xs">
+                <div className="w-9 h-9 rounded-2xl bg-[#34451D] text-white flex items-center justify-center shadow-xs">
                   <UserPlus className="w-4 h-4 text-[#B7D85A]" />
                 </div>
                 <div>
@@ -672,7 +672,7 @@ export default function StaffManagementPage() {
               </div>
               <button 
                 onClick={() => setIsAddModalOpen(false)} 
-                className="w-7 h-7 rounded-full bg-[#efead5] hover:bg-[#E4E7D2] text-[#85887A] hover:text-[#20231B] flex items-center justify-center transition-colors"
+                className="w-7 h-7 rounded-full bg-[#F8F9F5] hover:bg-[#EBF0E4] text-[#85887A] hover:text-[#20231B] flex items-center justify-center transition-colors"
                 title="Close Modal"
               >
                 <X className="w-3.5 h-3.5" />
@@ -680,7 +680,7 @@ export default function StaffManagementPage() {
             </div>
 
             {/* Account Creation Rules Box */}
-            <div className="mt-4 p-3.5 rounded-2xl bg-[#E4E7D2] border border-[#CDD3B5] space-y-1.5 text-[11px] text-[#34451D]">
+            <div className="mt-4 p-3.5 rounded-2xl bg-[#F0F4E8] border border-[#E2E7D8] space-y-1.5 text-[11px] text-[#34451D]">
               <div className="flex items-center gap-1.5 font-semibold text-[#34451D]">
                 <ShieldCheck className="w-4 h-4 text-[#596B32]" />
                 <span>Account Creation Rules and Standards:</span>
@@ -710,7 +710,7 @@ export default function StaffManagementPage() {
                   placeholder="e.g. Kasun Chamara Perera"
                   value={addForm.fullName}
                   onChange={(e) => setAddForm({ ...addForm, fullName: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:border-[#596B32] focus:bg-[#efead5] font-medium"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:border-[#596B32] focus:bg-white font-medium"
                 />
               </div>
 
@@ -722,7 +722,7 @@ export default function StaffManagementPage() {
                   placeholder="kasun@sarasavipages.lk"
                   value={addForm.email}
                   onChange={(e) => setAddForm({ ...addForm, email: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:border-[#596B32] focus:bg-[#efead5] font-normal"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:border-[#596B32] focus:bg-white font-normal"
                 />
               </div>
 
@@ -744,7 +744,7 @@ export default function StaffManagementPage() {
                     placeholder="e.g. KasunP1020"
                     value={addForm.username}
                     onChange={(e) => setAddForm({ ...addForm, username: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#34451D] placeholder:text-[#85887A] focus:outline-none focus:border-[#596B32] focus:bg-[#efead5] font-semibold"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#34451D] placeholder:text-[#85887A] focus:outline-none focus:border-[#596B32] focus:bg-white font-semibold"
                   />
                 </div>
 
@@ -758,7 +758,7 @@ export default function StaffManagementPage() {
                       placeholder="Password"
                       value={addForm.password}
                       onChange={(e) => setAddForm({ ...addForm, password: e.target.value })}
-                      className="w-full px-3.5 pr-9 py-2.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:border-[#596B32] focus:bg-[#efead5]"
+                      className="w-full px-3.5 pr-9 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:border-[#596B32] focus:bg-white"
                     />
                     <button
                       type="button"
@@ -776,7 +776,7 @@ export default function StaffManagementPage() {
                 <select
                   value={addForm.role}
                   onChange={(e) => setAddForm({ ...addForm, role: e.target.value as StaffRole })}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-[#efead5] font-semibold font-sans"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-white font-semibold font-sans"
                 >
                   {ROLES.map((r) => (
                     <option key={r.value} value={r.value}>
@@ -790,14 +790,14 @@ export default function StaffManagementPage() {
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="px-4 py-2.5 rounded-full bg-[#efead5] hover:bg-[#E4E7D2] border border-[#CDD3B5] text-[#20231B] font-medium text-xs transition-colors"
+                  className="px-4 py-2.5 rounded-full bg-white hover:bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] font-medium text-xs transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-6 py-2.5 rounded-full bg-[#34451D] hover:bg-[#20231B] text-[#efead5] font-semibold text-xs shadow-xs transition-colors disabled:opacity-50"
+                  className="px-6 py-2.5 rounded-full bg-[#34451D] hover:bg-[#20231B] text-white font-semibold text-xs shadow-xs transition-colors disabled:opacity-50"
                 >
                   {isSubmitting ? 'Creating...' : 'Create Admin Account'}
                 </button>
@@ -810,10 +810,10 @@ export default function StaffManagementPage() {
       {/* ── MODAL 2: EDIT STAFF (NAME, USERNAME, ROLE, EMAIL, PASSWORD) ────── */}
       {isEditModalOpen && selectedStaff && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-[#efead5] border border-[#CDD3B5] rounded-3xl p-6 max-w-md w-full shadow-2xl relative animate-in fade-in zoom-in-95 duration-200 text-[#20231B]">
-            <div className="flex items-center justify-between pb-4 border-b border-[#CDD3B5]/60">
+          <div className="bg-white border border-[#E2E7D8] rounded-3xl p-6 max-w-md w-full shadow-2xl relative animate-in fade-in zoom-in-95 duration-200 text-[#20231B]">
+            <div className="flex items-center justify-between pb-4 border-b border-[#E2E7D8]">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-[#E4E7D2] text-[#34451D] flex items-center justify-center border border-[#CDD3B5]">
+                <div className="w-8 h-8 rounded-xl bg-[#F0F4E8] text-[#34451D] flex items-center justify-center border border-[#E2E7D8]">
                   <Edit3 className="w-4 h-4 text-[#596B32]" />
                 </div>
                 <div>
@@ -823,7 +823,7 @@ export default function StaffManagementPage() {
               </div>
               <button 
                 onClick={() => setIsEditModalOpen(false)} 
-                className="w-7 h-7 rounded-full bg-[#efead5] hover:bg-[#E4E7D2] text-[#85887A] hover:text-[#20231B] flex items-center justify-center transition-colors"
+                className="w-7 h-7 rounded-full bg-[#F8F9F5] hover:bg-[#EBF0E4] text-[#85887A] hover:text-[#20231B] flex items-center justify-center transition-colors"
                 title="Close Modal"
               >
                 <X className="w-3.5 h-3.5" />
@@ -845,7 +845,7 @@ export default function StaffManagementPage() {
                   required
                   value={editForm.fullName}
                   onChange={(e) => setEditForm({ ...editForm, fullName: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-[#efead5] font-medium"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-white font-medium"
                 />
               </div>
 
@@ -857,7 +857,7 @@ export default function StaffManagementPage() {
                     required
                     value={editForm.username}
                     onChange={(e) => setEditForm({ ...editForm, username: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#34451D] font-semibold focus:outline-none focus:border-[#596B32] focus:bg-[#efead5]"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#34451D] font-semibold focus:outline-none focus:border-[#596B32] focus:bg-white"
                   />
                 </div>
 
@@ -868,7 +868,7 @@ export default function StaffManagementPage() {
                     required
                     value={editForm.email}
                     onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#85887A] focus:outline-none focus:border-[#596B32] focus:bg-[#efead5] font-normal"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#85887A] focus:outline-none focus:border-[#596B32] focus:bg-white font-normal"
                   />
                 </div>
               </div>
@@ -878,7 +878,7 @@ export default function StaffManagementPage() {
                 <select
                   value={editForm.role}
                   onChange={(e) => setEditForm({ ...editForm, role: e.target.value as StaffRole })}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-[#efead5] font-semibold font-sans"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-white font-semibold font-sans"
                 >
                   {ROLES.map((r) => (
                     <option key={r.value} value={r.value}>
@@ -898,7 +898,7 @@ export default function StaffManagementPage() {
                     placeholder="Enter new password (optional)"
                     value={editForm.newPassword}
                     onChange={(e) => setEditForm({ ...editForm, newPassword: e.target.value })}
-                    className="w-full px-3.5 pr-9 py-2.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:border-[#596B32] focus:bg-[#efead5]"
+                    className="w-full px-3.5 pr-9 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:border-[#596B32] focus:bg-white"
                   />
                   <button
                     type="button"
@@ -914,14 +914,14 @@ export default function StaffManagementPage() {
                 <button
                   type="button"
                   onClick={() => setIsEditModalOpen(false)}
-                  className="px-4 py-2.5 rounded-full bg-[#efead5] hover:bg-[#E4E7D2] border border-[#CDD3B5] text-[#20231B] font-medium text-xs transition-colors"
+                  className="px-4 py-2.5 rounded-full bg-white hover:bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] font-medium text-xs transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-6 py-2.5 rounded-full bg-[#34451D] hover:bg-[#20231B] text-[#efead5] font-semibold text-xs shadow-xs transition-colors disabled:opacity-50"
+                  className="px-6 py-2.5 rounded-full bg-[#34451D] hover:bg-[#20231B] text-white font-semibold text-xs shadow-xs transition-colors disabled:opacity-50"
                 >
                   {isSubmitting ? 'Saving Changes...' : 'Save Updates'}
                 </button>
@@ -934,7 +934,7 @@ export default function StaffManagementPage() {
       {/* ── MODAL 3: DELETE CONFIRMATION MODAL ────────────────────────────── */}
       {isDeleteModalOpen && selectedStaff && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-[#efead5] border border-rose-200 rounded-3xl p-6 max-w-md w-full shadow-2xl relative animate-in fade-in zoom-in-95 duration-200 text-[#20231B]">
+          <div className="bg-white border border-rose-200 rounded-3xl p-6 max-w-md w-full shadow-2xl relative animate-in fade-in zoom-in-95 duration-200 text-[#20231B]">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center border border-rose-200">
                 <AlertTriangle className="w-5 h-5" />
@@ -954,7 +954,7 @@ export default function StaffManagementPage() {
               <button
                 type="button"
                 onClick={() => setIsDeleteModalOpen(false)}
-                className="px-4 py-2.5 rounded-full bg-[#efead5] hover:bg-[#E4E7D2] border border-[#CDD3B5] text-xs font-medium text-[#20231B] transition-colors"
+                className="px-4 py-2.5 rounded-full bg-white hover:bg-[#F8F9F5] border border-[#E2E7D8] text-xs font-medium text-[#20231B] transition-colors"
               >
                 Cancel
               </button>

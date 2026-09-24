@@ -15,12 +15,12 @@ module.exports = {
           olive:      '#596B32', // Primary brand color
           moss:       '#7F9148', // Cards, accents, gradients
           sage:       '#AAB58A', // Secondary backgrounds
-          lightSage:  '#CDD3B5', // Soft sections / highlights
-          paleGreen:  '#E4E7D2', // Background accents
-          cream:      '#efead5', // Main page background (#efead5 instead of pure white)
-          warmWhite:  '#efead5', // Light colors set to #efead5
+          lightSage:  '#DCE3D2', // Soft sections / highlights
+          paleGreen:  '#EBF0E4', // Fresh light accents
+          cream:      '#F8F9F5', // Soft, eye-pleasing neutral light background
+          warmWhite:  '#FFFFFF', // Crisp clean white for cards and surfaces
           charcoal:   '#20231B', // Primary typography
-          mutedGray:  '#85887A', // Secondary text
+          mutedGray:  '#707365', // Secondary text
           lime:       '#B7D85A', // Buttons, indicators, highlights
         },
         brand: {
@@ -40,24 +40,24 @@ module.exports = {
           DEFAULT: '#20231B',  // charcoal
           card:    '#34451D',  // deep forest
           border:  '#596B32',  // olive border
-          muted:   '#85887A',  // muted gray
+          muted:   '#707365',  // muted gray
         },
         editorial: {
-          bg: '#efead5',
-          card: '#efead5',
-          border: '#CDD3B5',
+          bg: '#F8F9F5',       // Soothing light background
+          card: '#FFFFFF',     // Crisp white cards
+          border: '#E2E7D8',   // Clear distinction border
           ink: '#20231B',
-          muted: '#85887A',
-          faint: '#AAB58A',
+          muted: '#707365',
+          faint: '#8E967D',
           obsidian: '#20231B',
           obsidianLight: '#34451D',
           moss: '#596B32',
           mossLight: '#7F9148',
         },
         forest: {
-          50:  '#efead5',
-          100: '#E4E7D2',
-          200: '#CDD3B5',
+          50:  '#F8F9F5',
+          100: '#EBF0E4',
+          200: '#DCE3D2',
           300: '#AAB58A',
           400: '#7F9148',
           500: '#596B32',  // primary olive
@@ -72,8 +72,8 @@ module.exports = {
         },
         ink: {
           DEFAULT: '#20231B',  // primary text
-          muted:   '#85887A',  // secondary text
-          faint:   '#AAB58A',  // very muted text
+          muted:   '#707365',  // secondary text
+          faint:   '#8E967D',  // very muted text
         },
       },
       borderRadius: {

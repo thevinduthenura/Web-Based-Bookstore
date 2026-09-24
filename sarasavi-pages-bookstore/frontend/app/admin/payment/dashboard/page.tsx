@@ -162,8 +162,8 @@ export default function PaymentDashboardPage() {
 
   if (!isAuthorized) {
     return (
-      <div className="bg-[#efead5] border border-[#CDD3B5] rounded-3xl p-8 max-w-lg mx-auto text-center space-y-4 shadow-xs">
-        <div className="h-12 w-12 rounded-2xl bg-[#E4E7D2] border border-[#CDD3B5] text-[#34451D] flex items-center justify-center mx-auto">
+      <div className="bg-white border border-[#E2E7D8] rounded-3xl p-8 max-w-lg mx-auto text-center space-y-4 shadow-xs">
+        <div className="h-12 w-12 rounded-2xl bg-[#F0F4E8] border border-[#E2E7D8] text-[#34451D] flex items-center justify-center mx-auto">
           <Lock className="w-6 h-6 text-[#596B32]" />
         </div>
         <h2 className="text-lg font-display font-light text-[#20231B]">Access Restricted</h2>
@@ -314,7 +314,7 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
       {/* Top Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E4E7D2] border border-[#CDD3B5] text-[#34451D] text-xs font-semibold mb-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#F0F4E8] border border-[#E2E7D8] text-[#34451D] text-xs font-semibold mb-2">
             <CreditCard className="w-3.5 h-3.5 text-[#596B32]" />
             Module 2: Payment Administration
           </div>
@@ -327,14 +327,14 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
         <div className="flex items-center gap-2.5">
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#34451D] hover:bg-[#596B32] text-[#efead5] text-xs font-medium shadow-sm transition-all"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#34451D] hover:bg-[#596B32] text-white text-xs font-medium shadow-xs transition-all"
           >
             <Plus className="w-4 h-4" />
             <span>Record New Payment</span>
           </button>
           <button
             onClick={fetchPayments}
-            className="p-2.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#85887A] hover:text-[#20231B] transition-all shadow-sm"
+            className="p-2.5 rounded-xl bg-white border border-[#E2E7D8] text-[#85887A] hover:text-[#20231B] hover:bg-[#F8F9F5] transition-all shadow-xs"
             title="Refresh from API"
           >
             <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
@@ -343,19 +343,19 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
       </div>
 
       {/* Operations Legend */}
-      <div className="p-3.5 rounded-xl border border-[#CDD3B5] bg-[#efead5] flex flex-wrap items-center justify-between gap-3 text-xs shadow-sm">
+      <div className="p-3.5 rounded-xl border border-[#E2E7D8] bg-white flex flex-wrap items-center justify-between gap-3 text-xs shadow-xs">
         <div className="flex items-center gap-2 font-medium text-[#34451D]">
           <Layers className="w-4 h-4 text-[#596B32]" />
           <span>Payment Operations:</span>
         </div>
         <div className="flex flex-wrap items-center gap-2 font-mono text-[11px]">
-          <span className="px-2.5 py-1 rounded-md bg-[#E4E7D2] text-[#34451D] border border-[#CDD3B5]">
+          <span className="px-2.5 py-1 rounded-md bg-[#F0F4E8] text-[#34451D] border border-[#E2E7D8]">
             Record Payment
           </span>
-          <span className="px-2.5 py-1 rounded-md bg-[#efead5] text-[#596B32] border border-[#CDD3B5]">
+          <span className="px-2.5 py-1 rounded-md bg-[#F8F9F5] text-[#596B32] border border-[#E2E7D8]">
             Search &amp; Invoices
           </span>
-          <span className="px-2.5 py-1 rounded-md bg-[#E4E7D2] text-[#7F9148] border border-[#CDD3B5]">
+          <span className="px-2.5 py-1 rounded-md bg-[#F0F4E8] text-[#7F9148] border border-[#E2E7D8]">
             Status &amp; Refund
           </span>
           <span className="px-2.5 py-1 rounded-md bg-rose-50 text-rose-700 border border-rose-200">
@@ -367,7 +367,7 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
       {/* Notification Toast */}
       {notification && (
         <div className={`p-3.5 rounded-xl flex items-center justify-between text-xs border ${
-          notification.type === 'success' ? 'bg-[#E4E7D2] border-[#CDD3B5] text-[#34451D]' : 'bg-rose-50 border-rose-200 text-rose-700'
+          notification.type === 'success' ? 'bg-[#F0F4E8] border-[#E2E7D8] text-[#34451D]' : 'bg-rose-50 border-rose-200 text-rose-700'
         }`}>
           <span>{notification.message}</span>
           <button onClick={() => setNotification(null)} className="hover:opacity-80">
@@ -378,10 +378,10 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-[#efead5] border border-[#CDD3B5] p-5 rounded-2xl shadow-sm">
+        <div className="bg-white border border-[#E2E7D8] p-5 rounded-2xl shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-[#85887A]">Total Paid Revenue</span>
-            <div className="h-8 w-8 rounded-lg bg-[#E4E7D2] text-[#34451D] flex items-center justify-center">
+            <div className="h-8 w-8 rounded-lg bg-[#F0F4E8] text-[#34451D] flex items-center justify-center border border-[#E2E7D8]">
               <DollarSign className="w-4 h-4" />
             </div>
           </div>
@@ -395,10 +395,10 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
           </p>
         </div>
 
-        <div className="bg-[#efead5] border border-[#CDD3B5] p-5 rounded-2xl shadow-sm">
+        <div className="bg-white border border-[#E2E7D8] p-5 rounded-2xl shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-[#85887A]">Processed Payments</span>
-            <div className="h-8 w-8 rounded-lg bg-[#E4E7D2] text-[#596B32] flex items-center justify-center">
+            <div className="h-8 w-8 rounded-lg bg-[#F0F4E8] text-[#596B32] flex items-center justify-center border border-[#E2E7D8]">
               <Receipt className="w-4 h-4" />
             </div>
           </div>
@@ -410,7 +410,7 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
           <p className="text-[11px] text-[#85887A] mt-1">Visa, MasterCard, PayHere</p>
         </div>
 
-        <div className="bg-[#efead5] border border-[#CDD3B5] p-5 rounded-2xl shadow-sm">
+        <div className="bg-white border border-[#E2E7D8] p-5 rounded-2xl shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-[#85887A]">Pending Verifications</span>
             <div className="h-8 w-8 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center border border-amber-200">
@@ -425,10 +425,10 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
           <p className="text-[11px] text-amber-700 mt-1">Cash on Delivery &amp; Cheques</p>
         </div>
 
-        <div className="bg-[#efead5] border border-[#CDD3B5] p-5 rounded-2xl shadow-sm">
+        <div className="bg-white border border-[#E2E7D8] p-5 rounded-2xl shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-[#85887A]">Refunds Issued</span>
-            <div className="h-8 w-8 rounded-lg bg-[#E4E7D2] text-[#7F9148] flex items-center justify-center">
+            <div className="h-8 w-8 rounded-lg bg-[#F0F4E8] text-[#7F9148] flex items-center justify-center border border-[#E2E7D8]">
               <RotateCcw className="w-4 h-4" />
             </div>
           </div>
@@ -442,7 +442,7 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
       </div>
 
       {/* Filter and Search Bar [R] */}
-      <div className="bg-[#efead5] border border-[#CDD3B5] p-4 rounded-2xl flex flex-col md:flex-row gap-3 items-center justify-between shadow-sm">
+      <div className="bg-white border border-[#E2E7D8] p-4 rounded-2xl flex flex-col md:flex-row gap-3 items-center justify-between shadow-xs">
         <div className="relative w-full md:w-80">
           <Search className="w-4 h-4 text-[#85887A] absolute left-3 top-1/2 -translate-y-1/2" />
           <input
@@ -450,7 +450,7 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search by Ref, Customer, Order ID..."
-            className="w-full pl-9 pr-4 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-xs text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:border-[#596B32] transition-all"
+            className="w-full pl-9 pr-4 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:border-[#596B32] focus:bg-white transition-all"
           />
         </div>
 
@@ -459,7 +459,7 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
           <select
             value={selectedStatus}
             onChange={(e) => setSelectedStatus(e.target.value)}
-            className="w-full md:w-auto px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-xs text-[#20231B] focus:outline-none focus:border-[#596B32] font-mono transition-all"
+            className="w-full md:w-auto px-3 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-white font-mono transition-all"
           >
             <option value="ALL">All Statuses ({payments.length})</option>
             <option value="PAID">Paid Only</option>
@@ -471,11 +471,11 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
       </div>
 
       {/* Payments Table [R, U, D] */}
-      <div className="bg-[#efead5] rounded-2xl overflow-hidden border border-[#CDD3B5] shadow-sm">
+      <div className="bg-white rounded-2xl overflow-hidden border border-[#E2E7D8] shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[750px]">
             <thead>
-              <tr className="border-b border-[#CDD3B5] bg-[#E4E7D2]/60 text-[11px] font-mono uppercase tracking-wider text-[#34451D]">
+              <tr className="border-b border-[#E2E7D8] bg-[#F8F9F5] text-[11px] font-mono uppercase tracking-wider text-[#34451D]">
                 <th className="py-3 px-4">Txn / Invoice</th>
                 <th className="py-3 px-4">Order / Customer</th>
                 <th className="py-3 px-4">Amount</th>
@@ -485,7 +485,7 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
                 <th className="py-3 px-4 text-right">Actions (CRUD)</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#CDD3B5]/50 text-xs">
+            <tbody className="divide-y divide-[#E2E7D8] text-xs">
               {filteredPayments.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-8 text-center text-[#85887A]">
@@ -494,7 +494,7 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
                 </tr>
               ) : (
                 filteredPayments.map((item) => (
-                  <tr key={item.id} className="hover:bg-[#E4E7D2]/20 transition-colors">
+                  <tr key={item.id} className="hover:bg-[#F8F9F5] transition-colors">
                     <td className="py-3.5 px-4 font-mono">
                       <span className="font-semibold text-[#20231B]">{item.reference}</span>
                       <div className="text-[10px] text-[#85887A]">{item.invoiceNumber || 'INV-' + item.id}</div>
@@ -508,11 +508,11 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
                     </td>
                     <td className="py-3.5 px-4">
                       <span className={`px-2.5 py-1 rounded-md text-[10px] font-semibold tracking-wide border ${
-                        item.method === 'PAYHERE' ? 'bg-[#efead5] text-[#596B32] border-[#CDD3B5]' :
-                        item.method === 'VISA' || item.method === 'CARD' ? 'bg-[#E4E7D2] text-[#34451D] border-[#CDD3B5]' :
-                        item.method === 'CASH_ON_DELIVERY' || item.method === 'COD' ? 'bg-[#E4E7D2] text-[#7F9148] border-[#CDD3B5]' :
-                        item.method === 'STRIPE' ? 'bg-[#efead5] text-[#20231B] border-[#CDD3B5]' :
-                        'bg-[#efead5] border-[#CDD3B5] text-[#20231B]'
+                        item.method === 'PAYHERE' ? 'bg-[#F0F4E8] text-[#596B32] border-[#E2E7D8]' :
+                        item.method === 'VISA' || item.method === 'CARD' ? 'bg-[#EBF0E4] text-[#34451D] border-[#DCE3D2]' :
+                        item.method === 'CASH_ON_DELIVERY' || item.method === 'COD' ? 'bg-[#F0F4E8] text-[#7F9148] border-[#E2E7D8]' :
+                        item.method === 'STRIPE' ? 'bg-white text-[#20231B] border-[#E2E7D8]' :
+                        'bg-[#F8F9F5] border-[#E2E7D8] text-[#20231B]'
                       }`}>
                         {item.method}
                       </span>
@@ -520,11 +520,11 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
                     <td className="py-3.5 px-4">
                       <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold border ${
                         item.status === 'PAID'
-                          ? 'bg-[#E4E7D2] border-[#CDD3B5] text-[#34451D]'
+                          ? 'bg-[#EBF0E4] border-[#DCE3D2] text-[#34451D]'
                           : item.status === 'PENDING'
                           ? 'bg-amber-50 border-amber-200 text-amber-800'
                           : item.status === 'REFUNDED'
-                          ? 'bg-[#efead5] border-[#CDD3B5] text-[#596B32]'
+                          ? 'bg-[#F0F4E8] border-[#E2E7D8] text-[#596B32]'
                           : 'bg-rose-50 border-rose-200 text-rose-700'
                       }`}>
                         <span className={`w-1.5 h-1.5 rounded-full ${
@@ -541,7 +541,7 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
                         {/* View Details */}
                         <button
                           onClick={() => setSelectedPayment(item)}
-                          className="p-1.5 rounded-lg bg-[#efead5] border border-[#CDD3B5] text-[#85887A] hover:text-[#20231B] transition-all shadow-sm"
+                          className="p-1.5 rounded-lg bg-white border border-[#E2E7D8] text-[#85887A] hover:text-[#20231B] hover:bg-[#F8F9F5] transition-all shadow-xs"
                           title="View Details"
                         >
                           <Eye className="w-3.5 h-3.5" />
@@ -550,7 +550,7 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
                         {/* Download Receipt */}
                         <button
                           onClick={() => handleDownloadInvoice(item)}
-                          className="p-1.5 rounded-lg bg-[#efead5] border border-[#CDD3B5] text-[#596B32] hover:bg-[#E4E7D2] transition-all shadow-sm"
+                          className="p-1.5 rounded-lg bg-white border border-[#E2E7D8] text-[#596B32] hover:bg-[#F0F4E8] transition-all shadow-xs"
                           title="Download Receipt"
                         >
                           <Download className="w-3.5 h-3.5" />
@@ -560,7 +560,7 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
                         {item.status === 'PENDING' && (
                           <button
                             onClick={() => handleUpdateStatus(item.id, 'PAID')}
-                            className="px-2 py-1 rounded-lg bg-[#E4E7D2] text-[#34451D] hover:bg-[#CDD3B5] text-[11px] font-medium transition-all shadow-sm"
+                            className="px-2 py-1 rounded-lg bg-[#EBF0E4] text-[#34451D] hover:bg-[#34451D] hover:text-white border border-[#DCE3D2] text-[11px] font-medium transition-all shadow-xs"
                             title="Approve Payment"
                           >
                             Approve
@@ -574,7 +574,7 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
                               setRefundTargetId(item.id);
                               setIsRefundModalOpen(true);
                             }}
-                            className="p-1.5 rounded-lg bg-[#efead5] border border-[#CDD3B5] text-[#7F9148] hover:bg-[#E4E7D2] transition-all shadow-sm"
+                            className="p-1.5 rounded-lg bg-white border border-[#E2E7D8] text-[#7F9148] hover:bg-[#F0F4E8] transition-all shadow-xs"
                             title="Issue Refund"
                           >
                             <RotateCcw className="w-3.5 h-3.5" />
@@ -584,7 +584,7 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
                         {/* Void / Delete */}
                         <button
                           onClick={() => handleDeletePayment(item.id)}
-                          className="p-1.5 rounded-lg bg-[#efead5] border border-[#CDD3B5] text-rose-600 hover:bg-rose-50 transition-all shadow-sm"
+                          className="p-1.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-600 hover:bg-rose-100 transition-all shadow-xs"
                           title="Void & Delete Payment"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -602,8 +602,8 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
       {/* [C] CREATE MODAL: Record New Payment */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 bg-[#20231B]/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#efead5] rounded-2xl w-full max-w-md p-6 border border-[#CDD3B5] space-y-4 shadow-xl">
-            <div className="flex items-center justify-between border-b border-[#CDD3B5] pb-3">
+          <div className="bg-white rounded-2xl w-full max-w-md p-6 border border-[#E2E7D8] space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[#E2E7D8] pb-3">
               <h3 className="text-base font-medium font-display text-[#20231B] flex items-center gap-2">
                 <CreditCard className="w-5 h-5 text-[#596B32]" />
                 <span>Record New Payment</span>
@@ -621,7 +621,7 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
                   required
                   value={newPayment.orderId}
                   onChange={(e) => setNewPayment({ ...newPayment, orderId: Number(e.target.value) })}
-                  className="w-full px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32]"
+                  className="w-full px-3 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-white"
                 />
               </div>
 
@@ -632,7 +632,7 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
                   required
                   value={newPayment.customerId}
                   onChange={(e) => setNewPayment({ ...newPayment, customerId: Number(e.target.value) })}
-                  className="w-full px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32]"
+                  className="w-full px-3 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-white"
                 />
               </div>
 
@@ -645,7 +645,7 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
                     required
                     value={newPayment.amount}
                     onChange={(e) => setNewPayment({ ...newPayment, amount: Number(e.target.value) })}
-                    className="w-full px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32] font-mono"
+                    className="w-full px-3 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-white font-mono"
                   />
                 </div>
                 <div>
@@ -654,7 +654,7 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
                     type="text"
                     disabled
                     value={newPayment.currency}
-                    className="w-full px-3 py-2 rounded-xl bg-[#E4E7D2]/50 border border-[#CDD3B5] text-[#85887A] font-mono"
+                    className="w-full px-3 py-2 rounded-xl bg-[#F0F4E8] border border-[#E2E7D8] text-[#85887A] font-mono"
                   />
                 </div>
               </div>
@@ -664,7 +664,7 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
                 <select
                   value={newPayment.paymentMethod}
                   onChange={(e) => setNewPayment({ ...newPayment, paymentMethod: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32] font-mono"
+                  className="w-full px-3 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-white font-mono"
                 >
                   <option value="CARD">Credit / Debit Card (Visa/Master)</option>
                   <option value="PAYHERE">PayHere Gateway</option>
@@ -673,17 +673,17 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
                 </select>
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-[#CDD3B5]">
+              <div className="flex justify-end gap-2 pt-3 border-t border-[#E2E7D8]">
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#85887A] hover:text-[#20231B]"
+                  className="px-4 py-2 rounded-xl bg-white border border-[#E2E7D8] text-[#85887A] hover:text-[#20231B] hover:bg-[#F8F9F5]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-[#34451D] hover:bg-[#596B32] text-[#efead5] font-medium shadow-sm"
+                  className="px-4 py-2 rounded-xl bg-[#34451D] hover:bg-[#596B32] text-white font-medium shadow-xs"
                 >
                   Record Transaction
                 </button>
@@ -696,8 +696,8 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
       {/* [U] REFUND MODAL */}
       {isRefundModalOpen && (
         <div className="fixed inset-0 z-50 bg-[#20231B]/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#efead5] rounded-2xl w-full max-w-md p-6 border border-[#CDD3B5] space-y-4 shadow-xl">
-            <div className="flex items-center justify-between border-b border-[#CDD3B5] pb-3">
+          <div className="bg-white rounded-2xl w-full max-w-md p-6 border border-[#E2E7D8] space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[#E2E7D8] pb-3">
               <h3 className="text-base font-medium font-display text-[#20231B] flex items-center gap-2">
                 <RotateCcw className="w-5 h-5 text-[#596B32]" />
                 <span>Issue Customer Refund</span>
@@ -719,21 +719,21 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
                   value={refundReason}
                   onChange={(e) => setRefundReason(e.target.value)}
                   placeholder="e.g. Customer returned damaged book or cancelled order"
-                  className="w-full px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32]"
+                  className="w-full px-3 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-white"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-[#CDD3B5]">
+              <div className="flex justify-end gap-2 pt-3 border-t border-[#E2E7D8]">
                 <button
                   type="button"
                   onClick={() => setIsRefundModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#85887A] hover:text-[#20231B]"
+                  className="px-4 py-2 rounded-xl bg-white border border-[#E2E7D8] text-[#85887A] hover:text-[#20231B] hover:bg-[#F8F9F5]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-[#34451D] hover:bg-[#596B32] text-[#efead5] font-medium shadow-sm"
+                  className="px-4 py-2 rounded-xl bg-[#34451D] hover:bg-[#596B32] text-white font-medium shadow-xs"
                 >
                   Process Reversal
                 </button>
@@ -746,8 +746,8 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
       {/* [R] VIEW DETAILS MODAL */}
       {selectedPayment && (
         <div className="fixed inset-0 z-50 bg-[#20231B]/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#efead5] rounded-2xl w-full max-w-lg p-6 border border-[#CDD3B5] space-y-4 shadow-xl">
-            <div className="flex items-center justify-between border-b border-[#CDD3B5] pb-3">
+          <div className="bg-white rounded-2xl w-full max-w-lg p-6 border border-[#E2E7D8] space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[#E2E7D8] pb-3">
               <h3 className="text-base font-medium font-display text-[#20231B] flex items-center gap-2">
                 <Receipt className="w-5 h-5 text-[#596B32]" />
                 <span>Transaction &amp; Invoice Details</span>
@@ -758,7 +758,7 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
             </div>
 
             <div className="space-y-3 text-xs">
-              <div className="grid grid-cols-2 gap-3 p-3 rounded-xl bg-[#efead5] border border-[#CDD3B5] font-mono">
+              <div className="grid grid-cols-2 gap-3 p-3 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] font-mono">
                 <div>
                   <span className="text-[#85887A] text-[11px]">Transaction Ref:</span>
                   <p className="text-[#20231B] font-bold">{selectedPayment.reference}</p>
@@ -779,23 +779,23 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
 
               <div>
                 <span className="text-[#85887A] text-[11px]">Gateway Security Response:</span>
-                <p className="mt-1 p-2.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B]">
+                <p className="mt-1 p-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B]">
                   {selectedPayment.gatewayMessage}
                 </p>
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-3 border-t border-[#CDD3B5]">
+            <div className="flex justify-end gap-2 pt-3 border-t border-[#E2E7D8]">
               <button
                 onClick={() => handleDownloadInvoice(selectedPayment)}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#34451D] hover:bg-[#596B32] text-[#efead5] font-medium text-xs shadow-sm"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#34451D] hover:bg-[#596B32] text-white font-medium text-xs shadow-xs"
               >
                 <Download className="w-3.5 h-3.5" />
                 <span>Download Invoice File</span>
               </button>
               <button
                 onClick={() => setSelectedPayment(null)}
-                className="px-4 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#85887A] hover:text-[#20231B] text-xs"
+                className="px-4 py-2 rounded-xl bg-white border border-[#E2E7D8] text-[#85887A] hover:text-[#20231B] hover:bg-[#F8F9F5] text-xs"
               >
                 Close
               </button>

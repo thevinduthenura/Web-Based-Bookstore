@@ -128,7 +128,7 @@ export default function CustomerServiceDashboardPage() {
 
   if (!isAuthorized) {
     return (
-      <div className="bg-[#efead5] border border-[#CDD3B5] rounded-2xl p-8 max-w-lg mx-auto text-center space-y-4 shadow-sm">
+      <div className="bg-white border border-[#E2E7D8] rounded-2xl p-8 max-w-lg mx-auto text-center space-y-4 shadow-sm">
         <div className="h-12 w-12 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 flex items-center justify-center mx-auto">
           <Lock className="w-6 h-6" />
         </div>
@@ -247,11 +247,11 @@ export default function CustomerServiceDashboardPage() {
   });
 
   return (
-    <div className="space-y-6 pb-12 font-sans">
+    <div className="space-y-6 pb-12 font-sans selection:bg-[#34451D] selection:text-white">
       {/* Top Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E4E7D2] border border-[#CDD3B5] text-[#34451D] text-xs font-semibold mb-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#F0F4E8] border border-[#E2E7D8] text-[#34451D] text-xs font-semibold mb-2">
             <Headphones className="w-3.5 h-3.5 text-[#596B32]" />
             Module 3: Customer Service &amp; Complaints
           </div>
@@ -264,14 +264,14 @@ export default function CustomerServiceDashboardPage() {
         <div className="flex items-center gap-2.5">
           <button
             onClick={() => setIsCreateModalOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#34451D] hover:bg-[#596B32] text-[#efead5] text-xs font-medium shadow-sm transition-all"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#34451D] hover:bg-[#20231B] text-white text-xs font-medium shadow-sm transition-all"
           >
             <Plus className="w-4 h-4" />
             <span>Log New Ticket</span>
           </button>
           <button
             onClick={fetchTickets}
-            className="p-2.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#85887A] hover:text-[#20231B] transition-all shadow-sm"
+            className="p-2.5 rounded-xl bg-white hover:bg-[#F8F9F5] border border-[#E2E7D8] text-[#85887A] hover:text-[#20231B] transition-all shadow-sm"
             title="Refresh from API"
           >
             <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
@@ -280,19 +280,19 @@ export default function CustomerServiceDashboardPage() {
       </div>
 
       {/* Operations Legend */}
-      <div className="p-3.5 rounded-xl border border-[#CDD3B5] bg-[#efead5] flex flex-wrap items-center justify-between gap-3 text-xs shadow-sm">
+      <div className="p-3.5 rounded-xl border border-[#E2E7D8] bg-white flex flex-wrap items-center justify-between gap-3 text-xs shadow-sm">
         <div className="flex items-center gap-2 font-medium text-[#34451D]">
           <Layers className="w-4 h-4 text-[#596B32]" />
           <span>Support Operations:</span>
         </div>
         <div className="flex flex-wrap items-center gap-2 font-mono text-[11px]">
-          <span className="px-2.5 py-1 rounded-md bg-[#E4E7D2] text-[#34451D] border border-[#CDD3B5]">
+          <span className="px-2.5 py-1 rounded-md bg-[#F0F4E8] text-[#34451D] border border-[#E2E7D8]">
             Create Ticket
           </span>
-          <span className="px-2.5 py-1 rounded-md bg-[#efead5] text-[#596B32] border border-[#CDD3B5]">
+          <span className="px-2.5 py-1 rounded-md bg-[#F0F4E8] text-[#596B32] border border-[#E2E7D8]">
             Live Ticket Feed
           </span>
-          <span className="px-2.5 py-1 rounded-md bg-[#E4E7D2] text-[#7F9148] border border-[#CDD3B5]">
+          <span className="px-2.5 py-1 rounded-md bg-[#F0F4E8] text-[#7F9148] border border-[#E2E7D8]">
             Resolve &amp; Notes
           </span>
           <span className="px-2.5 py-1 rounded-md bg-rose-50 text-rose-700 border border-rose-200">
@@ -304,7 +304,7 @@ export default function CustomerServiceDashboardPage() {
       {/* Notification Toast */}
       {notification && (
         <div className={`p-3.5 rounded-xl flex items-center justify-between text-xs border ${
-          notification.type === 'success' ? 'bg-[#E4E7D2] border-[#CDD3B5] text-[#34451D]' : 'bg-rose-50 border-rose-200 text-rose-700'
+          notification.type === 'success' ? 'bg-[#F0F4E8] border-[#E2E7D8] text-[#34451D]' : 'bg-rose-50 border-rose-200 text-rose-700'
         }`}>
           <span>{notification.message}</span>
           <button onClick={() => setNotification(null)} className="hover:opacity-80">
@@ -315,10 +315,10 @@ export default function CustomerServiceDashboardPage() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-[#efead5] border border-[#CDD3B5] p-5 rounded-2xl shadow-sm">
+        <div className="bg-white border border-[#E2E7D8] p-5 rounded-2xl shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-[#85887A]">Total Tickets</span>
-            <div className="h-8 w-8 rounded-lg bg-[#E4E7D2] text-[#34451D] flex items-center justify-center">
+            <div className="h-8 w-8 rounded-lg bg-[#F0F4E8] text-[#34451D] flex items-center justify-center">
               <MessageSquare className="w-4 h-4" />
             </div>
           </div>
@@ -328,7 +328,7 @@ export default function CustomerServiceDashboardPage() {
           <p className="text-[11px] text-[#85887A] mt-1">All Recorded Issues</p>
         </div>
 
-        <div className="bg-[#efead5] border border-[#CDD3B5] p-5 rounded-2xl shadow-sm">
+        <div className="bg-white border border-[#E2E7D8] p-5 rounded-2xl shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-[#85887A]">Open Inquiries</span>
             <div className="h-8 w-8 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center border border-amber-200">
@@ -341,10 +341,10 @@ export default function CustomerServiceDashboardPage() {
           <p className="text-[11px] text-amber-700 mt-1">Awaiting officer review</p>
         </div>
 
-        <div className="bg-[#efead5] border border-[#CDD3B5] p-5 rounded-2xl shadow-sm">
+        <div className="bg-white border border-[#E2E7D8] p-5 rounded-2xl shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-[#85887A]">In Progress</span>
-            <div className="h-8 w-8 rounded-lg bg-[#E4E7D2] text-[#596B32] flex items-center justify-center">
+            <div className="h-8 w-8 rounded-lg bg-[#F0F4E8] text-[#596B32] flex items-center justify-center">
               <Sparkles className="w-4 h-4" />
             </div>
           </div>
@@ -354,10 +354,10 @@ export default function CustomerServiceDashboardPage() {
           <p className="text-[11px] text-[#85887A] mt-1">Courier &amp; inventory checks</p>
         </div>
 
-        <div className="bg-[#efead5] border border-[#CDD3B5] p-5 rounded-2xl shadow-sm">
+        <div className="bg-white border border-[#E2E7D8] p-5 rounded-2xl shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-[#85887A]">Resolved Inquiries</span>
-            <div className="h-8 w-8 rounded-lg bg-[#E4E7D2] text-[#34451D] flex items-center justify-center">
+            <div className="h-8 w-8 rounded-lg bg-[#F0F4E8] text-[#34451D] flex items-center justify-center">
               <CheckCircle className="w-4 h-4" />
             </div>
           </div>
@@ -369,7 +369,7 @@ export default function CustomerServiceDashboardPage() {
       </div>
 
       {/* Filter and Search Bar [R] */}
-      <div className="bg-[#efead5] border border-[#CDD3B5] p-4 rounded-2xl flex flex-col md:flex-row gap-3 items-center justify-between shadow-sm">
+      <div className="bg-white border border-[#E2E7D8] p-4 rounded-2xl flex flex-col md:flex-row gap-3 items-center justify-between shadow-xs">
         <div className="relative w-full md:w-80">
           <Search className="w-4 h-4 text-[#85887A] absolute left-3 top-1/2 -translate-y-1/2" />
           <input
@@ -377,7 +377,7 @@ export default function CustomerServiceDashboardPage() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search tickets by subject, description, name..."
-            className="w-full pl-9 pr-4 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-xs text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:border-[#596B32] transition-all"
+            className="w-full pl-9 pr-4 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:bg-white focus:border-[#596B32] transition-all"
           />
         </div>
 
@@ -386,7 +386,7 @@ export default function CustomerServiceDashboardPage() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-full md:w-auto px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-xs text-[#20231B] focus:outline-none focus:border-[#596B32] font-mono transition-all"
+            className="w-full md:w-auto px-3 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs text-[#20231B] focus:outline-none focus:bg-white focus:border-[#596B32] font-mono transition-all"
           >
             <option value="ALL">All Statuses ({tickets.length})</option>
             <option value="OPEN">Open Only</option>
@@ -399,29 +399,29 @@ export default function CustomerServiceDashboardPage() {
       {/* Tickets List [R, U, D] */}
       <div className="space-y-3">
         {filteredTickets.length === 0 ? (
-          <div className="bg-[#efead5] border border-[#CDD3B5] p-8 rounded-2xl text-center text-[#85887A] text-xs shadow-sm">
+          <div className="bg-white border border-[#E2E7D8] p-8 rounded-2xl text-center text-[#85887A] text-xs shadow-xs">
             No support tickets match your search filters.
           </div>
         ) : (
           filteredTickets.map((ticket) => (
             <div
               key={ticket.id}
-              className="bg-[#efead5] p-5 rounded-2xl border border-[#CDD3B5] hover:border-[#7F9148] transition-all space-y-3 shadow-sm"
+              className="bg-white p-5 rounded-2xl border border-[#E2E7D8] hover:border-[#596B32] transition-all space-y-3 shadow-xs"
             >
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#CDD3B5]/60 pb-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E2E7D8] pb-3">
                 <div className="flex items-center gap-3">
                   <span className="font-mono font-bold text-xs text-[#34451D]">#{ticket.id}</span>
                   <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${
                     ticket.status === 'OPEN'
                       ? 'bg-amber-50 border-amber-200 text-amber-800'
                       : ticket.status === 'IN_PROGRESS'
-                      ? 'bg-[#efead5] border-[#CDD3B5] text-[#596B32]'
-                      : 'bg-[#E4E7D2] border-[#CDD3B5] text-[#34451D]'
+                      ? 'bg-[#F0F4E8] border-[#E2E7D8] text-[#596B32]'
+                      : 'bg-[#F0F4E8] border-[#E2E7D8] text-[#34451D]'
                   }`}>
                     {ticket.status}
                   </span>
                   {ticket.priority && (
-                    <span className="px-2 py-0.5 rounded-md bg-[#efead5] border border-[#CDD3B5] text-[#85887A] font-mono text-[10px]">
+                    <span className="px-2 py-0.5 rounded-md bg-[#F8F9F5] border border-[#E2E7D8] text-[#85887A] font-mono text-[10px]">
                       {ticket.priority} PRIORITY
                     </span>
                   )}
@@ -431,7 +431,7 @@ export default function CustomerServiceDashboardPage() {
                   {/* Resolve / Update Button */}
                   <button
                     onClick={() => handleOpenUpdate(ticket)}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] hover:bg-[#E4E7D2] text-[#34451D] text-xs font-medium transition-all shadow-sm"
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-white border border-[#E2E7D8] hover:bg-[#F0F4E8] text-[#34451D] text-xs font-medium transition-all shadow-xs"
                   >
                     <Edit3 className="w-3.5 h-3.5 text-[#596B32]" />
                     <span>Update / Resolve</span>
@@ -440,7 +440,7 @@ export default function CustomerServiceDashboardPage() {
                   {/* Delete Button */}
                   <button
                     onClick={() => handleDeleteTicket(ticket.id)}
-                    className="p-1.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] hover:bg-rose-50 text-rose-600 transition-all shadow-sm"
+                    className="p-1.5 rounded-xl bg-white border border-[#E2E7D8] hover:bg-rose-50 text-rose-600 transition-all shadow-xs"
                     title="Delete Ticket"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -454,7 +454,7 @@ export default function CustomerServiceDashboardPage() {
               </div>
 
               {ticket.resolutionDetails && (
-                <div className="p-3 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-xs space-y-1">
+                <div className="p-3 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs space-y-1">
                   <div className="flex items-center justify-between text-[#34451D] font-medium text-[11px]">
                     <span>Resolution Details:</span>
                     <span className="font-mono text-[10px] text-[#85887A]">Resolved by: {ticket.resolvedBy || 'Officer'}</span>
@@ -463,7 +463,7 @@ export default function CustomerServiceDashboardPage() {
                 </div>
               )}
 
-              <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-[11px] text-[#85887A] border-t border-[#CDD3B5]/40">
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-[11px] text-[#85887A] border-t border-[#E2E7D8]">
                 <div className="flex items-center gap-3">
                   <span className="flex items-center gap-1">
                     <User className="w-3 h-3 text-[#596B32]" />
@@ -486,8 +486,8 @@ export default function CustomerServiceDashboardPage() {
       {/* [C] CREATE TICKET MODAL */}
       {isCreateModalOpen && (
         <div className="fixed inset-0 z-50 bg-[#20231B]/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#efead5] rounded-2xl w-full max-w-md p-6 border border-[#CDD3B5] space-y-4 shadow-xl">
-            <div className="flex items-center justify-between border-b border-[#CDD3B5] pb-3">
+          <div className="bg-white rounded-2xl w-full max-w-md p-6 border border-[#E2E7D8] space-y-4 shadow-xl">
+            <div className="flex items-center justify-between border-b border-[#E2E7D8] pb-3">
               <h3 className="text-base font-medium font-display text-[#20231B] flex items-center gap-2">
                 <Headphones className="w-5 h-5 text-[#596B32]" />
                 <span>Log New Support Ticket</span>
@@ -506,7 +506,7 @@ export default function CustomerServiceDashboardPage() {
                   placeholder="e.g. Delayed package delivery, damaged book page"
                   value={newTicket.subject}
                   onChange={(e) => setNewTicket({ ...newTicket, subject: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32]"
+                  className="w-full px-3 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:outline-none focus:bg-white focus:border-[#596B32]"
                 />
               </div>
 
@@ -517,7 +517,7 @@ export default function CustomerServiceDashboardPage() {
                   required
                   value={newTicket.contactNumber}
                   onChange={(e) => setNewTicket({ ...newTicket, contactNumber: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32] font-mono"
+                  className="w-full px-3 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:outline-none focus:bg-white focus:border-[#596B32] font-mono"
                 />
               </div>
 
@@ -529,21 +529,21 @@ export default function CustomerServiceDashboardPage() {
                   placeholder="Provide full customer background, order IDs or damaged items..."
                   value={newTicket.description}
                   onChange={(e) => setNewTicket({ ...newTicket, description: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32]"
+                  className="w-full px-3 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:outline-none focus:bg-white focus:border-[#596B32]"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-[#CDD3B5]">
+              <div className="flex justify-end gap-2 pt-3 border-t border-[#E2E7D8]">
                 <button
                   type="button"
                   onClick={() => setIsCreateModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#85887A] hover:text-[#20231B]"
+                  className="px-4 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#85887A] hover:text-[#20231B]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-[#34451D] hover:bg-[#596B32] text-[#efead5] font-medium shadow-sm"
+                  className="px-4 py-2 rounded-xl bg-[#34451D] hover:bg-[#20231B] text-white font-medium shadow-sm"
                 >
                   Submit Ticket
                 </button>
@@ -556,8 +556,8 @@ export default function CustomerServiceDashboardPage() {
       {/* [U] UPDATE TICKET MODAL */}
       {isUpdateModalOpen && activeTicket && (
         <div className="fixed inset-0 z-50 bg-[#20231B]/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#efead5] rounded-2xl w-full max-w-md p-6 border border-[#CDD3B5] space-y-4 shadow-xl">
-            <div className="flex items-center justify-between border-b border-[#CDD3B5] pb-3">
+          <div className="bg-white rounded-2xl w-full max-w-md p-6 border border-[#E2E7D8] space-y-4 shadow-xl">
+            <div className="flex items-center justify-between border-b border-[#E2E7D8] pb-3">
               <h3 className="text-base font-medium font-display text-[#20231B] flex items-center gap-2">
                 <Edit3 className="w-5 h-5 text-[#596B32]" />
                 <span>Resolve Ticket #{activeTicket.id}</span>
@@ -578,7 +578,7 @@ export default function CustomerServiceDashboardPage() {
                 <select
                   value={updateStatus}
                   onChange={(e) => setUpdateStatus(e.target.value as any)}
-                  className="w-full px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32] font-mono"
+                  className="w-full px-3 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:outline-none focus:bg-white focus:border-[#596B32] font-mono"
                 >
                   <option value="OPEN">OPEN (Under Investigation)</option>
                   <option value="IN_PROGRESS">IN_PROGRESS (Contacting Logistics / Warehouse)</option>
@@ -594,21 +594,21 @@ export default function CustomerServiceDashboardPage() {
                   placeholder="Explain actions taken to resolve the complaint or courier tracking updates..."
                   value={resolutionDetails}
                   onChange={(e) => setResolutionDetails(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32]"
+                  className="w-full px-3 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:outline-none focus:bg-white focus:border-[#596B32]"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-[#CDD3B5]">
+              <div className="flex justify-end gap-2 pt-3 border-t border-[#E2E7D8]">
                 <button
                   type="button"
                   onClick={() => setIsUpdateModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#85887A] hover:text-[#20231B]"
+                  className="px-4 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#85887A] hover:text-[#20231B]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-[#34451D] hover:bg-[#596B32] text-[#efead5] font-medium shadow-sm"
+                  className="px-4 py-2 rounded-xl bg-[#34451D] hover:bg-[#20231B] text-white font-medium shadow-sm"
                 >
                   Save Changes
                 </button>

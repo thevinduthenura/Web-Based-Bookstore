@@ -58,7 +58,7 @@ export default function AuditLogsPage() {
   const uniqueActions = Array.from(new Set(logs.map((l) => l.action)));
 
   return (
-    <div className="space-y-6 pb-12 selection:bg-[#34451D] selection:text-[#efead5]">
+    <div className="space-y-6 pb-12 selection:bg-[#34451D] selection:text-white">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -74,7 +74,7 @@ export default function AuditLogsPage() {
         <button
           onClick={() => fetchLogs(page)}
           disabled={isLoading}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#efead5] hover:bg-[#E4E7D2] border border-[#CDD3B5] text-xs font-semibold text-[#20231B] transition-all shadow-xs self-start sm:self-auto"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white hover:bg-[#F8F9F5] border border-[#E2E7D8] text-xs font-semibold text-[#20231B] transition-all shadow-xs self-start sm:self-auto"
         >
           <RotateCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-[#596B32]' : ''}`} />
           <span>Refresh Records</span>
@@ -82,7 +82,7 @@ export default function AuditLogsPage() {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-[#efead5] p-4 rounded-2xl border border-[#CDD3B5] shadow-xs flex flex-col md:flex-row gap-3 items-center justify-between">
+      <div className="bg-white p-4 rounded-2xl border border-[#E2E7D8] shadow-xs flex flex-col md:flex-row gap-3 items-center justify-between">
         <div className="relative w-full md:w-80">
           <Search className="w-4 h-4 text-[#85887A] absolute left-3 top-1/2 -translate-y-1/2" />
           <input
@@ -90,7 +90,7 @@ export default function AuditLogsPage() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search by actor, target, or details..."
-            className="w-full pl-9 pr-4 py-2 rounded-full bg-[#efead5] border border-[#CDD3B5] text-xs text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:border-[#596B32] focus:bg-[#efead5] font-medium transition-all shadow-xs"
+            className="w-full pl-9 pr-4 py-2 rounded-full bg-[#F8F9F5] border border-[#E2E7D8] text-xs text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:border-[#596B32] focus:bg-white font-medium transition-all shadow-xs"
           />
         </div>
 
@@ -99,7 +99,7 @@ export default function AuditLogsPage() {
           <select
             value={selectedActionFilter}
             onChange={(e) => setSelectedActionFilter(e.target.value)}
-            className="w-full md:w-auto px-3.5 py-2 rounded-full bg-[#efead5] border border-[#CDD3B5] text-xs text-[#20231B] focus:outline-none focus:border-[#596B32] font-semibold font-sans transition-all shadow-xs"
+            className="w-full md:w-auto px-3.5 py-2 rounded-full bg-[#F8F9F5] border border-[#E2E7D8] text-xs text-[#20231B] focus:outline-none focus:bg-white focus:border-[#596B32] font-semibold font-sans transition-all shadow-xs"
           >
             <option value="ALL">All Actions</option>
             {uniqueActions.map((act) => (
@@ -112,7 +112,7 @@ export default function AuditLogsPage() {
       </div>
 
       {/* Logs Table */}
-      <div className="bg-[#efead5] rounded-2xl overflow-hidden border border-[#CDD3B5] shadow-xs">
+      <div className="bg-white rounded-2xl overflow-hidden border border-[#E2E7D8] shadow-xs">
         {isLoading ? (
           <div className="py-12 text-center text-xs text-[#85887A]">
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#596B32] border-t-transparent mx-auto mb-2" />
@@ -125,7 +125,7 @@ export default function AuditLogsPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs min-w-[700px]">
-              <thead className="bg-[#efead5]/60 border-b border-[#CDD3B5] text-[#596B32] uppercase tracking-wider text-[11px] font-semibold">
+              <thead className="bg-[#F8F9F5] border-b border-[#E2E7D8] text-[#596B32] uppercase tracking-wider text-[11px] font-semibold">
                 <tr>
                   <th className="py-3 px-4">Log ID</th>
                   <th className="py-3 px-4">Timestamp</th>
@@ -135,9 +135,9 @@ export default function AuditLogsPage() {
                   <th className="py-3 px-4">Description</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#CDD3B5]/40 bg-[#efead5]">
+              <tbody className="divide-y divide-[#E2E7D8] bg-white">
                 {filteredLogs.map((log) => (
-                  <tr key={log.id} className="hover:bg-[#efead5]/50 transition-colors">
+                  <tr key={log.id} className="hover:bg-[#F8F9F5] transition-colors">
                     <td className="py-3 px-4 text-[#85887A] font-medium text-xs">#{log.id}</td>
 
                     <td className="py-3 px-4 text-[#85887A] whitespace-nowrap text-xs font-medium">
@@ -145,7 +145,7 @@ export default function AuditLogsPage() {
                     </td>
 
                     <td className="py-3 px-4">
-                      <span className="inline-block px-2.5 py-0.5 rounded-full bg-[#E4E7D2] text-[#34451D] border border-[#CDD3B5] text-[11px] font-semibold font-sans">
+                      <span className="inline-block px-2.5 py-0.5 rounded-full bg-[#F0F4E8] text-[#34451D] border border-[#E2E7D8] text-[11px] font-semibold font-sans">
                         {log.action}
                       </span>
                     </td>
@@ -174,7 +174,7 @@ export default function AuditLogsPage() {
 
         {/* Pagination footer */}
         {totalPages > 1 && (
-          <div className="p-4 border-t border-[#CDD3B5]/60 flex items-center justify-between text-xs text-[#85887A]">
+          <div className="p-4 border-t border-[#E2E7D8] flex items-center justify-between text-xs text-[#85887A]">
             <span>
               Page {page + 1} of {totalPages} ({totalElements} total entries)
             </span>
@@ -182,14 +182,14 @@ export default function AuditLogsPage() {
               <button
                 onClick={() => fetchLogs(page - 1)}
                 disabled={page === 0}
-                className="px-3.5 py-1.5 rounded-full bg-[#efead5] border border-[#CDD3B5] disabled:opacity-40 hover:bg-[#E4E7D2] text-[#20231B] font-medium shadow-xs transition-all"
+                className="px-3.5 py-1.5 rounded-full bg-white border border-[#E2E7D8] disabled:opacity-40 hover:bg-[#F8F9F5] text-[#20231B] font-medium shadow-xs transition-all"
               >
                 Previous
               </button>
               <button
                 onClick={() => fetchLogs(page + 1)}
                 disabled={page >= totalPages - 1}
-                className="px-3.5 py-1.5 rounded-full bg-[#efead5] border border-[#CDD3B5] disabled:opacity-40 hover:bg-[#E4E7D2] text-[#20231B] font-medium shadow-xs transition-all"
+                className="px-3.5 py-1.5 rounded-full bg-white border border-[#E2E7D8] disabled:opacity-40 hover:bg-[#F8F9F5] text-[#20231B] font-medium shadow-xs transition-all"
               >
                 Next
               </button>

@@ -106,7 +106,7 @@ export default function OrdersDashboardPage() {
 
   if (!isAuthorized) {
     return (
-      <div className="bg-[#efead5] border border-[#CDD3B5] rounded-2xl p-8 max-w-lg mx-auto text-center space-y-4 shadow-sm">
+      <div className="bg-white border border-[#E2E7D8] rounded-2xl p-8 max-w-lg mx-auto text-center space-y-4 shadow-sm">
         <div className="h-12 w-12 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 flex items-center justify-center mx-auto">
           <Lock className="w-6 h-6" />
         </div>
@@ -172,11 +172,11 @@ export default function OrdersDashboardPage() {
   });
 
   return (
-    <div className="space-y-6 pb-12 font-sans">
+    <div className="space-y-6 pb-12 font-sans selection:bg-[#34451D] selection:text-white">
       {/* Top Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E4E7D2] border border-[#CDD3B5] text-[#34451D] text-xs font-semibold mb-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#F0F4E8] border border-[#E2E7D8] text-[#34451D] text-xs font-semibold mb-2">
             <ShoppingCart className="w-3.5 h-3.5 text-[#596B32]" />
             Module 6: Orders &amp; Cart Administration
           </div>
@@ -189,7 +189,7 @@ export default function OrdersDashboardPage() {
         <div className="flex items-center gap-2.5">
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#34451D] hover:bg-[#596B32] text-[#efead5] text-xs font-medium shadow-sm transition-all"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#34451D] hover:bg-[#20231B] text-white text-xs font-medium shadow-sm transition-all"
           >
             <Plus className="w-4 h-4" />
             <span>Create Dispatch Order</span>
@@ -198,19 +198,19 @@ export default function OrdersDashboardPage() {
       </div>
 
       {/* Operations Legend */}
-      <div className="p-3.5 rounded-xl border border-[#CDD3B5] bg-[#efead5] flex flex-wrap items-center justify-between gap-3 text-xs shadow-sm">
+      <div className="p-3.5 rounded-xl border border-[#E2E7D8] bg-white flex flex-wrap items-center justify-between gap-3 text-xs shadow-sm">
         <div className="flex items-center gap-2 font-medium text-[#34451D]">
           <Layers className="w-4 h-4 text-[#596B32]" />
           <span>Order Operations:</span>
         </div>
         <div className="flex flex-wrap items-center gap-2 font-mono text-[11px]">
-          <span className="px-2.5 py-1 rounded-md bg-[#E4E7D2] text-[#34451D] border border-[#CDD3B5]">
+          <span className="px-2.5 py-1 rounded-md bg-[#F0F4E8] text-[#34451D] border border-[#E2E7D8]">
             Create Order
           </span>
-          <span className="px-2.5 py-1 rounded-md bg-[#efead5] text-[#596B32] border border-[#CDD3B5]">
+          <span className="px-2.5 py-1 rounded-md bg-[#F0F4E8] text-[#596B32] border border-[#E2E7D8]">
             Live Order Feed
           </span>
-          <span className="px-2.5 py-1 rounded-md bg-[#E4E7D2] text-[#7F9148] border border-[#CDD3B5]">
+          <span className="px-2.5 py-1 rounded-md bg-[#F0F4E8] text-[#7F9148] border border-[#E2E7D8]">
             Qty, Promo &amp; Status
           </span>
           <span className="px-2.5 py-1 rounded-md bg-rose-50 text-rose-700 border border-rose-200">
@@ -222,7 +222,7 @@ export default function OrdersDashboardPage() {
       {/* Notification Toast */}
       {notification && (
         <div className={`p-3.5 rounded-xl flex items-center justify-between text-xs border ${
-          notification.type === 'success' ? 'bg-[#E4E7D2] border-[#CDD3B5] text-[#34451D]' : 'bg-rose-50 border-rose-200 text-rose-700'
+          notification.type === 'success' ? 'bg-[#F0F4E8] border-[#E2E7D8] text-[#34451D]' : 'bg-rose-50 border-rose-200 text-rose-700'
         }`}>
           <span>{notification.message}</span>
           <button onClick={() => setNotification(null)} className="hover:opacity-80">
@@ -233,10 +233,10 @@ export default function OrdersDashboardPage() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-[#efead5] border border-[#CDD3B5] p-5 rounded-2xl shadow-sm">
+        <div className="bg-white border border-[#E2E7D8] p-5 rounded-2xl shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-[#85887A]">Total Orders (Today)</span>
-            <div className="h-8 w-8 rounded-lg bg-[#E4E7D2] text-[#34451D] flex items-center justify-center">
+            <div className="h-8 w-8 rounded-lg bg-[#F0F4E8] text-[#34451D] flex items-center justify-center">
               <ShoppingCart className="w-4 h-4" />
             </div>
           </div>
@@ -246,10 +246,10 @@ export default function OrdersDashboardPage() {
           <p className="text-[11px] text-[#596B32] mt-1">{orders.filter(o => o.status === 'PACKING').length} In Packing Queue</p>
         </div>
 
-        <div className="bg-[#efead5] border border-[#CDD3B5] p-5 rounded-2xl shadow-sm">
+        <div className="bg-white border border-[#E2E7D8] p-5 rounded-2xl shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-[#85887A]">Out for Delivery</span>
-            <div className="h-8 w-8 rounded-lg bg-[#E4E7D2] text-[#596B32] flex items-center justify-center">
+            <div className="h-8 w-8 rounded-lg bg-[#F0F4E8] text-[#596B32] flex items-center justify-center">
               <Truck className="w-4 h-4" />
             </div>
           </div>
@@ -261,10 +261,10 @@ export default function OrdersDashboardPage() {
           <p className="text-[11px] text-[#85887A] mt-1">Domex &amp; Pronto Routes</p>
         </div>
 
-        <div className="bg-[#efead5] border border-[#CDD3B5] p-5 rounded-2xl shadow-sm">
+        <div className="bg-white border border-[#E2E7D8] p-5 rounded-2xl shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-[#85887A]">Delivered Successfully</span>
-            <div className="h-8 w-8 rounded-lg bg-[#E4E7D2] text-[#34451D] flex items-center justify-center">
+            <div className="h-8 w-8 rounded-lg bg-[#F0F4E8] text-[#34451D] flex items-center justify-center">
               <PackageCheck className="w-4 h-4" />
             </div>
           </div>
@@ -276,7 +276,7 @@ export default function OrdersDashboardPage() {
           <p className="text-[11px] text-[#596B32] mt-1">Verified with signed receipts</p>
         </div>
 
-        <div className="bg-[#efead5] border border-[#CDD3B5] p-5 rounded-2xl shadow-sm">
+        <div className="bg-white border border-[#E2E7D8] p-5 rounded-2xl shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-[#85887A]">Pending Dispatch</span>
             <div className="h-8 w-8 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center border border-amber-200">
@@ -305,7 +305,7 @@ export default function OrdersDashboardPage() {
       </div>
 
       {/* Filter and Search Bar for Orders [R] */}
-      <div className="bg-[#efead5] border border-[#CDD3B5] p-4 rounded-2xl flex flex-col md:flex-row gap-3 items-center justify-between shadow-sm">
+      <div className="bg-white border border-[#E2E7D8] p-4 rounded-2xl flex flex-col md:flex-row gap-3 items-center justify-between shadow-xs">
         <div className="relative w-full md:w-80">
           <Search className="w-4 h-4 text-[#85887A] absolute left-3 top-1/2 -translate-y-1/2" />
           <input
@@ -313,7 +313,7 @@ export default function OrdersDashboardPage() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search orders by ID, customer, courier..."
-            className="w-full pl-9 pr-4 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-xs text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:border-[#596B32] transition-all"
+            className="w-full pl-9 pr-4 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:bg-white focus:border-[#596B32] transition-all"
           />
         </div>
 
@@ -322,7 +322,7 @@ export default function OrdersDashboardPage() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-full md:w-auto px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-xs text-[#20231B] focus:outline-none focus:border-[#596B32] font-mono transition-all"
+            className="w-full md:w-auto px-3 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs text-[#20231B] focus:outline-none focus:bg-white focus:border-[#596B32] font-mono transition-all"
           >
             <option value="ALL">All Order Statuses ({orders.length})</option>
             <option value="PENDING">Pending</option>
@@ -335,11 +335,11 @@ export default function OrdersDashboardPage() {
       </div>
 
       {/* Orders Management Table [R, U, D] */}
-      <div className="bg-[#efead5] rounded-2xl overflow-hidden border border-[#CDD3B5] shadow-sm">
+      <div className="bg-white rounded-2xl overflow-hidden border border-[#E2E7D8] shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[780px]">
             <thead>
-              <tr className="border-b border-[#CDD3B5] bg-[#E4E7D2]/60 text-[11px] font-mono uppercase tracking-wider text-[#34451D]">
+              <tr className="border-b border-[#E2E7D8] bg-[#F8F9F5] text-[11px] font-mono uppercase tracking-wider text-[#34451D]">
                 <th className="py-3 px-4">Order Ref / Date</th>
                 <th className="py-3 px-4">Customer / Destination</th>
                 <th className="py-3 px-4">Books Summary</th>
@@ -349,7 +349,7 @@ export default function OrdersDashboardPage() {
                 <th className="py-3 px-4 text-right">Actions (CRUD)</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#CDD3B5]/50 text-xs">
+            <tbody className="divide-y divide-[#E2E7D8] text-xs">
               {filteredOrders.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-8 text-center text-[#85887A]">
@@ -358,7 +358,7 @@ export default function OrdersDashboardPage() {
                 </tr>
               ) : (
                 filteredOrders.map((ord) => (
-                  <tr key={ord.id} className="hover:bg-[#E4E7D2]/20 transition-colors">
+                  <tr key={ord.id} className="hover:bg-[#F8F9F5] transition-colors">
                     <td className="py-3.5 px-4 font-mono">
                       <span className="font-bold text-[#34451D]">{ord.id}</span>
                       <div className="text-[10px] text-[#85887A]">{ord.createdAt}</div>
@@ -379,14 +379,14 @@ export default function OrdersDashboardPage() {
                     <td className="py-3.5 px-4">
                       <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold border ${
                         ord.status === 'DELIVERED'
-                          ? 'bg-[#E4E7D2] border-[#CDD3B5] text-[#34451D]'
+                          ? 'bg-[#F0F4E8] border-[#E2E7D8] text-[#34451D]'
                           : ord.status === 'OUT_FOR_DELIVERY'
-                          ? 'bg-[#efead5] border-[#CDD3B5] text-[#596B32]'
+                          ? 'bg-[#F0F4E8] border-[#E2E7D8] text-[#596B32]'
                           : ord.status === 'PACKING'
                           ? 'bg-amber-50 border-amber-200 text-amber-800'
                           : ord.status === 'CANCELLED'
                           ? 'bg-rose-50 border-rose-200 text-rose-700'
-                          : 'bg-[#efead5] border-[#CDD3B5] text-[#85887A]'
+                          : 'bg-[#F8F9F5] border-[#E2E7D8] text-[#85887A]'
                       }`}>
                         {ord.status}
                       </span>
@@ -400,7 +400,7 @@ export default function OrdersDashboardPage() {
                         {/* Edit Status */}
                         <button
                           onClick={() => handleOpenEdit(ord)}
-                          className="p-1.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#596B32] hover:bg-[#E4E7D2] transition-all shadow-sm"
+                          className="p-1.5 rounded-xl bg-white border border-[#E2E7D8] text-[#596B32] hover:bg-[#F0F4E8] transition-all shadow-xs"
                           title="Update Status & Tracking"
                         >
                           <Edit3 className="w-3.5 h-3.5" />
@@ -409,7 +409,7 @@ export default function OrdersDashboardPage() {
                         {/* Cancel Order */}
                         <button
                           onClick={() => handleDeleteOrder(ord.id)}
-                          className="p-1.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-rose-600 hover:bg-rose-50 transition-all shadow-sm"
+                          className="p-1.5 rounded-xl bg-white border border-[#E2E7D8] text-rose-600 hover:bg-rose-50 transition-all shadow-xs"
                           title="Cancel & Delete Order"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -427,8 +427,8 @@ export default function OrdersDashboardPage() {
       {/* CREATE ORDER MODAL */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 bg-[#20231B]/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#efead5] rounded-2xl w-full max-w-md p-6 border border-[#CDD3B5] space-y-4 shadow-xl">
-            <div className="flex items-center justify-between border-b border-[#CDD3B5] pb-3">
+          <div className="bg-white rounded-2xl w-full max-w-md p-6 border border-[#E2E7D8] space-y-4 shadow-xl">
+            <div className="flex items-center justify-between border-b border-[#E2E7D8] pb-3">
               <h3 className="text-base font-medium font-display text-[#20231B] flex items-center gap-2">
                 <ShoppingCart className="w-5 h-5 text-[#596B32]" />
                 <span>Create Dispatch Order</span>
@@ -447,7 +447,7 @@ export default function OrdersDashboardPage() {
                   placeholder="e.g. Kasun Kalhara"
                   value={newOrder.customerName}
                   onChange={(e) => setNewOrder({ ...newOrder, customerName: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32]"
+                  className="w-full px-3 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:outline-none focus:bg-white focus:border-[#596B32]"
                 />
               </div>
 
@@ -459,7 +459,7 @@ export default function OrdersDashboardPage() {
                   placeholder="e.g. Madol Doova (x1), Gamperaliya (x2)"
                   value={newOrder.itemsSummary}
                   onChange={(e) => setNewOrder({ ...newOrder, itemsSummary: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32]"
+                  className="w-full px-3 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:outline-none focus:bg-white focus:border-[#596B32]"
                 />
               </div>
 
@@ -471,7 +471,7 @@ export default function OrdersDashboardPage() {
                     required
                     value={newOrder.totalAmount}
                     onChange={(e) => setNewOrder({ ...newOrder, totalAmount: Number(e.target.value) })}
-                    className="w-full px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32] font-mono"
+                    className="w-full px-3 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:outline-none focus:bg-white focus:border-[#596B32] font-mono"
                   />
                 </div>
                 <div>
@@ -479,7 +479,7 @@ export default function OrdersDashboardPage() {
                   <select
                     value={newOrder.courier}
                     onChange={(e) => setNewOrder({ ...newOrder, courier: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32]"
+                    className="w-full px-3 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:outline-none focus:bg-white focus:border-[#596B32]"
                   >
                     <option value="Domex Express">Domex Express</option>
                     <option value="Pronto Courier">Pronto Courier</option>
@@ -496,21 +496,21 @@ export default function OrdersDashboardPage() {
                   placeholder="e.g. Galle, Kandy, Colombo 07"
                   value={newOrder.destination}
                   onChange={(e) => setNewOrder({ ...newOrder, destination: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32]"
+                  className="w-full px-3 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:outline-none focus:bg-white focus:border-[#596B32]"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-[#CDD3B5]">
+              <div className="flex justify-end gap-2 pt-3 border-t border-[#E2E7D8]">
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#85887A] hover:text-[#20231B]"
+                  className="px-4 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#85887A] hover:text-[#20231B]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-[#34451D] hover:bg-[#596B32] text-[#efead5] font-medium shadow-sm"
+                  className="px-4 py-2 rounded-xl bg-[#34451D] hover:bg-[#20231B] text-white font-medium shadow-sm"
                 >
                   Create Order
                 </button>
@@ -523,8 +523,8 @@ export default function OrdersDashboardPage() {
       {/* [U] EDIT ORDER STATUS MODAL */}
       {isEditModalOpen && activeOrder && (
         <div className="fixed inset-0 z-50 bg-[#20231B]/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#efead5] rounded-2xl w-full max-w-md p-6 border border-[#CDD3B5] space-y-4 shadow-xl">
-            <div className="flex items-center justify-between border-b border-[#CDD3B5] pb-3">
+          <div className="bg-white rounded-2xl w-full max-w-md p-6 border border-[#E2E7D8] space-y-4 shadow-xl">
+            <div className="flex items-center justify-between border-b border-[#E2E7D8] pb-3">
               <h3 className="text-base font-medium font-display text-[#20231B] flex items-center gap-2">
                 <Edit3 className="w-5 h-5 text-[#596B32]" />
                 <span>Update Order: {activeOrder.id}</span>
@@ -540,7 +540,7 @@ export default function OrdersDashboardPage() {
                 <select
                   value={activeOrder.status}
                   onChange={(e) => setActiveOrder({ ...activeOrder, status: e.target.value as any })}
-                  className="w-full px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32] font-mono"
+                  className="w-full px-3 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:outline-none focus:bg-white focus:border-[#596B32] font-mono"
                 >
                   <option value="PENDING">PENDING</option>
                   <option value="PACKING">PACKING</option>
@@ -556,7 +556,7 @@ export default function OrdersDashboardPage() {
                   type="text"
                   value={activeOrder.courier}
                   onChange={(e) => setActiveOrder({ ...activeOrder, courier: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32]"
+                  className="w-full px-3 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:outline-none focus:bg-white focus:border-[#596B32]"
                 />
               </div>
 
@@ -566,21 +566,21 @@ export default function OrdersDashboardPage() {
                   type="text"
                   value={activeOrder.trackingNo}
                   onChange={(e) => setActiveOrder({ ...activeOrder, trackingNo: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32] font-mono"
+                  className="w-full px-3 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:outline-none focus:bg-white focus:border-[#596B32] font-mono"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-[#CDD3B5]">
+              <div className="flex justify-end gap-2 pt-3 border-t border-[#E2E7D8]">
                 <button
                   type="button"
                   onClick={() => setIsEditModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#85887A] hover:text-[#20231B]"
+                  className="px-4 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#85887A] hover:text-[#20231B]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-[#34451D] hover:bg-[#596B32] text-[#efead5] font-medium shadow-sm"
+                  className="px-4 py-2 rounded-xl bg-[#34451D] hover:bg-[#20231B] text-white font-medium shadow-sm"
                 >
                   Save Order
                 </button>

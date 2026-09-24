@@ -1,23 +1,6 @@
 import type { Metadata } from 'next';
-import { Sora, Manrope } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/hooks/useAuth';
-
-// ── Next.js Font Optimization ─────────────────────────────────────────────
-// Sora (Display / Headings) & Manrope (Clean Modern UI / Body)
-const sora = Sora({
-  subsets: ['latin'],
-  variable: '--font-sora',
-  weight: ['300', '400', '500', '600'],
-  display: 'swap',
-});
-
-const manrope = Manrope({
-  subsets: ['latin'],
-  variable: '--font-manrope',
-  weight: ['300', '400', '500', '600'],
-  display: 'swap',
-});
 
 // ── SEO Metadata ----------------------------------------------------------
 export const metadata: Metadata = {
@@ -60,8 +43,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${sora.variable} ${manrope.variable}`}>
-      <body className="bg-[#efead5] text-[#20231B] antialiased selection:bg-[#596B32] selection:text-[#efead5] font-sans">
+    <html lang="en">
+      <body className="bg-[#F8F9F5] text-[#20231B] antialiased selection:bg-[#34451D] selection:text-white font-sans">
         <AuthProvider>
           {children}
         </AuthProvider>

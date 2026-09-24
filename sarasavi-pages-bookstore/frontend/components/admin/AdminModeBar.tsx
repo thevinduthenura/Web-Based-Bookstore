@@ -20,7 +20,7 @@ export default function AdminModeBar({ showOnStorefront = false }: AdminModeBarP
   };
 
   return (
-    <div className="w-full bg-[#20231B] border-b border-[#34451D] text-xs py-2 px-4 sm:px-6 z-50 text-[#efead5] font-sans">
+    <div className="w-full bg-[#20231B] border-b border-[#34451D] text-xs py-2 px-4 sm:px-6 z-50 text-[#F8F9F5] font-sans">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
         {/* Left: ADMIN MODE Pill Badge */}
         <div className="flex items-center gap-3">
@@ -30,16 +30,16 @@ export default function AdminModeBar({ showOnStorefront = false }: AdminModeBarP
           </div>
 
           {user && (
-            <span className="hidden sm:inline-flex items-center gap-1.5 text-[#CDD3B5] font-mono text-[11px]">
+            <span className="hidden sm:inline-flex items-center gap-1.5 text-[#E2E7D8] font-mono text-[11px]">
               <span className="text-[#596B32]">|</span>
-              <span className="text-[#efead5] font-medium">{user.fullName || user.username}</span>
+              <span className="text-white font-medium">{user.fullName || user.username}</span>
               <span className="text-[#AAB58A]">({user.role.replace('_', ' ')})</span>
             </span>
           )}
         </div>
 
         {/* Right: Navigation Links */}
-        <div className="flex items-center gap-4 sm:gap-6 text-[#CDD3B5] font-normal text-xs">
+        <div className="flex items-center gap-4 sm:gap-6 text-[#E2E7D8] font-normal text-xs">
           <Link
             href="/admin/dashboard"
             className="hover:text-[#B7D85A] transition-colors flex items-center gap-1"
@@ -78,7 +78,7 @@ export default function AdminModeBar({ showOnStorefront = false }: AdminModeBarP
           {showOnStorefront && (
             <Link
               href="/admin/dashboard"
-              className="inline-flex items-center gap-1 text-[#B7D85A] hover:text-[#efead5] font-medium text-xs transition-colors"
+              className="inline-flex items-center gap-1 text-[#B7D85A] hover:text-white font-medium text-xs transition-colors"
             >
               <span>Go to Admin Panel</span>
               <ArrowRight className="w-3 h-3" />

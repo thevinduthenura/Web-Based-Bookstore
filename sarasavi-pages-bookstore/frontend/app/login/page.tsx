@@ -286,14 +286,16 @@ function LoginForm() {
         console.warn('Backend API note:', apiErr.response?.data || apiErr.message);
       }
 
-      // Fresh new customer profile
+      // Fresh new customer profile - starts as standard free account (not a paid member)
       const createdCustomer = {
         customerId,
         name: `${firstName} ${lastName}`,
         email: email,
         password: regForm.password,
-        tier: 'BRONZE' as const,
-        points: 50, // Welcome loyalty reward
+        tier: 'STANDARD' as const,
+        membership: 'NONE' as const,
+        isMember: false,
+        points: 0,
         phone: regForm.phone.trim() || '+94 77 123 4567',
         address: regForm.addressLine1.trim() ? `${regForm.addressLine1.trim()}, ${regForm.city}` : 'Colombo, Sri Lanka',
         kycVerified: false,
@@ -332,11 +334,11 @@ function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen bg-[#efead5] bg-gradient-to-b from-[#efead5] via-[#E4E7D2] to-[#efead5] text-[#20231B] flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden font-sans selection:bg-[#34451D] selection:text-[#efead5]">
+    <div className="min-h-screen bg-[#F8F9F5] text-[#20231B] flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden font-sans selection:bg-[#34451D] selection:text-white">
       
       {/* Soft Ambient Botanical Glow */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-[#B7D85A]/15 rounded-full blur-[160px] pointer-events-none" />
-      <div className="absolute bottom-10 right-10 w-96 h-96 bg-[#CDD3B5]/40 rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-[#B7D85A]/10 rounded-full blur-[160px] pointer-events-none" />
+      <div className="absolute bottom-10 right-10 w-96 h-96 bg-[#E2E7D8]/40 rounded-full blur-[140px] pointer-events-none" />
 
       {/* Top Header Bar */}
       <div className="sm:mx-auto sm:w-full sm:max-w-md px-4 mb-6 flex items-center justify-between">
@@ -350,8 +352,8 @@ function LoginForm() {
       </div>
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md px-4">
-        {/* Unified Light iOS Glass Login Card */}
-        <div className="bg-[#efead5] p-5 sm:p-10 rounded-3xl sm:rounded-[40px] border border-[#CDD3B5] shadow-[0_12px_40px_rgba(52,69,29,0.08)] relative">
+        {/* Unified Light Card */}
+        <div className="bg-white p-5 sm:p-10 rounded-3xl sm:rounded-[40px] border border-[#E2E7D8] shadow-[0_12px_40px_rgba(52,69,29,0.06)] relative">
           
           {/* Logo & Clean Organic Emblem */}
           <div className="text-center space-y-2.5 mb-8">
@@ -392,7 +394,7 @@ function LoginForm() {
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
                   placeholder="Enter your email or username"
-                  className="w-full pl-11 pr-4 py-3 rounded-full bg-[#efead5] border border-[#CDD3B5] text-xs text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:border-[#596B32] focus:ring-1 focus:ring-[#596B32] transition-all shadow-sm"
+                  className="w-full pl-11 pr-4 py-3 rounded-full bg-[#F8F9F5] border border-[#E2E7D8] text-xs text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:bg-white focus:border-[#596B32] focus:ring-1 focus:ring-[#596B32] transition-all shadow-xs"
                 />
               </div>
             </div>
@@ -423,7 +425,7 @@ function LoginForm() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
-                  className="w-full pl-11 pr-11 py-3 rounded-full bg-[#efead5] border border-[#CDD3B5] text-xs text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:border-[#596B32] focus:ring-1 focus:ring-[#596B32] transition-all font-mono shadow-sm"
+                  className="w-full pl-11 pr-11 py-3 rounded-full bg-[#F8F9F5] border border-[#E2E7D8] text-xs text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:bg-white focus:border-[#596B32] focus:ring-1 focus:ring-[#596B32] transition-all font-mono shadow-xs"
                 />
                 <button
                   type="button"
@@ -439,7 +441,7 @@ function LoginForm() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-3.5 rounded-full bg-[#34451D] hover:bg-[#20231B] text-[#efead5] font-medium text-xs shadow-md active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 mt-4"
+              className="w-full py-3.5 rounded-full bg-[#34451D] hover:bg-[#20231B] text-white font-medium text-xs shadow-md active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 mt-4"
             >
               <span>{isSubmitting ? 'Signing in...' : 'Sign In'}</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -448,13 +450,13 @@ function LoginForm() {
         </div>
       </div>
 
-      {/* ── REGISTER CUSTOMER MODAL (Light iOS Glass Style) ─────────── */}
+      {/* ── REGISTER CUSTOMER MODAL ─────────── */}
       {showRegisterModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-          <div className="bg-[#efead5] border border-[#CDD3B5] rounded-[32px] p-7 max-w-md w-full shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between mb-5 pb-3 border-b border-[#CDD3B5]">
+          <div className="bg-white border border-[#E2E7D8] rounded-[32px] p-7 max-w-md w-full shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between mb-5 pb-3 border-b border-[#E2E7D8]">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-full bg-[#E4E7D2] text-[#34451D] flex items-center justify-center border border-[#CDD3B5]/60">
+                <div className="w-9 h-9 rounded-full bg-[#F0F4E8] text-[#34451D] flex items-center justify-center border border-[#E2E7D8]">
                   <UserPlus className="w-4 h-4" />
                 </div>
                 <div>
@@ -464,7 +466,7 @@ function LoginForm() {
               </div>
               <button
                 onClick={() => setShowRegisterModal(false)}
-                className="w-7 h-7 rounded-full bg-[#efead5] hover:bg-[#E4E7D2] text-[#85887A] hover:text-[#20231B] flex items-center justify-center transition-colors"
+                className="w-7 h-7 rounded-full bg-[#F8F9F5] hover:bg-[#F0F4E8] text-[#85887A] hover:text-[#20231B] flex items-center justify-center transition-colors"
                 title="Close"
               >
                 <X className="w-3.5 h-3.5" />
@@ -495,7 +497,7 @@ function LoginForm() {
                     required
                     value={regForm.firstName}
                     onChange={(e) => setRegForm({ ...regForm, firstName: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-full bg-[#efead5] border border-[#CDD3B5] text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:border-[#596B32]"
+                    className="w-full px-3.5 py-2.5 rounded-full bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:bg-white focus:border-[#596B32]"
                     placeholder="e.g. Kasun"
                   />
                 </div>
@@ -506,7 +508,7 @@ function LoginForm() {
                     required
                     value={regForm.lastName}
                     onChange={(e) => setRegForm({ ...regForm, lastName: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-full bg-[#efead5] border border-[#CDD3B5] text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:border-[#596B32]"
+                    className="w-full px-3.5 py-2.5 rounded-full bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:bg-white focus:border-[#596B32]"
                     placeholder="e.g. Perera"
                   />
                 </div>
@@ -519,7 +521,7 @@ function LoginForm() {
                   required
                   value={regForm.email}
                   onChange={(e) => setRegForm({ ...regForm, email: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-full bg-[#efead5] border border-[#CDD3B5] text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:border-[#596B32]"
+                  className="w-full px-3.5 py-2.5 rounded-full bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:bg-white focus:border-[#596B32]"
                   placeholder="e.g. kasun.perera@gmail.com"
                 />
               </div>
@@ -534,7 +536,7 @@ function LoginForm() {
                     required
                     value={regForm.password}
                     onChange={(e) => setRegForm({ ...regForm, password: e.target.value })}
-                    className="w-full pl-3.5 pr-10 py-2.5 rounded-full bg-[#efead5] border border-[#CDD3B5] text-[#20231B] font-mono text-xs placeholder:text-[#85887A] focus:outline-none focus:border-[#596B32]"
+                    className="w-full pl-3.5 pr-10 py-2.5 rounded-full bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] font-mono text-xs placeholder:text-[#85887A] focus:outline-none focus:bg-white focus:border-[#596B32]"
                     placeholder="Create secure password"
                   />
                   <button
@@ -559,7 +561,7 @@ function LoginForm() {
                          passwordStrengthScore <= 3 ? 'Medium' : 'Strong'}
                       </span>
                     </div>
-                    <div className="h-1.5 w-full bg-[#CDD3B5]/50 rounded-full overflow-hidden flex gap-1">
+                    <div className="h-1.5 w-full bg-[#E2E7D8] rounded-full overflow-hidden flex gap-1">
                       <div className={`h-full flex-1 rounded-full transition-all ${
                         passwordStrengthScore >= 1 ? (passwordStrengthScore <= 1 ? 'bg-red-500' : passwordStrengthScore <= 3 ? 'bg-amber-500' : 'bg-[#7F9148]') : 'bg-transparent'
                       }`} />
@@ -577,21 +579,21 @@ function LoginForm() {
                 )}
 
                 {/* Live Password Rules Checklist */}
-                <div className="mt-2 p-2.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] grid grid-cols-2 gap-1 text-[10px]">
+                <div className="mt-2 p-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] grid grid-cols-2 gap-1 text-[10px]">
                   <div className={`flex items-center gap-1.5 ${hasMinLength ? 'text-[#34451D] font-medium' : 'text-[#85887A]'}`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${hasMinLength ? 'bg-[#596B32]' : 'bg-[#CDD3B5]'}`} />
+                    <span className={`w-1.5 h-1.5 rounded-full ${hasMinLength ? 'bg-[#596B32]' : 'bg-[#E2E7D8]'}`} />
                     <span>8+ characters</span>
                   </div>
                   <div className={`flex items-center gap-1.5 ${hasUppercase ? 'text-[#34451D] font-medium' : 'text-[#85887A]'}`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${hasUppercase ? 'bg-[#596B32]' : 'bg-[#CDD3B5]'}`} />
+                    <span className={`w-1.5 h-1.5 rounded-full ${hasUppercase ? 'bg-[#596B32]' : 'bg-[#E2E7D8]'}`} />
                     <span>1 uppercase (A-Z)</span>
                   </div>
                   <div className={`flex items-center gap-1.5 ${hasNumber ? 'text-[#34451D] font-medium' : 'text-[#85887A]'}`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${hasNumber ? 'bg-[#596B32]' : 'bg-[#CDD3B5]'}`} />
+                    <span className={`w-1.5 h-1.5 rounded-full ${hasNumber ? 'bg-[#596B32]' : 'bg-[#E2E7D8]'}`} />
                     <span>1 number (0-9)</span>
                   </div>
                   <div className={`flex items-center gap-1.5 ${hasSpecial ? 'text-[#34451D] font-medium' : 'text-[#85887A]'}`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${hasSpecial ? 'bg-[#596B32]' : 'bg-[#CDD3B5]'}`} />
+                    <span className={`w-1.5 h-1.5 rounded-full ${hasSpecial ? 'bg-[#596B32]' : 'bg-[#E2E7D8]'}`} />
                     <span>1 special symbol</span>
                   </div>
                 </div>
@@ -607,10 +609,10 @@ function LoginForm() {
                     required
                     value={regForm.confirmPassword}
                     onChange={(e) => setRegForm({ ...regForm, confirmPassword: e.target.value })}
-                    className={`w-full pl-3.5 pr-10 py-2.5 rounded-full bg-[#efead5] border text-[#20231B] font-mono text-xs placeholder:text-[#85887A] focus:outline-none ${
+                    className={`w-full pl-3.5 pr-10 py-2.5 rounded-full bg-[#F8F9F5] border text-[#20231B] font-mono text-xs placeholder:text-[#85887A] focus:outline-none focus:bg-white ${
                       regForm.confirmPassword.length > 0
                         ? (passwordsMatch ? 'border-[#596B32] focus:border-[#34451D]' : 'border-red-400 focus:border-red-500')
-                        : 'border-[#CDD3B5] focus:border-[#596B32]'
+                        : 'border-[#E2E7D8] focus:border-[#596B32]'
                     }`}
                     placeholder="Re-enter password to match"
                   />
@@ -636,8 +638,8 @@ function LoginForm() {
                     type="text"
                     value={regForm.phone}
                     onChange={(e) => setRegForm({ ...regForm, phone: e.target.value })}
-                    className={`w-full px-3.5 py-2.5 rounded-full bg-[#efead5] border text-[#20231B] text-xs placeholder:text-[#85887A] focus:outline-none ${
-                      regForm.phone.trim() && !isPhoneValid ? 'border-red-400' : 'border-[#CDD3B5] focus:border-[#596B32]'
+                    className={`w-full px-3.5 py-2.5 rounded-full bg-[#F8F9F5] border text-[#20231B] text-xs placeholder:text-[#85887A] focus:outline-none focus:bg-white ${
+                      regForm.phone.trim() && !isPhoneValid ? 'border-red-400' : 'border-[#E2E7D8] focus:border-[#596B32]'
                     }`}
                     placeholder="077 123 4567"
                   />
@@ -651,7 +653,7 @@ function LoginForm() {
                     type="text"
                     value={regForm.city}
                     onChange={(e) => setRegForm({ ...regForm, city: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-full bg-[#efead5] border border-[#CDD3B5] text-[#20231B] text-xs placeholder:text-[#85887A] focus:outline-none focus:border-[#596B32]"
+                    className="w-full px-3.5 py-2.5 rounded-full bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] text-xs placeholder:text-[#85887A] focus:outline-none focus:bg-white focus:border-[#596B32]"
                     placeholder="Colombo"
                   />
                 </div>
@@ -663,7 +665,7 @@ function LoginForm() {
                   type="text"
                   value={regForm.addressLine1}
                   onChange={(e) => setRegForm({ ...regForm, addressLine1: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-full bg-[#efead5] border border-[#CDD3B5] text-[#20231B] text-xs placeholder:text-[#85887A] focus:outline-none focus:border-[#596B32]"
+                  className="w-full px-3.5 py-2.5 rounded-full bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] text-xs placeholder:text-[#85887A] focus:outline-none focus:bg-white focus:border-[#596B32]"
                   placeholder="No 25, Main Street, Colombo 03"
                 />
               </div>
@@ -671,7 +673,7 @@ function LoginForm() {
               <button
                 type="submit"
                 disabled={regLoading}
-                className="w-full py-3.5 rounded-full bg-[#34451D] hover:bg-[#20231B] text-[#efead5] font-medium text-xs shadow-md active:scale-95 transition-all mt-4 flex items-center justify-center gap-2 disabled:opacity-50"
+                className="w-full py-3.5 rounded-full bg-[#34451D] hover:bg-[#20231B] text-white font-medium text-xs shadow-md active:scale-95 transition-all mt-4 flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 {regLoading ? 'Creating Account...' : 'Complete Registration & Sign In'}
               </button>
@@ -686,7 +688,7 @@ function LoginForm() {
 // ── Loading fallback for Suspense ─────────────────────────────────────────
 function LoginSkeleton() {
   return (
-    <div className="min-h-screen bg-[#efead5] flex items-center justify-center">
+    <div className="min-h-screen bg-[#F8F9F5] flex items-center justify-center">
       <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#34451D] border-t-transparent" />
     </div>
   );

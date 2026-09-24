@@ -100,7 +100,7 @@ export default function AccountsDashboardPage() {
 
   if (!isAuthorized) {
     return (
-      <div className="bg-[#efead5] border border-[#CDD3B5] rounded-2xl p-8 max-w-lg mx-auto text-center space-y-4 shadow-sm">
+      <div className="bg-white border border-[#E2E7D8] rounded-2xl p-8 max-w-lg mx-auto text-center space-y-4 shadow-sm">
         <div className="h-12 w-12 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 flex items-center justify-center mx-auto">
           <Lock className="w-6 h-6" />
         </div>
@@ -241,11 +241,11 @@ export default function AccountsDashboardPage() {
   });
 
   return (
-    <div className="space-y-6 pb-12 font-sans">
+    <div className="space-y-6 pb-12 font-sans selection:bg-[#34451D] selection:text-white">
       {/* Top Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E4E7D2] border border-[#CDD3B5] text-[#34451D] text-xs font-semibold mb-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#F0F4E8] border border-[#E2E7D8] text-[#34451D] text-xs font-semibold mb-2">
             <UserCheck className="w-3.5 h-3.5 text-[#596B32]" />
             Module 5: User Accounts Administration
           </div>
@@ -258,14 +258,14 @@ export default function AccountsDashboardPage() {
         <div className="flex items-center gap-2.5">
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#34451D] hover:bg-[#596B32] text-[#efead5] text-xs font-medium shadow-sm transition-all"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#34451D] hover:bg-[#20231B] text-white text-xs font-medium shadow-sm transition-all"
           >
             <UserPlus className="w-4 h-4" />
             <span>Register New Customer</span>
           </button>
           <button
             onClick={fetchCustomers}
-            className="p-2.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#85887A] hover:text-[#20231B] transition-all shadow-sm"
+            className="p-2.5 rounded-xl bg-white hover:bg-[#F8F9F5] border border-[#E2E7D8] text-[#85887A] hover:text-[#20231B] transition-all shadow-sm"
             title="Refresh from API"
           >
             <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
@@ -274,19 +274,19 @@ export default function AccountsDashboardPage() {
       </div>
 
       {/* CRUD Capability Legend */}
-      <div className="p-3.5 rounded-xl border border-[#CDD3B5] bg-[#efead5] flex flex-wrap items-center justify-between gap-3 text-xs shadow-sm">
+      <div className="p-3.5 rounded-xl border border-[#E2E7D8] bg-white flex flex-wrap items-center justify-between gap-3 text-xs shadow-sm">
         <div className="flex items-center gap-2 font-medium text-[#34451D]">
           <Layers className="w-4 h-4 text-[#596B32]" />
           <span>Member 5 Capabilities:</span>
         </div>
         <div className="flex flex-wrap items-center gap-2 font-mono text-[11px]">
-          <span className="px-2.5 py-1 rounded-md bg-[#E4E7D2] text-[#34451D] border border-[#CDD3B5]">
+          <span className="px-2.5 py-1 rounded-md bg-[#F0F4E8] text-[#34451D] border border-[#E2E7D8]">
             Register Account
           </span>
-          <span className="px-2.5 py-1 rounded-md bg-[#efead5] text-[#596B32] border border-[#CDD3B5]">
+          <span className="px-2.5 py-1 rounded-md bg-[#F0F4E8] text-[#596B32] border border-[#E2E7D8]">
             Search &amp; Profiles
           </span>
-          <span className="px-2.5 py-1 rounded-md bg-[#E4E7D2] text-[#7F9148] border border-[#CDD3B5]">
+          <span className="px-2.5 py-1 rounded-md bg-[#F0F4E8] text-[#7F9148] border border-[#E2E7D8]">
             Edit &amp; KYC Status
           </span>
           <span className="px-2.5 py-1 rounded-md bg-rose-50 text-rose-700 border border-rose-200">
@@ -298,7 +298,7 @@ export default function AccountsDashboardPage() {
       {/* Notification Toast */}
       {notification && (
         <div className={`p-3.5 rounded-xl flex items-center justify-between text-xs border ${
-          notification.type === 'success' ? 'bg-[#E4E7D2] border-[#CDD3B5] text-[#34451D]' : 'bg-rose-50 border-rose-200 text-rose-700'
+          notification.type === 'success' ? 'bg-[#F0F4E8] border-[#E2E7D8] text-[#34451D]' : 'bg-rose-50 border-rose-200 text-rose-700'
         }`}>
           <span>{notification.message}</span>
           <button onClick={() => setNotification(null)} className="hover:opacity-80">
@@ -309,10 +309,10 @@ export default function AccountsDashboardPage() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-[#efead5] border border-[#CDD3B5] p-5 rounded-2xl shadow-sm">
+        <div className="bg-white border border-[#E2E7D8] p-5 rounded-2xl shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-[#85887A]">Registered Customers</span>
-            <div className="h-8 w-8 rounded-lg bg-[#E4E7D2] text-[#34451D] flex items-center justify-center">
+            <div className="h-8 w-8 rounded-lg bg-[#F0F4E8] text-[#34451D] flex items-center justify-center">
               <Users className="w-4 h-4" />
             </div>
           </div>
@@ -322,10 +322,10 @@ export default function AccountsDashboardPage() {
           <p className="text-[11px] text-[#596B32] font-mono mt-1">Verified Member Directory</p>
         </div>
 
-        <div className="bg-[#efead5] border border-[#CDD3B5] p-5 rounded-2xl shadow-sm">
+        <div className="bg-white border border-[#E2E7D8] p-5 rounded-2xl shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-[#85887A]">KYC Verified Ratio</span>
-            <div className="h-8 w-8 rounded-lg bg-[#E4E7D2] text-[#596B32] flex items-center justify-center">
+            <div className="h-8 w-8 rounded-lg bg-[#F0F4E8] text-[#596B32] flex items-center justify-center">
               <ShieldCheck className="w-4 h-4" />
             </div>
           </div>
@@ -337,10 +337,10 @@ export default function AccountsDashboardPage() {
           <p className="text-[11px] text-[#596B32] mt-1">{verifiedCount} of {totalUsers} KYC Cleared</p>
         </div>
 
-        <div className="bg-[#efead5] border border-[#CDD3B5] p-5 rounded-2xl shadow-sm">
+        <div className="bg-white border border-[#E2E7D8] p-5 rounded-2xl shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-[#85887A]">Gold / VIP Tier</span>
-            <div className="h-8 w-8 rounded-lg bg-[#E4E7D2] text-[#7F9148] flex items-center justify-center">
+            <div className="h-8 w-8 rounded-lg bg-[#F0F4E8] text-[#7F9148] flex items-center justify-center">
               <Award className="w-4 h-4" />
             </div>
           </div>
@@ -350,7 +350,7 @@ export default function AccountsDashboardPage() {
           <p className="text-[11px] text-[#7F9148] mt-1">Eligible for Exclusive Discounts</p>
         </div>
 
-        <div className="bg-[#efead5] border border-[#CDD3B5] p-5 rounded-2xl shadow-sm">
+        <div className="bg-white border border-[#E2E7D8] p-5 rounded-2xl shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-[#85887A]">Suspended Accounts</span>
             <div className="h-8 w-8 rounded-lg bg-rose-50 text-rose-700 flex items-center justify-center border border-rose-200">
@@ -367,7 +367,7 @@ export default function AccountsDashboardPage() {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-[#efead5] border border-[#CDD3B5] p-4 rounded-2xl flex flex-col md:flex-row gap-3 items-center justify-between shadow-sm">
+      <div className="bg-white border border-[#E2E7D8] p-4 rounded-2xl flex flex-col md:flex-row gap-3 items-center justify-between shadow-xs">
         <div className="relative w-full md:w-80">
           <Search className="w-4 h-4 text-[#85887A] absolute left-3 top-1/2 -translate-y-1/2" />
           <input
@@ -375,7 +375,7 @@ export default function AccountsDashboardPage() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search by Name, Email, or Customer ID..."
-            className="w-full pl-9 pr-4 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-xs text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:border-[#596B32] transition-all"
+            className="w-full pl-9 pr-4 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:bg-white focus:border-[#596B32] transition-all"
           />
         </div>
 
@@ -384,7 +384,7 @@ export default function AccountsDashboardPage() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-full md:w-auto px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-xs text-[#20231B] focus:outline-none focus:border-[#596B32] font-mono transition-all"
+            className="w-full md:w-auto px-3 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs text-[#20231B] focus:outline-none focus:bg-white focus:border-[#596B32] font-mono transition-all"
           >
             <option value="ALL">All Statuses ({customers.length})</option>
             <option value="ACTIVE">Active Only</option>
@@ -395,11 +395,11 @@ export default function AccountsDashboardPage() {
       </div>
 
       {/* Customer Directory Table */}
-      <div className="bg-[#efead5] rounded-2xl overflow-hidden border border-[#CDD3B5] shadow-sm">
+      <div className="bg-white rounded-2xl overflow-hidden border border-[#E2E7D8] shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[700px]">
             <thead>
-              <tr className="border-b border-[#CDD3B5] bg-[#E4E7D2]/60 text-[11px] font-mono uppercase tracking-wider text-[#34451D]">
+              <tr className="border-b border-[#E2E7D8] bg-[#F8F9F5] text-[11px] font-mono uppercase tracking-wider text-[#34451D]">
                 <th className="py-3 px-4">Customer Details</th>
                 <th className="py-3 px-4">Contact / City</th>
                 <th className="py-3 px-4">Loyalty Tier</th>
@@ -408,7 +408,7 @@ export default function AccountsDashboardPage() {
                 <th className="py-3 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#CDD3B5]/50 text-xs">
+            <tbody className="divide-y divide-[#E2E7D8] text-xs">
               {filteredCustomers.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="py-8 text-center text-[#85887A]">
@@ -417,7 +417,7 @@ export default function AccountsDashboardPage() {
                 </tr>
               ) : (
                 filteredCustomers.map((cust) => (
-                  <tr key={cust.customerId} className="hover:bg-[#E4E7D2]/20 transition-colors">
+                  <tr key={cust.customerId} className="hover:bg-[#F8F9F5] transition-colors">
                     <td className="py-3.5 px-4">
                       <div className="font-semibold text-[#20231B]">{cust.firstName} {cust.lastName}</div>
                       <div className="text-[11px] text-[#85887A] flex items-center gap-1 mt-0.5">
@@ -442,10 +442,10 @@ export default function AccountsDashboardPage() {
                     <td className="py-3.5 px-4">
                       <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
                         cust.loyaltyTier === 'GOLD' || cust.loyaltyTier === 'PLATINUM'
-                          ? 'bg-[#E4E7D2] border-[#CDD3B5] text-[#34451D]'
+                          ? 'bg-[#F0F4E8] border-[#E2E7D8] text-[#34451D]'
                           : cust.loyaltyTier === 'SILVER'
-                          ? 'bg-[#efead5] border-[#CDD3B5] text-[#596B32]'
-                          : 'bg-[#efead5] border-[#CDD3B5] text-[#7F9148]'
+                          ? 'bg-[#F0F4E8] border-[#E2E7D8] text-[#596B32]'
+                          : 'bg-[#F0F4E8] border-[#E2E7D8] text-[#7F9148]'
                       }`}>
                         <Award className="w-3 h-3" />
                         {cust.loyaltyTier} ({cust.loyaltyPoints} pts)
@@ -457,8 +457,8 @@ export default function AccountsDashboardPage() {
                         onClick={() => handleToggleKyc(cust.customerId, cust.kycVerified)}
                         className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold border transition-all ${
                           cust.kycVerified
-                            ? 'bg-[#E4E7D2] border-[#CDD3B5] text-[#34451D] hover:bg-[#CDD3B5]'
-                            : 'bg-[#efead5] border-[#CDD3B5] text-[#85887A] hover:text-[#20231B]'
+                            ? 'bg-[#F0F4E8] border-[#E2E7D8] text-[#34451D] hover:bg-[#E2E7D8]'
+                            : 'bg-white border-[#E2E7D8] text-[#85887A] hover:text-[#20231B]'
                         }`}
                         title="Click to toggle KYC verified status"
                       >
@@ -472,8 +472,8 @@ export default function AccountsDashboardPage() {
                         onClick={() => handleToggleStatus(cust.customerId, cust.status)}
                         className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold border transition-all ${
                           cust.status === 'ACTIVE'
-                            ? 'bg-[#E4E7D2] border-[#CDD3B5] text-[#34451D] hover:bg-rose-50 hover:text-rose-700'
-                            : 'bg-rose-50 border-rose-200 text-rose-700 hover:bg-[#E4E7D2] hover:text-[#34451D]'
+                            ? 'bg-[#F0F4E8] border-[#E2E7D8] text-[#34451D] hover:bg-rose-50 hover:text-rose-700'
+                            : 'bg-rose-50 border-rose-200 text-rose-700 hover:bg-[#F0F4E8] hover:text-[#34451D]'
                         }`}
                         title="Click to toggle Active / Suspended"
                       >
@@ -486,7 +486,7 @@ export default function AccountsDashboardPage() {
                         {/* [U] Edit Profile */}
                         <button
                           onClick={() => handleOpenEdit(cust)}
-                          className="p-1.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#596B32] hover:bg-[#E4E7D2] transition-all shadow-sm"
+                          className="p-1.5 rounded-xl bg-white border border-[#E2E7D8] text-[#596B32] hover:bg-[#F0F4E8] transition-all shadow-xs"
                           title="Edit Profile Details"
                         >
                           <Edit3 className="w-3.5 h-3.5" />
@@ -495,7 +495,7 @@ export default function AccountsDashboardPage() {
                         {/* [D] Delete Customer */}
                         <button
                           onClick={() => handleDeleteCustomer(cust.customerId, `${cust.firstName} ${cust.lastName}`)}
-                          className="p-1.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-rose-600 hover:bg-rose-50 transition-all shadow-sm"
+                          className="p-1.5 rounded-xl bg-white border border-[#E2E7D8] text-rose-600 hover:bg-rose-50 transition-all shadow-xs"
                           title="Delete Customer Account"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -513,8 +513,8 @@ export default function AccountsDashboardPage() {
       {/* [C] REGISTER CUSTOMER MODAL */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 bg-[#20231B]/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#efead5] rounded-2xl w-full max-w-lg p-6 border border-[#CDD3B5] space-y-4 max-h-[90vh] overflow-y-auto shadow-xl">
-            <div className="flex items-center justify-between border-b border-[#CDD3B5] pb-3">
+          <div className="bg-white rounded-2xl w-full max-w-lg p-6 border border-[#E2E7D8] space-y-4 max-h-[90vh] overflow-y-auto shadow-xl">
+            <div className="flex items-center justify-between border-b border-[#E2E7D8] pb-3">
               <h3 className="text-base font-medium font-display text-[#20231B] flex items-center gap-2">
                 <UserPlus className="w-5 h-5 text-[#596B32]" />
                 <span>Register Customer Profile</span>
@@ -534,7 +534,7 @@ export default function AccountsDashboardPage() {
                     placeholder="e.g. Ruwan"
                     value={newCustomer.firstName}
                     onChange={(e) => setNewCustomer({ ...newCustomer, firstName: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32]"
+                    className="w-full px-3 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:outline-none focus:bg-white focus:border-[#596B32]"
                   />
                 </div>
                 <div>
@@ -545,7 +545,7 @@ export default function AccountsDashboardPage() {
                     placeholder="e.g. Jayasinghe"
                     value={newCustomer.lastName}
                     onChange={(e) => setNewCustomer({ ...newCustomer, lastName: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32]"
+                    className="w-full px-3 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:outline-none focus:bg-white focus:border-[#596B32]"
                   />
                 </div>
               </div>
@@ -558,7 +558,7 @@ export default function AccountsDashboardPage() {
                   placeholder="ruwan.j@example.com"
                   value={newCustomer.email}
                   onChange={(e) => setNewCustomer({ ...newCustomer, email: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32]"
+                  className="w-full px-3 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:outline-none focus:bg-white focus:border-[#596B32]"
                 />
               </div>
 
@@ -570,7 +570,7 @@ export default function AccountsDashboardPage() {
                     required
                     value={newCustomer.phone}
                     onChange={(e) => setNewCustomer({ ...newCustomer, phone: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32] font-mono"
+                    className="w-full px-3 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:outline-none focus:bg-white focus:border-[#596B32] font-mono"
                   />
                 </div>
                 <div>
@@ -579,7 +579,7 @@ export default function AccountsDashboardPage() {
                     type="text"
                     value={newCustomer.city}
                     onChange={(e) => setNewCustomer({ ...newCustomer, city: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32]"
+                    className="w-full px-3 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:outline-none focus:bg-white focus:border-[#596B32]"
                   />
                 </div>
               </div>
@@ -590,21 +590,21 @@ export default function AccountsDashboardPage() {
                   type="text"
                   value={newCustomer.addressLine1}
                   onChange={(e) => setNewCustomer({ ...newCustomer, addressLine1: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32]"
+                  className="w-full px-3 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:outline-none focus:bg-white focus:border-[#596B32]"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-[#CDD3B5]">
+              <div className="flex justify-end gap-2 pt-3 border-t border-[#E2E7D8]">
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#85887A] hover:text-[#20231B]"
+                  className="px-4 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#85887A] hover:text-[#20231B]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-[#34451D] hover:bg-[#596B32] text-[#efead5] font-medium shadow-sm"
+                  className="px-4 py-2 rounded-xl bg-[#34451D] hover:bg-[#20231B] text-white font-medium shadow-sm"
                 >
                   Create Customer
                 </button>
@@ -617,8 +617,8 @@ export default function AccountsDashboardPage() {
       {/* [U] EDIT CUSTOMER MODAL */}
       {isEditModalOpen && activeCustomer && (
         <div className="fixed inset-0 z-50 bg-[#20231B]/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#efead5] rounded-2xl w-full max-w-md p-6 border border-[#CDD3B5] space-y-4 shadow-xl">
-            <div className="flex items-center justify-between border-b border-[#CDD3B5] pb-3">
+          <div className="bg-white rounded-2xl w-full max-w-md p-6 border border-[#E2E7D8] space-y-4 shadow-xl">
+            <div className="flex items-center justify-between border-b border-[#E2E7D8] pb-3">
               <h3 className="text-base font-medium font-display text-[#20231B] flex items-center gap-2">
                 <Edit3 className="w-5 h-5 text-[#596B32]" />
                 <span>Edit Profile: {activeCustomer.customerId}</span>
@@ -637,7 +637,7 @@ export default function AccountsDashboardPage() {
                     required
                     value={activeCustomer.firstName}
                     onChange={(e) => setActiveCustomer({ ...activeCustomer, firstName: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32]"
+                    className="w-full px-3 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:outline-none focus:bg-white focus:border-[#596B32]"
                   />
                 </div>
                 <div>
@@ -647,7 +647,7 @@ export default function AccountsDashboardPage() {
                     required
                     value={activeCustomer.lastName}
                     onChange={(e) => setActiveCustomer({ ...activeCustomer, lastName: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32]"
+                    className="w-full px-3 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:outline-none focus:bg-white focus:border-[#596B32]"
                   />
                 </div>
               </div>
@@ -658,7 +658,7 @@ export default function AccountsDashboardPage() {
                   type="text"
                   value={activeCustomer.phone || ''}
                   onChange={(e) => setActiveCustomer({ ...activeCustomer, phone: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32] font-mono"
+                  className="w-full px-3 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:outline-none focus:bg-white focus:border-[#596B32] font-mono"
                 />
               </div>
 
@@ -668,21 +668,21 @@ export default function AccountsDashboardPage() {
                   type="text"
                   value={activeCustomer.city || ''}
                   onChange={(e) => setActiveCustomer({ ...activeCustomer, city: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32]"
+                  className="w-full px-3 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:outline-none focus:bg-white focus:border-[#596B32]"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-[#CDD3B5]">
+              <div className="flex justify-end gap-2 pt-3 border-t border-[#E2E7D8]">
                 <button
                   type="button"
                   onClick={() => setIsEditModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#85887A] hover:text-[#20231B]"
+                  className="px-4 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#85887A] hover:text-[#20231B]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-[#34451D] hover:bg-[#596B32] text-[#efead5] font-medium shadow-sm"
+                  className="px-4 py-2 rounded-xl bg-[#34451D] hover:bg-[#20231B] text-white font-medium shadow-sm"
                 >
                   Save Profile
                 </button>

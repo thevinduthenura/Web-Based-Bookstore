@@ -49,7 +49,7 @@ const TEAM_MEMBERS = [
     role: 'PAYMENT_ADMIN',
     roleBadge: 'Payment Admin',
     path: '/admin/payment/dashboard',
-    badgeColor: 'border-[#CDD3B5] text-[#34451D] bg-[#E4E7D2] font-semibold',
+    badgeColor: 'border-[#E2E7D8] text-[#34451D] bg-[#F0F4E8] font-semibold',
     icon: CreditCard,
     description: 'Multi-gateway checkout settlement, transactions verification & refund auditing.',
   },
@@ -62,7 +62,7 @@ const TEAM_MEMBERS = [
     role: 'CUSTOMER_SERVICE_ADMIN',
     roleBadge: 'Customer Service Admin',
     path: '/admin/customer-service/dashboard',
-    badgeColor: 'border-[#CDD3B5] text-[#34451D] bg-[#E4E7D2] font-semibold',
+    badgeColor: 'border-[#E2E7D8] text-[#34451D] bg-[#F0F4E8] font-semibold',
     icon: Headphones,
     description: 'Helpdesk ticket resolution, dispute escalation & satisfaction SLA tracking.',
   },
@@ -75,7 +75,7 @@ const TEAM_MEMBERS = [
     role: 'INVENTORY_ADMIN',
     roleBadge: 'Inventory Admin',
     path: '/admin/inventory/dashboard',
-    badgeColor: 'border-[#CDD3B5] text-[#34451D] bg-[#E4E7D2] font-semibold',
+    badgeColor: 'border-[#E2E7D8] text-[#34451D] bg-[#F0F4E8] font-semibold',
     icon: Boxes,
     description: 'Stock intake, safety thresholds, reorder level alerts & warehouse logistics.',
   },
@@ -88,7 +88,7 @@ const TEAM_MEMBERS = [
     role: 'ACCOUNT_ADMIN',
     roleBadge: 'Account Admin',
     path: '/admin/accounts/dashboard',
-    badgeColor: 'border-[#CDD3B5] text-[#34451D] bg-[#E4E7D2] font-semibold',
+    badgeColor: 'border-[#E2E7D8] text-[#34451D] bg-[#F0F4E8] font-semibold',
     icon: UserCheck,
     description: 'Customer profiles, KYC identity verification & loyalty tier points allocation.',
   },
@@ -101,7 +101,7 @@ const TEAM_MEMBERS = [
     role: 'ORDER_ADMIN',
     roleBadge: 'Order Admin',
     path: '/admin/orders/dashboard',
-    badgeColor: 'border-[#CDD3B5] text-[#34451D] bg-[#E4E7D2] font-semibold',
+    badgeColor: 'border-[#E2E7D8] text-[#34451D] bg-[#F0F4E8] font-semibold',
     icon: ShoppingCart,
     description: 'Cart processing, promo discount vouchers, order dispatch & fulfillment states.',
   },
@@ -138,14 +138,14 @@ export default function AdminDashboardPage() {
   }, []);
 
   return (
-    <div className="space-y-8 pb-12 selection:bg-[#34451D] selection:text-[#efead5]">
+    <div className="space-y-8 pb-12 selection:bg-[#34451D] selection:text-white">
       {/* ── TOP HERO HEADER ────────────────────────────────────── */}
-      <div className="bg-[#efead5] border border-[#CDD3B5] rounded-3xl p-6 sm:p-8 relative overflow-hidden shadow-xs">
-        <div className="absolute top-0 right-0 w-80 h-80 bg-[#7F9148]/15 rounded-full blur-[100px] pointer-events-none" />
+      <div className="bg-[#FFFFFF] border border-[#E2E7D8] rounded-3xl p-6 sm:p-8 relative overflow-hidden shadow-xs">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-[#7F9148]/10 rounded-full blur-[100px] pointer-events-none" />
 
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E4E7D2] text-[#34451D] border border-[#CDD3B5] text-xs font-semibold">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EBF0E4] text-[#34451D] border border-[#DCE3D2] text-xs font-semibold">
               <Sparkles className="w-3.5 h-3.5 text-[#596B32]" />
               <span>Super Administrator Enterprise Control Center</span>
             </div>
@@ -154,7 +154,7 @@ export default function AdminDashboardPage() {
               welcome back, <span className="text-[#34451D] font-normal">{user?.fullName || 'Administrator'}</span>
             </h1>
             
-            <p className="text-xs sm:text-sm text-[#85887A] max-w-2xl font-normal leading-relaxed">
+            <p className="text-xs sm:text-sm text-[#707365] max-w-2xl font-normal leading-relaxed">
               Sarasavi Pages central management system. Orchestrating all 6 micro-modules, group member RBAC roles, inventory thresholds, and customer storefront operations.
             </p>
           </div>
@@ -163,7 +163,7 @@ export default function AdminDashboardPage() {
           <div className="flex flex-wrap items-center gap-3">
             <Link
               href="/"
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-[#efead5] hover:bg-[#E4E7D2] border border-[#CDD3B5] text-[#20231B] font-semibold text-xs shadow-xs transition-all"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-[#FFFFFF] hover:bg-[#F0F4E8] border border-[#E2E7D8] text-[#20231B] font-semibold text-xs shadow-xs transition-all"
               title="Open public customer storefront"
             >
               <Globe className="w-3.5 h-3.5 text-[#596B32]" />
@@ -172,7 +172,7 @@ export default function AdminDashboardPage() {
 
             <Link
               href="/admin/staff"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#34451D] hover:bg-[#20231B] text-[#efead5] font-semibold text-xs shadow-xs transition-all active:scale-95"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#34451D] hover:bg-[#20231B] text-white font-semibold text-xs shadow-xs transition-all active:scale-95"
             >
               <Users className="w-3.5 h-3.5" />
               <span>Manage Staff</span>
@@ -180,7 +180,7 @@ export default function AdminDashboardPage() {
 
             <Link
               href="/admin/audit-logs"
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-[#efead5] hover:bg-[#E4E7D2] border border-[#CDD3B5] text-[#20231B] font-semibold transition-all text-xs shadow-xs"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-[#FFFFFF] hover:bg-[#F0F4E8] border border-[#E2E7D8] text-[#20231B] font-semibold transition-all text-xs shadow-xs"
             >
               <Activity className="w-3.5 h-3.5 text-[#596B32]" />
               <span>Audit Trail</span>
@@ -192,10 +192,10 @@ export default function AdminDashboardPage() {
       {/* ── HIGH-IMPACT STATS KPI GRID ──────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* KPI 1 */}
-        <div className="bg-[#efead5] border border-[#CDD3B5] hover:border-[#7F9148] p-5 rounded-2xl transition-all shadow-xs group">
+        <div className="bg-[#FFFFFF] border border-[#E2E7D8] hover:border-[#7F9148] p-5 rounded-2xl transition-all shadow-xs hover:shadow-md group">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-[#85887A]">Registered Staff</span>
-            <div className="h-9 w-9 rounded-2xl bg-[#E4E7D2] flex items-center justify-center text-[#34451D] border border-[#CDD3B5] group-hover:scale-105 transition-transform">
+            <span className="text-xs font-semibold text-[#707365]">Registered Staff</span>
+            <div className="h-9 w-9 rounded-2xl bg-[#F0F4E8] flex items-center justify-center text-[#34451D] border border-[#E2E7D8] group-hover:scale-105 transition-transform">
               <Users className="w-4 h-4 text-[#596B32]" />
             </div>
           </div>
@@ -205,14 +205,14 @@ export default function AdminDashboardPage() {
               <CheckCircle2 className="w-3.5 h-3.5 text-[#596B32]" /> All 6 Active
             </span>
           </div>
-          <p className="text-[11px] text-[#85887A] mt-1 font-normal">1 Super Admin + 5 Module Admins</p>
+          <p className="text-[11px] text-[#707365] mt-1 font-normal">1 Super Admin + 5 Module Admins</p>
         </div>
 
         {/* KPI 2 */}
-        <div className="bg-[#efead5] border border-[#CDD3B5] hover:border-[#7F9148] p-5 rounded-2xl transition-all shadow-xs group">
+        <div className="bg-[#FFFFFF] border border-[#E2E7D8] hover:border-[#7F9148] p-5 rounded-2xl transition-all shadow-xs hover:shadow-md group">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-[#85887A]">Active Business Modules</span>
-            <div className="h-9 w-9 rounded-2xl bg-[#E4E7D2] flex items-center justify-center text-[#34451D] border border-[#CDD3B5] group-hover:scale-105 transition-transform">
+            <span className="text-xs font-semibold text-[#707365]">Active Business Modules</span>
+            <div className="h-9 w-9 rounded-2xl bg-[#F0F4E8] flex items-center justify-center text-[#34451D] border border-[#E2E7D8] group-hover:scale-105 transition-transform">
               <Layers className="w-4 h-4 text-[#596B32]" />
             </div>
           </div>
@@ -220,14 +220,14 @@ export default function AdminDashboardPage() {
             <span className="text-3xl font-display font-light text-[#20231B]">6 / 6</span>
             <span className="text-[11px] text-[#596B32] font-sans font-semibold">100% Configured</span>
           </div>
-          <p className="text-[11px] text-[#85887A] mt-1 font-normal">M1 through M6 fully integrated</p>
+          <p className="text-[11px] text-[#707365] mt-1 font-normal">M1 through M6 fully integrated</p>
         </div>
 
         {/* KPI 3 */}
-        <div className="bg-[#efead5] border border-[#CDD3B5] hover:border-[#7F9148] p-5 rounded-2xl transition-all shadow-xs group">
+        <div className="bg-[#FFFFFF] border border-[#E2E7D8] hover:border-[#7F9148] p-5 rounded-2xl transition-all shadow-xs hover:shadow-md group">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-[#85887A]">Security & Auditing</span>
-            <div className="h-9 w-9 rounded-2xl bg-[#E4E7D2] flex items-center justify-center text-[#34451D] border border-[#CDD3B5] group-hover:scale-105 transition-transform">
+            <span className="text-xs font-semibold text-[#707365]">Security & Auditing</span>
+            <div className="h-9 w-9 rounded-2xl bg-[#F0F4E8] flex items-center justify-center text-[#34451D] border border-[#E2E7D8] group-hover:scale-105 transition-transform">
               <ShieldCheck className="w-4 h-4 text-[#596B32]" />
             </div>
           </div>
@@ -235,14 +235,14 @@ export default function AdminDashboardPage() {
             <span className="text-2xl font-display font-light text-[#20231B]">Live Protection</span>
             <span className="text-[11px] text-[#596B32] font-sans font-semibold">Real-time</span>
           </div>
-          <p className="text-[11px] text-[#85887A] mt-1 font-normal">Automated DB action audit logging</p>
+          <p className="text-[11px] text-[#707365] mt-1 font-normal">Automated DB action audit logging</p>
         </div>
 
         {/* KPI 4 */}
-        <div className="bg-[#efead5] border border-[#CDD3B5] hover:border-[#7F9148] p-5 rounded-2xl transition-all shadow-xs group">
+        <div className="bg-[#FFFFFF] border border-[#E2E7D8] hover:border-[#7F9148] p-5 rounded-2xl transition-all shadow-xs hover:shadow-md group">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-[#85887A]">Backend API Services</span>
-            <div className="h-9 w-9 rounded-2xl bg-[#E4E7D2] flex items-center justify-center text-[#34451D] border border-[#CDD3B5] group-hover:scale-105 transition-transform">
+            <span className="text-xs font-semibold text-[#707365]">Backend API Services</span>
+            <div className="h-9 w-9 rounded-2xl bg-[#F0F4E8] flex items-center justify-center text-[#34451D] border border-[#E2E7D8] group-hover:scale-105 transition-transform">
               <Server className="w-4 h-4 text-[#596B32]" />
             </div>
           </div>
@@ -250,7 +250,7 @@ export default function AdminDashboardPage() {
             <span className="text-2xl font-display font-light text-[#20231B]">Spring Boot</span>
             <span className="text-[11px] text-[#596B32] font-sans font-semibold">Port 8080</span>
           </div>
-          <p className="text-[11px] text-[#85887A] mt-1 font-normal">PostgreSQL 16 · Flyway Migrations</p>
+          <p className="text-[11px] text-[#707365] mt-1 font-normal">PostgreSQL 16 · Flyway Migrations</p>
         </div>
       </div>
 
@@ -261,11 +261,11 @@ export default function AdminDashboardPage() {
             <h2 className="text-xl font-display font-light text-[#20231B] tracking-tight">
               Group Project Members & Module Allocation
             </h2>
-            <p className="text-xs text-[#85887A] mt-0.5 font-normal">
+            <p className="text-xs text-[#707365] mt-0.5 font-normal">
               Role-Based Access Control matrix for all 6 SE2030 group members with dedicated sub-module portals.
             </p>
           </div>
-          <span className="inline-flex items-center gap-1.5 text-[11px] font-sans text-[#34451D] px-3 py-1 rounded-full bg-[#E4E7D2] border border-[#CDD3B5] self-start sm:self-auto font-semibold">
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-sans text-[#34451D] px-3 py-1 rounded-full bg-[#EBF0E4] border border-[#DCE3D2] self-start sm:self-auto font-semibold">
             <Terminal className="w-3 h-3 text-[#596B32]" />
             <span>SE2030 · Batch 9 · Group 2</span>
           </span>
@@ -277,10 +277,10 @@ export default function AdminDashboardPage() {
             return (
               <div
                 key={member.id}
-                className={`bg-[#efead5] p-5 rounded-2xl flex flex-col justify-between border transition-all hover:scale-[1.01] hover:border-[#7F9148] shadow-xs ${
+                className={`bg-[#FFFFFF] p-5 rounded-2xl flex flex-col justify-between border transition-all hover:scale-[1.01] hover:border-[#7F9148] shadow-xs hover:shadow-md ${
                   member.isSuper 
-                    ? 'border-[#7F9148] bg-gradient-to-b from-[#efead5] to-[#E4E7D2]/40' 
-                    : 'border-[#CDD3B5] hover:shadow-md'
+                    ? 'border-[#7F9148] bg-gradient-to-b from-[#FFFFFF] to-[#F0F4E8]/50 ring-1 ring-[#7F9148]/20' 
+                    : 'border-[#E2E7D8]'
                 }`}
               >
                 <div>
@@ -295,32 +295,32 @@ export default function AdminDashboardPage() {
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-[#efead5] border border-[#CDD3B5] flex items-center justify-center text-[#34451D] shadow-xs">
+                    <div className="w-10 h-10 rounded-2xl bg-[#F8F9F5] border border-[#E2E7D8] flex items-center justify-center text-[#34451D] shadow-xs">
                       <Icon className="w-5 h-5 text-[#596B32]" />
                     </div>
                     <div>
                       <h3 className="text-sm font-display font-normal text-[#20231B]">{member.name}</h3>
-                      <p className="text-xs text-[#85887A] font-medium">{member.itNumber}</p>
+                      <p className="text-xs text-[#707365] font-medium">{member.itNumber}</p>
                     </div>
                   </div>
 
-                  <p className="text-xs text-[#85887A] mt-3 leading-relaxed font-normal">
+                  <p className="text-xs text-[#707365] mt-3 leading-relaxed font-normal">
                     {member.description}
                   </p>
 
-                  <div className="mt-4 pt-3 border-t border-[#CDD3B5]/60 space-y-1.5 text-xs">
-                    <div className="flex items-center justify-between text-[#85887A]">
+                  <div className="mt-4 pt-3 border-t border-[#E2E7D8] space-y-1.5 text-xs">
+                    <div className="flex items-center justify-between text-[#707365]">
                       <span>Module Scope:</span>
                       <span className="font-semibold text-[#20231B]">{member.module.split(':')[0]}</span>
                     </div>
-                    <div className="flex items-center justify-between text-[#85887A]">
+                    <div className="flex items-center justify-between text-[#707365]">
                       <span>Username:</span>
                       <span className="font-semibold text-[#596B32]">@{member.username}</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-5 pt-3 border-t border-[#CDD3B5]/60">
+                <div className="mt-5 pt-3 border-t border-[#E2E7D8]">
                   <Link
                     href={member.path}
                     className="flex items-center justify-between text-xs font-semibold text-[#596B32] hover:text-[#34451D] transition-colors group"
@@ -336,15 +336,15 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* ── RECENT SECURITY & ACTIVITY AUDIT TRAIL ─────────────────── */}
-      <div className="bg-[#efead5] border border-[#CDD3B5] rounded-2xl p-6 shadow-xs">
+      <div className="bg-[#FFFFFF] border border-[#E2E7D8] rounded-2xl p-6 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-5">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[#E4E7D2] flex items-center justify-center text-[#34451D] border border-[#CDD3B5]">
+            <div className="w-8 h-8 rounded-xl bg-[#F0F4E8] flex items-center justify-center text-[#34451D] border border-[#E2E7D8]">
               <Clock className="w-4 h-4 text-[#596B32]" />
             </div>
             <div>
               <h2 className="text-base font-display font-light text-[#20231B]">Recent Security & Activity Audits</h2>
-              <p className="text-xs text-[#85887A] font-normal">Immutable ledger tracking administrative updates across all modules.</p>
+              <p className="text-xs text-[#707365] font-normal">Immutable ledger tracking administrative updates across all modules.</p>
             </div>
           </div>
           <Link
@@ -357,19 +357,19 @@ export default function AdminDashboardPage() {
         </div>
 
         {isLoadingLogs ? (
-          <div className="py-10 text-center text-xs text-[#85887A]">
+          <div className="py-10 text-center text-xs text-[#707365]">
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#596B32] border-t-transparent mx-auto mb-2" />
             Loading real-time audit ledger...
           </div>
         ) : recentLogs.length === 0 ? (
-          <div className="py-10 text-center text-xs text-[#85887A] font-medium">
+          <div className="py-10 text-center text-xs text-[#707365] font-medium">
             No audit records found. Initializing backend event listeners...
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-[#CDD3B5]">
+          <div className="overflow-x-auto rounded-xl border border-[#E2E7D8]">
             <table className="w-full text-left text-xs min-w-[600px]">
               <thead>
-                <tr className="border-b border-[#CDD3B5] text-[#596B32] font-semibold uppercase tracking-wider text-[11px] bg-[#efead5]/60">
+                <tr className="border-b border-[#E2E7D8] text-[#596B32] font-semibold uppercase tracking-wider text-[11px] bg-[#F0F4E8]">
                   <th className="py-3 px-3">Timestamp</th>
                   <th className="py-3 px-3">Action</th>
                   <th className="py-3 px-3">Actor</th>
@@ -377,19 +377,19 @@ export default function AdminDashboardPage() {
                   <th className="py-3 px-3">Audit Details</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#CDD3B5]/40 bg-[#efead5]">
+              <tbody className="divide-y divide-[#E2E7D8] bg-[#FFFFFF]">
                 {recentLogs.map((log) => (
-                  <tr key={log.id} className="hover:bg-[#efead5]/50 transition-colors">
-                    <td className="py-3 px-3 text-[#85887A] whitespace-nowrap text-xs font-medium">
+                  <tr key={log.id} className="hover:bg-[#F8F9F5] transition-colors">
+                    <td className="py-3 px-3 text-[#707365] whitespace-nowrap text-xs font-medium">
                       {new Date(log.timestamp).toLocaleString()}
                     </td>
                     <td className="py-3 px-3">
-                      <span className="px-2.5 py-0.5 rounded-full bg-[#E4E7D2] text-[#34451D] border border-[#CDD3B5] text-[11px] font-semibold font-sans">
+                      <span className="px-2.5 py-0.5 rounded-full bg-[#EBF0E4] text-[#34451D] border border-[#DCE3D2] text-[11px] font-semibold font-sans">
                         {log.action}
                       </span>
                     </td>
                     <td className="py-3 px-3 font-semibold text-[#20231B]">{log.performedBy}</td>
-                    <td className="py-3 px-3 text-[#85887A] font-medium">{log.targetUsername || '-'}</td>
+                    <td className="py-3 px-3 text-[#707365] font-medium">{log.targetUsername || '-'}</td>
                     <td className="py-3 px-3 text-[#20231B]/80 max-w-sm truncate text-xs">
                       {log.description}
                     </td>

@@ -28,3 +28,20 @@ spring:
   h2:
     console:
       enabled: false
+
+  # ── Tier 2: MongoDB Mirror ────────────────────────────────────────────────
+  data:
+    mongodb:
+      uri: ${MONGO_URI:mongodb+srv://thevinduthenura222_db_user:1NX5bYz0ARrRNMCm@cluster0.runmnyo.mongodb.net/sarasavi_mirror?retryWrites=true&w=majority&appName=Cluster0}
+      database: ${MONGO_DB:sarasavi_mirror}
+
+# ── Backup & Sync Config ─────────────────────────────────────────────────────
+backup:
+  directory: ${BACKUP_DIR:./backups}
+  retention-days: ${BACKUP_RETENTION_DAYS:30}
+  cron: ${BACKUP_CRON:"0 0 2 * * ?"}   # Default: daily 02:00 AM
+
+sync:
+  enabled: ${SYNC_ENABLED:true}
+  interval-ms: ${SYNC_INTERVAL_MS:300000}   # Default: every 5 minutes
+

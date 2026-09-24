@@ -6,6 +6,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { addMagneticEffect } from '@/hooks/useGsapAnimations';
 import Link from 'next/link';
 import Cookies from 'js-cookie';
+import Navbar from '@/components/Navbar';
 import AdminModeBar from '@/components/admin/AdminModeBar';
 import { 
   BookOpen, 
@@ -185,6 +186,91 @@ export default function StorefrontPage() {
   const [promoDiscount, setPromoDiscount] = useState(0);
   const [promoApplied, setPromoApplied] = useState(false);
   const [promoError, setPromoError] = useState('');
+
+  // Synchronize cart with localStorage
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('sp_cart');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setCart(parsed);
+        }
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('sp_cart', JSON.stringify(cart));
+      window.dispatchEvent(new Event('sp_cart_updated'));
+    } catch {}
+  }, [cart]);
+
+  // ── CHECKOUT FLOW STATE ──────────────────────────────────────────────────
+  type CheckoutStep = 'shipping' | 'payment' | 'success';
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [checkoutStep, setCheckoutStep] = useState<CheckoutStep>('shipping');
+  const [shippingForm, setShippingForm] = useState({
+    fullName: '',
+    email: '',
+    phone: '',
+    address: '',
+    city: '',
+    district: 'Colombo',
+    postalCode: ''
+  });
+  const [paymentForm, setPaymentForm] = useState({
+    method: 'CREDIT_CARD' as 'CREDIT_CARD' | 'DEBIT_CARD' | 'BANK_TRANSFER' | 'CASH_ON_DELIVERY',
+    cardNumber: '',
+    cardHolder: '',
+    expiry: '',
+    cvv: ''
+  });
+  const [checkoutProcessing, setCheckoutProcessing] = useState(false);
+  const [orderInvoice, setOrderInvoice] = useState<{
+    invoiceNo: string;
+    orderId: string;
+    items: { title: string; qty: number; price: number }[];
+    subtotal: number;
+    discount: number;
+    total: number;
+    paymentMethod: string;
+    date: string;
+    customer: string;
+    email: string;
+  } | null>(null);
+
+  // ── MEMBERSHIP PURCHASE STATE ────────────────────────────────────────────
+  const MEMBERSHIP_PLANS = [
+    { id: 'BASIC', label: 'Reader Basic', price: 990, duration: '3 months', benefits: ['10% discount on all books', 'Free shipping on orders over LKR 2000', 'Priority customer support', 'Early access to new arrivals'] },
+    { id: 'PREMIUM', label: 'Scholar Premium', price: 2490, duration: '12 months', benefits: ['20% discount on all books', 'Free shipping on all orders', 'Priority customer support', 'Early access + exclusive editions', 'Academic lending tier upgrades', '2 free rentals per month'] },
+  ];
+  const [isMembershipModalOpen, setIsMembershipModalOpen] = useState(false);
+  const [membershipStep, setMembershipStep] = useState<'select' | 'payment' | 'success'>('select');
+  const [selectedMembershipPlan, setSelectedMembershipPlan] = useState(MEMBERSHIP_PLANS[0]);
+  const [membershipPaymentForm, setMembershipPaymentForm] = useState({
+    method: 'CREDIT_CARD' as 'CREDIT_CARD' | 'DEBIT_CARD' | 'BANK_TRANSFER',
+    cardNumber: '',
+    cardHolder: '',
+    expiry: '',
+    cvv: ''
+  });
+  const [membershipProcessing, setMembershipProcessing] = useState(false);
+  const [membershipInvoice, setMembershipInvoice] = useState<{
+    invoiceNo: string;
+    plan: string;
+    price: number;
+    duration: string;
+    date: string;
+    customer: string;
+  } | null>(null);
+  const [userMembership, setUserMembership] = useState<string | null>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('sp_membership') || null;
+    }
+    return null;
+  });
 
   // Logged-in user states & Auth
   const { user: authStaff } = useAuth();
@@ -628,7 +714,10 @@ export default function StorefrontPage() {
   };
 
   const subtotal = cart.reduce((sum, item) => sum + item.book.price * item.quantity, 0);
-  const discountAmount = promoApplied ? (subtotal * promoDiscount) / 100 : 0;
+  // Tier-based discount: Standard user = 0%, Basic member = 10%, Scholar Premium = 20%
+  const memberDiscountRate = userMembership === 'PREMIUM' ? 20 : userMembership === 'BASIC' ? 10 : 0;
+  const effectiveDiscountRate = Math.max(promoDiscount, memberDiscountRate);
+  const discountAmount = (subtotal * effectiveDiscountRate) / 100;
   const total = Math.max(0, subtotal - discountAmount);
 
   const applyPromo = () => {
@@ -650,6 +739,178 @@ export default function StorefrontPage() {
       setPromoApplied(false);
       setPromoDiscount(0);
     }
+  };
+
+  // ── CHECKOUT HANDLERS ────────────────────────────────────────────────────
+  const handleProceedToCheckout = () => {
+    setIsCartOpen(false);
+    setCheckoutStep('shipping');
+    // Pre-fill from logged-in customer
+    if (loggedInCustomer) {
+      setShippingForm(prev => ({
+        ...prev,
+        fullName: loggedInCustomer.name || '',
+        email: loggedInCustomer.email || ''
+      }));
+    }
+    setIsCheckoutOpen(true);
+  };
+
+  const handleShippingSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setCheckoutStep('payment');
+  };
+
+  const handlePaymentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCheckoutProcessing(true);
+    // Simulate secure payment gateway processing (1.5 sec)
+    await new Promise(res => setTimeout(res, 1500));
+    const invoiceNo = `INV-${Date.now().toString().slice(-8)}`;
+    const orderId = `ORD-${Date.now().toString().slice(-6)}`;
+    const invoice = {
+      invoiceNo,
+      orderId,
+      items: cart.map(i => ({ title: i.book.title, qty: i.quantity, price: i.book.price })),
+      subtotal,
+      discount: discountAmount,
+      total,
+      paymentMethod: paymentForm.method.replace(/_/g, ' '),
+      date: new Date().toLocaleString('en-LK', { timeZone: 'Asia/Colombo' }),
+      customer: shippingForm.fullName,
+      email: shippingForm.email,
+    };
+    setOrderInvoice(invoice);
+
+    // Save order into customer history in localStorage
+    const custId = loggedInCustomer?.customerId || 'CUST-GUEST';
+    if (typeof window !== 'undefined') {
+      const userOrders = JSON.parse(localStorage.getItem(`sp_orders_${custId}`) || '[]');
+      const newOrder = {
+        id: orderId,
+        invoiceNo,
+        items: cart.map(i => `${i.book.title} (x${i.quantity})`).join(', '),
+        itemDetails: cart.map(i => ({ title: i.book.title, qty: i.quantity, price: i.book.price, coverImage: i.book.coverImage })),
+        amount: total,
+        subtotal,
+        discount: discountAmount,
+        status: 'PROCESSING',
+        courier: 'Domex Express',
+        tracking: `DX-${Math.floor(100000 + Math.random() * 900000)}`,
+        date: 'Just now',
+        shippingAddress: `${shippingForm.address}, ${shippingForm.city}`,
+        customerName: shippingForm.fullName,
+        email: shippingForm.email
+      };
+      localStorage.setItem(`sp_orders_${custId}`, JSON.stringify([newOrder, ...userOrders]));
+      const allOrders = JSON.parse(localStorage.getItem('sp_all_orders') || '[]');
+      localStorage.setItem('sp_all_orders', JSON.stringify([newOrder, ...allOrders]));
+    }
+
+    // Try calling backend payment API
+    try {
+      await apiClient.post('/payment', {
+        orderId: 1,
+        customerId: loggedInCustomer?.id || 1,
+        amount: total,
+        currency: 'LKR',
+        paymentMethod: paymentForm.method,
+        transactionReference: invoiceNo,
+        gatewayMessage: 'Simulated payment success',
+        invoiceNumber: invoiceNo
+      });
+    } catch (err: any) {
+      console.warn('Payment API fallback:', err.message);
+    }
+    setCheckoutProcessing(false);
+    setCheckoutStep('success');
+    setCart([]);
+    setPromoApplied(false);
+    setPromoDiscount(0);
+    setPromoCode('');
+  };
+
+  const handleDownloadInvoice = (invoice: typeof orderInvoice) => {
+    if (!invoice) return;
+    const lines = [
+      '================================================================',
+      '           SARASAVI PAGES (PVT) LTD - TAX INVOICE',
+      '================================================================',
+      `Invoice No  : ${invoice.invoiceNo}`,
+      `Order ID    : ${invoice.orderId}`,
+      `Date        : ${invoice.date}`,
+      `Customer    : ${invoice.customer}`,
+      `Email       : ${invoice.email}`,
+      '----------------------------------------------------------------',
+      'ITEMS:',
+      ...invoice.items.map(i => `  ${i.title.padEnd(35)} x${i.qty}  LKR ${(i.price * i.qty).toFixed(2)}`),
+      '----------------------------------------------------------------',
+      `Subtotal    : LKR ${invoice.subtotal.toFixed(2)}`,
+      invoice.discount > 0 ? `Discount    : - LKR ${invoice.discount.toFixed(2)}` : '',
+      `TOTAL DUE   : LKR ${invoice.total.toFixed(2)}`,
+      `Payment     : ${invoice.paymentMethod}`,
+      '================================================================',
+      'Thank you for shopping with Sarasavi Pages!',
+      'Islandwide delivery · Authentic editions · Sarasavi Pages (Pvt) Ltd',
+      '================================================================',
+    ].filter(Boolean).join('\n');
+    const blob = new Blob([lines], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${invoice.invoiceNo}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // ── MEMBERSHIP HANDLERS ───────────────────────────────────────────────────
+  const handleMembershipPayment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setMembershipProcessing(true);
+    await new Promise(res => setTimeout(res, 1800));
+    const invoiceNo = `MEM-${Date.now().toString().slice(-8)}`;
+    const inv = {
+      invoiceNo,
+      plan: selectedMembershipPlan.label,
+      price: selectedMembershipPlan.price,
+      duration: selectedMembershipPlan.duration,
+      date: new Date().toLocaleString('en-LK', { timeZone: 'Asia/Colombo' }),
+      customer: loggedInCustomer?.name || shippingForm.fullName || 'Guest',
+    };
+    setMembershipInvoice(inv);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('sp_membership', selectedMembershipPlan.id);
+    }
+    setUserMembership(selectedMembershipPlan.id);
+    setMembershipProcessing(false);
+    setMembershipStep('success');
+  };
+
+  const handleDownloadMembershipInvoice = (inv: typeof membershipInvoice) => {
+    if (!inv) return;
+    const lines = [
+      '================================================================',
+      '     SARASAVI PAGES (PVT) LTD - MEMBERSHIP INVOICE',
+      '================================================================',
+      `Invoice No  : ${inv.invoiceNo}`,
+      `Date        : ${inv.date}`,
+      `Customer    : ${inv.customer}`,
+      '----------------------------------------------------------------',
+      `Membership Plan : ${inv.plan}`,
+      `Duration        : ${inv.duration}`,
+      `Amount Paid     : LKR ${inv.price.toFixed(2)}`,
+      '================================================================',
+      'Welcome to Sarasavi Pages Membership!',
+      'Enjoy exclusive discounts, free shipping & more.',
+      '================================================================',
+    ].join('\n');
+    const blob = new Blob([lines], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${inv.invoiceNo}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const handleTicketSubmit = async (e: React.FormEvent) => {
@@ -674,177 +935,18 @@ export default function StorefrontPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#efead5] text-[#20231B] font-sans antialiased selection:bg-[#596B32] selection:text-[#efead5] flex flex-col">
+    <div className="min-h-screen bg-[#F8F9F5] text-[#20231B] font-sans antialiased selection:bg-[#34451D] selection:text-white flex flex-col">
       {/* ── CINEVAULT-STYLE ADMIN MODE TOP BAR (Visible only to Admins) ── */}
       {loggedInStaff && (
         <AdminModeBar showOnStorefront={true} />
       )}
 
       {/* ── HEALIUM AUTHENTIC FLOATING PILL NAVIGATION ───────── */}
-      <header className={`sticky top-3 sm:top-4 z-40 max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pointer-events-none ${activeNavTab === 'home' ? '-mb-20' : 'mb-8'}`}>
-        <div className="pointer-events-auto bg-[#efead5]/90 backdrop-blur-xl border border-[#CDD3B5] shadow-[0_8px_32px_rgba(32,35,27,0.08)] rounded-full h-14 sm:h-16 px-4 sm:px-6 flex items-center justify-between gap-2 sm:gap-4 transition-all">
-          {/* Left: Healium Organic Emblem + Wordmark */}
-          <button 
-            onClick={() => {
-              setActiveNavTab('home');
-              setIsMobileNavOpen(false);
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }} 
-            className="flex items-center gap-2 sm:gap-2.5 group text-left shrink-0"
-          >
-            <div className="flex items-center -space-x-1">
-              <div className="w-3 sm:w-3.5 h-3 sm:h-3.5 rounded-full bg-[#34451D] group-hover:scale-110 transition-transform" />
-              <div className="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full bg-[#B7D85A] group-hover:scale-110 transition-transform" />
-              <div className="w-3 sm:w-3.5 h-3 sm:h-3.5 rounded-full bg-[#596B32] group-hover:scale-110 transition-transform" />
-            </div>
-            <span className="font-display font-light text-base sm:text-lg tracking-tight text-[#20231B]">
-              sarasavi<span className="font-normal text-[#596B32]">pages</span>
-            </span>
-          </button>
-
-          {/* Center: Healium Pill Navigation */}
-          <nav className="hidden md:flex items-center rounded-full p-1 bg-[#E4E7D2]/70 border border-[#CDD3B5]/50 gap-1">
-            {[
-              { id: 'home', label: '• Home' },
-              { id: 'books', label: 'Books' },
-              { id: 'writers', label: 'People' },
-              { id: 'membership', label: 'Membership' },
-              { id: 'rentals', label: 'Leaderboard' },
-              { id: 'about', label: 'About' },
-            ].map((tab) => {
-              const isActive = activeNavTab === tab.id || (tab.id === 'books' && activeNavTab === 'books');
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => {
-                    if (tab.id === 'membership') {
-                      setIsTicketModalOpen(true);
-                    } else {
-                      setActiveNavTab(tab.id as NavTab);
-                    }
-                    window.scrollTo({ top: tab.id === 'books' ? 500 : 0, behavior: 'smooth' });
-                  }}
-                  className={`relative px-4 py-1.5 text-xs font-normal rounded-full transition-all duration-200 ${
-                    isActive
-                      ? 'bg-[#34451D] text-[#efead5] shadow-xs'
-                      : 'text-[#596B32] hover:text-[#20231B] hover:bg-[#efead5]'
-                  }`}
-                >
-                  <span>{tab.label}</span>
-                </button>
-              );
-            })}
-          </nav>
-
-          {/* Right: Currency, Bag, Login & Mobile Menu Toggle */}
-          <div className="flex items-center gap-1.5 sm:gap-2.5">
-            <div className="hidden sm:flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-light text-[#596B32] hover:bg-[#E4E7D2]/60 cursor-pointer">
-              <Globe className="w-3.5 h-3.5 text-[#596B32] shrink-0" />
-              <span>LKR</span>
-              <ChevronRight className="w-3 h-3 rotate-90" />
-            </div>
-
-            {/* Shopping Bag Button */}
-            <button
-              onClick={() => {
-                setIsCartOpen(true);
-                setIsMobileNavOpen(false);
-              }}
-              className="relative px-2.5 sm:px-3.5 py-1.5 rounded-full bg-[#efead5] border border-[#CDD3B5] text-[#20231B] hover:bg-[#E4E7D2] shadow-xs text-xs font-normal flex items-center gap-1.5 transition-all"
-              title="Shopping Bag"
-            >
-              <ShoppingCart className="w-3.5 h-3.5 text-[#596B32]" />
-              <span className="hidden sm:inline">Bag</span>
-              {cart.length > 0 && (
-                <span className="h-4 min-w-[16px] px-1 rounded-full bg-[#B7D85A] text-[#20231B] text-[10px] font-mono font-medium flex items-center justify-center">
-                  {cart.reduce((s, i) => s + i.quantity, 0)}
-                </span>
-              )}
-            </button>
-
-            {/* Login Pill Button */}
-            {loggedInCustomer ? (
-              <Link
-                href="/account"
-                onClick={() => setIsMobileNavOpen(false)}
-                className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-1.5 rounded-full bg-[#34451D] text-[#efead5] text-xs font-normal shadow-xs hover:bg-[#20231B] transition-all"
-              >
-                <div className="w-4 h-4 rounded-full bg-white/20 flex items-center justify-center text-white">
-                  <User className="w-2.5 h-2.5" />
-                </div>
-                <span>{loggedInCustomer.name.split(' ')[0]}</span>
-              </Link>
-            ) : (
-              <Link
-                href="/login"
-                onClick={() => setIsMobileNavOpen(false)}
-                className="inline-flex items-center gap-1.5 px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-full bg-[#34451D] hover:bg-[#20231B] text-[#efead5] text-xs font-normal shadow-xs transition-all active:scale-95"
-              >
-                <span>Login</span>
-              </Link>
-            )}
-
-            {/* Mobile Hamburger Toggle Button */}
-            <button
-              onClick={() => setIsMobileNavOpen(!isMobileNavOpen)}
-              className="p-1.5 sm:p-2 rounded-full bg-[#efead5] border border-[#CDD3B5] text-[#34451D] hover:bg-[#E4E7D2] md:hidden transition-all active:scale-95 ml-0.5"
-              aria-label="Toggle navigation menu"
-            >
-              {isMobileNavOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Navigation Dropdown Sheet */}
-        {isMobileNavOpen && (
-          <div className="pointer-events-auto mt-2 bg-[#efead5] border border-[#CDD3B5] rounded-3xl p-4 shadow-xl md:hidden space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
-            <div className="grid grid-cols-2 gap-2">
-              {[
-                { id: 'home', label: '• Home' },
-                { id: 'books', label: 'Books Archive' },
-                { id: 'writers', label: 'Authors / People' },
-                { id: 'membership', label: 'Membership' },
-                { id: 'rentals', label: 'Leaderboard' },
-                { id: 'about', label: 'About Sarasavi' },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => {
-                    setIsMobileNavOpen(false);
-                    if (tab.id === 'membership') {
-                      setIsTicketModalOpen(true);
-                    } else {
-                      setActiveNavTab(tab.id as NavTab);
-                    }
-                    window.scrollTo({ top: tab.id === 'books' ? 500 : 0, behavior: 'smooth' });
-                  }}
-                  className={`py-2 px-3 text-xs rounded-xl text-left transition-all ${
-                    activeNavTab === tab.id
-                      ? 'bg-[#34451D] text-[#efead5] font-semibold shadow-xs'
-                      : 'text-[#20231B] hover:bg-[#E4E7D2]'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-
-            {canManageBooks && (
-              <div className="pt-2 border-t border-[#CDD3B5]/60 flex items-center justify-between text-xs">
-                <Link
-                  href="/admin/dashboard"
-                  onClick={() => setIsMobileNavOpen(false)}
-                  className="text-[#596B32] font-semibold hover:underline flex items-center gap-1.5"
-                >
-                  <Shield className="w-3.5 h-3.5" />
-                  <span>Admin Control Hub</span>
-                </Link>
-                <span className="text-[10px] font-mono text-[#85887A]">{activeStaff?.role}</span>
-              </div>
-            )}
-          </div>
-        )}
-      </header>
+      <Navbar 
+        activeTab="home" 
+        isHomeHero={activeNavTab === 'home'} 
+        onOpenBag={() => setIsCartOpen(true)} 
+      />
 
       {/* ── MAIN VIEWPORT / CONTENT ROUTING ────────────────────── */}
       {/* ========================================================= */}
@@ -853,7 +955,7 @@ export default function StorefrontPage() {
       {activeNavTab === 'home' && (
         <>
           {/* ── HEALIUM AUTHENTIC FULL-BLEED HERO CANVAS ──────────────────────── */}
-          <section ref={heroSectionRef} className="relative w-full overflow-hidden bg-[#20231B] text-[#efead5] flex flex-col pt-24 sm:pt-28 pb-0">
+          <section ref={heroSectionRef} className="relative w-full overflow-hidden bg-[#20231B] text-white flex flex-col pt-24 sm:pt-28 pb-0">
             
             {/* Forest & Morning Sunlight Atmosphere Background */}
             <div
@@ -869,14 +971,14 @@ export default function StorefrontPage() {
 
             {/* ── TOP PILL INFO BADGES (INSIDE HERO) ── */}
             <div className="relative z-20 max-w-7xl mx-auto w-full px-6 sm:px-10 pt-2 flex items-center justify-between">
-              <div className="ios-glass inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[#efead5] text-xs font-light shadow-md border border-white/20">
+              <div className="ios-glass inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-white text-xs font-light shadow-md border border-white/20">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#B7D85A] opacity-75" />
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-[#B7D85A]" />
                 </span>
                 <span>islandwide express · all 25 districts</span>
               </div>
-              <div className="hidden sm:flex ios-glass items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[#efead5] text-xs font-light shadow-md border border-white/20">
+              <div className="hidden sm:flex ios-glass items-center gap-1.5 px-3.5 py-1.5 rounded-full text-white text-xs font-light shadow-md border border-white/20">
                 <Bookmark className="w-3.5 h-3.5 text-[#B7D85A]" />
                 <span>{books.length > 0 ? `${books.length}+ titles` : '1,500+ curated titles'}</span>
               </div>
@@ -888,10 +990,10 @@ export default function StorefrontPage() {
                 <Sparkles className="w-3.5 h-3.5 text-[#B7D85A]" />
                 <span>Sri Lanka&apos;s Trusted Online Bookstore</span>
               </div>
-              <h1 ref={heroTitleRef} className="font-display font-light text-4xl sm:text-6xl lg:text-7xl text-[#efead5] tracking-tight leading-[1.08] drop-shadow-md">
+              <h1 ref={heroTitleRef} className="font-display font-light text-4xl sm:text-6xl lg:text-7xl text-white tracking-tight leading-[1.08] drop-shadow-md">
                 Your Stories, Literature & Academic Textbooks
               </h1>
-              <p ref={heroSubtitleRef} className="text-[#E4E7D2]/90 text-xs sm:text-sm font-sans font-light leading-relaxed max-w-xl mx-auto mt-4 drop-shadow-sm">
+              <p ref={heroSubtitleRef} className="text-[#E2E7D8]/90 text-xs sm:text-sm font-sans font-light leading-relaxed max-w-xl mx-auto mt-4 drop-shadow-sm">
                 From celebrated Sinhala literary classics by Martin Wickramasinghe to SLIIT engineering & computing course texts. Delivered safely to your doorstep across all 25 districts.
               </p>
             </div>
@@ -911,7 +1013,7 @@ export default function StorefrontPage() {
                         window.scrollTo({ top: 500, behavior: 'smooth' });
                       }
                     }}
-                    className="bg-transparent text-[#efead5] placeholder-[#E4E7D2]/60 font-sans font-light text-xs sm:text-sm focus:outline-none flex-1 min-w-0 px-2"
+                    className="bg-transparent text-white placeholder-[#E2E7D8]/60 font-sans font-light text-xs sm:text-sm focus:outline-none flex-1 min-w-0 px-2"
                   />
                   <button
                     onClick={() => {
@@ -927,7 +1029,7 @@ export default function StorefrontPage() {
 
                 {/* Popular Genre Quick Filters */}
                 <div className="flex flex-wrap items-center justify-center gap-2 mt-4 text-xs">
-                  <span className="text-[#CDD3B5] text-[11px] font-light">Browse:</span>
+                  <span className="text-[#E2E7D8] text-[11px] font-light">Browse:</span>
                   {['ALL', 'FICTION', 'LITERATURE', 'TECHNOLOGY', 'ACADEMIC'].map((cat) => (
                     <button
                       key={cat}
@@ -936,7 +1038,7 @@ export default function StorefrontPage() {
                         setActiveNavTab('books');
                         window.scrollTo({ top: 500, behavior: 'smooth' });
                       }}
-                      className="px-3.5 py-1 rounded-full bg-[#34451D]/80 hover:bg-[#596B32] text-[#efead5] text-[11px] font-sans font-light backdrop-blur-md border border-[#7F9148]/30 transition-all"
+                      className="px-3.5 py-1 rounded-full bg-[#34451D]/80 hover:bg-[#596B32] text-white text-[11px] font-sans font-light backdrop-blur-md border border-[#7F9148]/30 transition-all"
                     >
                       {cat}
                     </button>
@@ -945,37 +1047,37 @@ export default function StorefrontPage() {
               </div>
 
               {/* ── BOOKSTORE CORE VALUE PROPOSITIONS DOCK ── */}
-              <div className="relative z-20 w-full bg-[#34451D] border-t border-[#596B32]/40 p-6 sm:p-10 mt-6">
+              <div className="relative z-20 w-full bg-[#34451D] border-t border-[#596B32]/40 p-6 sm:p-10 mt-6 shadow-xl">
                 <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
                   {/* Feature 1 */}
-                  <div className="bg-[#efead5] rounded-3xl p-6 sm:p-7 shadow-xs border border-[#CDD3B5] space-y-3">
-                    <div className="w-10 h-10 rounded-2xl bg-[#E4E7D2] text-[#34451D] flex items-center justify-center border border-[#CDD3B5]">
+                  <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-[#E2E7D8] space-y-3.5 hover:shadow-2xl hover:-translate-y-1 transition-all">
+                    <div className="w-11 h-11 rounded-2xl bg-[#F0F4E8] text-[#34451D] flex items-center justify-center border border-[#E2E7D8] shadow-xs">
                       <BookOpen className="w-5 h-5 text-[#34451D]" />
                     </div>
-                    <h3 className="font-display font-normal text-[#20231B] text-base">100% Genuine Print Editions</h3>
-                    <p className="font-sans font-light text-xs text-[#85887A] leading-relaxed">
+                    <h3 className="font-display font-semibold text-[#20231B] text-base">100% Genuine Print Editions</h3>
+                    <p className="font-sans font-light text-xs text-[#636855] leading-relaxed">
                       Sourced directly from premier Sri Lankan publishers and international university presses. Guaranteed crisp, authentic paperbacks and hardcovers.
                     </p>
                   </div>
 
                   {/* Feature 2 */}
-                  <div className="bg-[#efead5] rounded-3xl p-6 sm:p-7 shadow-xs border border-[#CDD3B5] space-y-3">
-                    <div className="w-10 h-10 rounded-2xl bg-[#E4E7D2] text-[#34451D] flex items-center justify-center border border-[#CDD3B5]">
+                  <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-[#E2E7D8] space-y-3.5 hover:shadow-2xl hover:-translate-y-1 transition-all">
+                    <div className="w-11 h-11 rounded-2xl bg-[#F0F4E8] text-[#34451D] flex items-center justify-center border border-[#E2E7D8] shadow-xs">
                       <Truck className="w-5 h-5 text-[#34451D]" />
                     </div>
-                    <h3 className="font-display font-normal text-[#20231B] text-base">Islandwide Express Courier</h3>
-                    <p className="font-sans font-light text-xs text-[#85887A] leading-relaxed">
+                    <h3 className="font-display font-semibold text-[#20231B] text-base">Islandwide Express Courier</h3>
+                    <p className="font-sans font-light text-xs text-[#636855] leading-relaxed">
                       Doorstep parcel delivery within 24–48 hours across all 25 districts of Sri Lanka. Transparent live tracking via Domex Express and SL Post.
                     </p>
                   </div>
 
                   {/* Feature 3 */}
-                  <div className="bg-[#efead5] rounded-3xl p-6 sm:p-7 shadow-xs border border-[#CDD3B5] space-y-3">
-                    <div className="w-10 h-10 rounded-2xl bg-[#E4E7D2] text-[#34451D] flex items-center justify-center border border-[#CDD3B5]">
+                  <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-[#E2E7D8] space-y-3.5 hover:shadow-2xl hover:-translate-y-1 transition-all">
+                    <div className="w-11 h-11 rounded-2xl bg-[#F0F4E8] text-[#34451D] flex items-center justify-center border border-[#E2E7D8] shadow-xs">
                       <Shield className="w-5 h-5 text-[#34451D]" />
                     </div>
-                    <h3 className="font-display font-normal text-[#20231B] text-base">Safe Payments & Cash on Delivery</h3>
-                    <p className="font-sans font-light text-xs text-[#85887A] leading-relaxed">
+                    <h3 className="font-display font-semibold text-[#20231B] text-base">Safe Payments & Cash on Delivery</h3>
+                    <p className="font-sans font-light text-xs text-[#636855] leading-relaxed">
                       Encrypted card gateways with Visa, Mastercard, PayHere, and Stripe. Convenient Cash on Delivery available at your doorstep with hassle-free returns.
                     </p>
                   </div>
@@ -985,7 +1087,7 @@ export default function StorefrontPage() {
             </section>
 
             {/* ── GSAP INFINITE MARQUEE TICKER ──────────────────────────── */}
-            <div ref={marqueeRef} className="w-full overflow-hidden py-3.5 bg-[#E4E7D2] border-y border-[#CDD3B5] select-none">
+            <div ref={marqueeRef} className="w-full overflow-hidden py-3.5 bg-[#F0F4E8] border-y border-[#E2E7D8] select-none">
               <div data-marquee-track className="flex items-center gap-8 will-change-transform">
                 {/* Duplicate items for seamless loop */}
                 {[...Array(2)].map((_, repeatIdx) => (
@@ -1010,11 +1112,11 @@ export default function StorefrontPage() {
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-20 w-full flex-1">
 
             {/* ── BOOKSTORE "HOW IT WORKS - IN 3 SIMPLE STEPS" SECTION ─── */}
-            <section ref={stepsRef as React.RefObject<HTMLElement>} className="bg-[#efead5] rounded-3xl p-8 sm:p-12 lg:p-16 border border-[#CDD3B5] shadow-xs space-y-12">
+            <section ref={stepsRef as React.RefObject<HTMLElement>} className="bg-[#F0F4E8] rounded-3xl p-8 sm:p-12 lg:p-16 border border-[#E2E7D8] shadow-xs space-y-12">
               
               {/* Centered Small Label & Headline */}
               <div className="text-center space-y-3 max-w-2xl mx-auto">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E4E7D2] text-[#34451D] text-xs font-mono font-normal border border-[#CDD3B5]">
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white text-[#34451D] text-xs font-mono font-semibold border border-[#E2E7D8] shadow-xs">
                   <span className="w-2 h-2 rounded-full bg-[#596B32]" />
                   <span>How Sarasavi Pages Works</span>
                 </div>
@@ -1026,19 +1128,19 @@ export default function StorefrontPage() {
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
                 
                 {/* Left Column (5 cols): Numbered Steps */}
-                <div className="lg:col-span-5 space-y-6">
+                <div className="lg:col-span-5 space-y-4">
                   {[
                     { n: '01/', title: 'Browse & Choose Books', desc: 'Explore 1,500+ curated volumes, Sinhala classics, SLIIT computing textbooks, and international bestsellers.' },
                     { n: '02/', title: 'Instant Order or Rental', desc: 'Checkout with secure card/COD or choose discounted student semester lending with zero late fees.' },
                     { n: '03/', title: 'Islandwide Doorstep Delivery', desc: 'Securely packaged in protective eco-friendly wrap and delivered in 24–48 hours across all 25 districts.' },
                   ].map((step) => (
-                    <div data-step-item key={step.n} className="flex items-start gap-4 p-4 rounded-2xl hover:bg-[#efead5] transition-colors cursor-default group">
-                      <span className="font-mono text-base font-normal text-[#596B32] shrink-0">{step.n}</span>
+                    <div data-step-item key={step.n} className="flex items-start gap-4 p-5 rounded-2xl bg-white border border-[#E2E7D8] shadow-xs hover:shadow-md hover:border-[#596B32] hover:-translate-y-0.5 transition-all cursor-default group">
+                      <span className="font-mono text-xs font-semibold px-2.5 py-1 rounded-lg bg-[#34451D] text-[#B7D85A] shrink-0 shadow-xs">{step.n}</span>
                       <div className="space-y-1">
-                        <h4 className="font-display text-base sm:text-lg font-normal text-[#20231B] group-hover:text-[#34451D] transition-colors">
+                        <h4 className="font-display text-base sm:text-lg font-medium text-[#20231B] group-hover:text-[#34451D] transition-colors">
                           {step.title}
                         </h4>
-                        <p className="font-sans font-light text-xs text-[#85887A] leading-relaxed">
+                        <p className="font-sans font-light text-xs text-[#636855] leading-relaxed">
                           {step.desc}
                         </p>
                       </div>
@@ -1049,17 +1151,17 @@ export default function StorefrontPage() {
                 {/* Right Column (7 cols): Top Stats Bar + Overlapping Cards */}
                 <div className="lg:col-span-7 space-y-8">
                   {/* Top Stats Bar */}
-                  <div className="grid grid-cols-3 gap-4 pb-6 border-b border-[#CDD3B5] text-center">
+                  <div className="grid grid-cols-3 gap-4 pb-6 border-b border-[#E2E7D8] text-center">
                     <div>
-                      <div className="text-[11px] font-mono text-[#85887A] uppercase font-light">Catalog Titles</div>
+                      <div className="text-[11px] font-mono text-[#7B806B] uppercase font-light">Catalog Titles</div>
                       <div className="font-display text-2xl sm:text-3xl font-light text-[#34451D]">1,500+</div>
                     </div>
-                    <div className="border-x border-[#CDD3B5]">
-                      <div className="text-[11px] font-mono text-[#85887A] uppercase font-light">Satisfaction</div>
+                    <div className="border-x border-[#E2E7D8]">
+                      <div className="text-[11px] font-mono text-[#7B806B] uppercase font-light">Satisfaction</div>
                       <div className="font-display text-2xl sm:text-3xl font-light text-[#34451D]">98.7%</div>
                     </div>
                     <div>
-                      <div className="text-[11px] font-mono text-[#85887A] uppercase font-light">Districts</div>
+                      <div className="text-[11px] font-mono text-[#7B806B] uppercase font-light">Districts</div>
                       <div className="font-display text-2xl sm:text-3xl font-light text-[#34451D]">25</div>
                     </div>
                   </div>
@@ -1077,7 +1179,7 @@ export default function StorefrontPage() {
                     </div>
 
                     {/* Card 2: Center Portrait Photo Card */}
-                    <div className="relative w-44 sm:w-56 h-64 sm:h-72 rounded-3xl overflow-hidden shadow-2xl border-4 border-[#efead5] z-20">
+                    <div className="relative w-44 sm:w-56 h-64 sm:h-72 rounded-3xl overflow-hidden shadow-2xl border-4 border-white z-20">
                       <img
                         src="https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=500&auto=format&fit=crop&q=80"
                         alt="Reading Book"
@@ -1090,13 +1192,13 @@ export default function StorefrontPage() {
                     </div>
 
                     {/* Card 3: Bottom-Right Delivery Guarantee badge */}
-                    <div className="absolute bottom-0 right-4 sm:right-8 w-36 sm:w-44 h-48 sm:h-56 rounded-3xl overflow-hidden shadow-2xl border-4 border-[#efead5] z-30 animate-float" style={{ animationDelay: '1.5s' }}>
+                    <div className="absolute bottom-0 right-4 sm:right-8 w-36 sm:w-44 h-48 sm:h-56 rounded-3xl overflow-hidden shadow-2xl border-4 border-white z-30 animate-float" style={{ animationDelay: '1.5s' }}>
                       <img
                         src="https://images.unsplash.com/photo-1512820790803-83ca734da794?w=500&auto=format&fit=crop&q=80"
                         alt="Book Stack"
                         className="w-full h-full object-cover"
                       />
-                      <div className="absolute bottom-3 right-3 bg-[#34451D]/90 backdrop-blur-md border border-[#CDD3B5]/40 px-2.5 py-1 rounded-xl text-[#B7D85A] text-[10px] font-mono font-medium shadow-md flex items-center gap-1">
+                      <div className="absolute bottom-3 right-3 bg-[#34451D]/90 backdrop-blur-md border border-[#E2E7D8]/40 px-2.5 py-1 rounded-xl text-[#B7D85A] text-[10px] font-mono font-medium shadow-md flex items-center gap-1">
                         <Truck className="w-3 h-3 text-[#B7D85A]" />
                         <span>24–48h Dispatch</span>
                       </div>
@@ -1110,63 +1212,63 @@ export default function StorefrontPage() {
 
             {/* ── BENTO METRICS & ACHIEVEMENTS GRID ─────────────────── */}
             <section ref={bentoRef as React.RefObject<HTMLElement>} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-              <div className="bg-[#efead5] rounded-3xl p-6 sm:p-8 border border-[#CDD3B5] shadow-xs flex flex-col justify-between space-y-6 hover:shadow-md transition-shadow">
+              <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#E2E7D8] shadow-[0_4px_18px_rgba(52,69,29,0.04)] hover:shadow-xl hover:border-[#596B32] hover:-translate-y-1 transition-all flex flex-col justify-between space-y-6">
                 <div>
                   <div className="flex -space-x-2">
-                    <img className="w-9 h-9 rounded-full border-2 border-[#efead5] object-cover" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop" alt="User" />
-                    <img className="w-9 h-9 rounded-full border-2 border-[#efead5] object-cover" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop" alt="User" />
-                    <img className="w-9 h-9 rounded-full border-2 border-[#efead5] object-cover" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop" alt="User" />
-                    <img className="w-9 h-9 rounded-full border-2 border-[#efead5] object-cover" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop" alt="User" />
+                    <img className="w-9 h-9 rounded-full border-2 border-white object-cover" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop" alt="User" />
+                    <img className="w-9 h-9 rounded-full border-2 border-white object-cover" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop" alt="User" />
+                    <img className="w-9 h-9 rounded-full border-2 border-white object-cover" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop" alt="User" />
+                    <img className="w-9 h-9 rounded-full border-2 border-white object-cover" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop" alt="User" />
                   </div>
                   <div className="mt-4">
-                    <span className="text-[11px] font-mono text-[#85887A] uppercase block font-light">Global & National Readers</span>
+                    <span className="text-[11px] font-mono text-[#7B806B] uppercase block font-light">Global & National Readers</span>
                     <h3 className="font-display text-4xl font-light text-[#34451D] mt-1">48k+</h3>
                   </div>
                 </div>
-                <p className="font-sans font-light text-xs text-[#85887A] leading-relaxed">
+                <p className="font-sans font-light text-xs text-[#636855] leading-relaxed">
                   Connecting book clubs, SLIIT engineering students, and rural schools through shared reading.
                 </p>
               </div>
 
-              <div className="bg-[#34451D] text-[#efead5] rounded-3xl p-6 sm:p-8 flex flex-col justify-between space-y-6 border border-[#596B32] shadow-xl hover:shadow-2xl transition-shadow">
+              <div className="bg-[#34451D] text-white rounded-3xl p-6 sm:p-8 flex flex-col justify-between space-y-6 border border-[#596B32] shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-mono text-[#CDD3B5] uppercase font-light">Literary Recognitions</span>
+                    <span className="text-[11px] font-mono text-[#E2E7D8] uppercase font-light">Literary Recognitions</span>
                     <Award className="w-5 h-5 text-[#B7D85A]" />
                   </div>
                   <div>
                     <h3 className="font-display text-4xl font-light text-[#B7D85A]">12*</h3>
-                    <p className="font-sans font-light text-xs text-[#E4E7D2] mt-1">National & University Honors</p>
+                    <p className="font-sans font-light text-xs text-[#E2E7D8] mt-1">National & University Honors</p>
                   </div>
                 </div>
-                <p className="font-sans font-light text-xs text-[#CDD3B5] leading-relaxed">
+                <p className="font-sans font-light text-xs text-[#E2E7D8] leading-relaxed">
                   Featured for thoughtful archival preservation and authentic Sinhala translations.
                 </p>
               </div>
 
-              <div className="bg-[#efead5] rounded-3xl p-6 sm:p-8 border border-[#CDD3B5] shadow-xs flex flex-col justify-between space-y-6 hover:shadow-md transition-shadow">
+              <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#E2E7D8] shadow-[0_4px_18px_rgba(52,69,29,0.04)] hover:shadow-xl hover:border-[#596B32] hover:-translate-y-1 transition-all flex flex-col justify-between space-y-6">
                 <div>
-                  <span className="text-[11px] font-mono text-[#85887A] uppercase block font-light">Volumes Catalogued</span>
+                  <span className="text-[11px] font-mono text-[#7B806B] uppercase block font-light">Volumes Catalogued</span>
                   <h3 className="font-display text-4xl font-light text-[#34451D] mt-1">1,500+</h3>
                 </div>
                 <div className="space-y-2">
-                  <div className="h-2 w-full bg-[#E4E7D2] rounded-full overflow-hidden">
+                  <div className="h-2 w-full bg-[#F0F4E8] rounded-full overflow-hidden">
                     <div className="h-full bg-[#596B32] rounded-full w-4/5" />
                   </div>
-                  <p className="font-sans font-light text-xs text-[#85887A] leading-relaxed">
+                  <p className="font-sans font-light text-xs text-[#636855] leading-relaxed">
                     From Sinhala classics to distributed computing textbooks.
                   </p>
                 </div>
               </div>
 
-              <div className="bg-[#20231B] text-[#efead5] rounded-3xl p-6 sm:p-8 flex flex-col justify-between space-y-6 border border-[#34451D] shadow-sm hover:shadow-lg transition-shadow">
+              <div className="bg-[#20231B] text-white rounded-3xl p-6 sm:p-8 flex flex-col justify-between space-y-6 border border-[#34451D] shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all">
                 <div>
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-mono text-[#CDD3B5] uppercase font-light">Logistics Reach</span>
+                    <span className="text-[11px] font-mono text-[#E2E7D8] uppercase font-light">Logistics Reach</span>
                     <Compass className="w-5 h-5 text-[#B7D85A]" />
                   </div>
                   <h3 className="font-display text-4xl font-light text-[#B7D85A] mt-2">25</h3>
-                  <p className="font-sans font-light text-xs text-[#CDD3B5] mt-0.5">Districts Nationwide</p>
+                  <p className="font-sans font-light text-xs text-[#E2E7D8] mt-0.5">Districts Nationwide</p>
                 </div>
                 <p className="font-sans font-light text-xs text-[#85887A] leading-relaxed">
                   Partnered with regional postal hubs and express couriers across Sri Lanka.
@@ -1175,15 +1277,15 @@ export default function StorefrontPage() {
             </section>
 
             {/* ── CURATION PROCESS - Lumóra Production Style ─────────── */}
-            <section className="bg-[#efead5] rounded-3xl p-8 sm:p-12 border border-[#CDD3B5] shadow-xs space-y-8">
+            <section className="bg-[#F0F4E8] rounded-3xl p-8 sm:p-12 border border-[#E2E7D8] shadow-xs space-y-8">
               <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                 <div>
-                  <span className="text-xs font-mono uppercase tracking-wider text-[#85887A] block mb-1 font-light">- ARCHIVAL WORKFLOW</span>
+                  <span className="text-xs font-mono uppercase tracking-wider text-[#596B32] block mb-1 font-semibold">- ARCHIVAL WORKFLOW</span>
                   <h2 className="font-display text-2xl sm:text-3xl font-light text-[#20231B]">
                     Our Process Moves Like Production.
                   </h2>
                 </div>
-                <p className="font-sans font-light text-xs text-[#85887A] max-w-sm leading-relaxed">
+                <p className="font-sans font-light text-xs text-[#636855] max-w-sm leading-relaxed">
                   Every volume passes through rigorous authenticity, condition, and catalog preservation standards.
                 </p>
               </div>
@@ -1194,10 +1296,10 @@ export default function StorefrontPage() {
                   { step: '03', title: 'Circulate', desc: 'Smart student lending tiers allow readers to absorb textbooks without high retail costs.' },
                   { step: '04', title: 'Deliver', desc: 'Protective sustainable envelopes and 24-48hr door-to-door transit to every home and dormitory.' }
                 ].map((p) => (
-                  <div key={p.step} className="p-6 rounded-2xl bg-[#efead5] border border-[#CDD3B5] space-y-4 hover:bg-[#E4E7D2] transition-colors">
-                    <span className="text-xs font-mono font-medium text-[#596B32]">{p.step}</span>
-                    <h4 className="font-display text-base font-normal text-[#20231B]">{p.title}</h4>
-                    <p className="font-sans font-light text-xs text-[#85887A] leading-relaxed">{p.desc}</p>
+                  <div key={p.step} className="p-6 rounded-2xl bg-white border border-[#E2E7D8] shadow-[0_4px_18px_rgba(52,69,29,0.04)] space-y-4 hover:shadow-xl hover:border-[#596B32] hover:-translate-y-1 transition-all group">
+                    <span className="inline-flex items-center justify-center px-3 py-1 rounded-lg bg-[#34451D] text-[#B7D85A] font-mono text-xs font-semibold shadow-xs">{p.step}</span>
+                    <h4 className="font-display text-base font-semibold text-[#20231B] group-hover:text-[#34451D] transition-colors">{p.title}</h4>
+                    <p className="font-sans font-light text-xs text-[#636855] leading-relaxed">{p.desc}</p>
                   </div>
                 ))}
               </div>
@@ -1207,14 +1309,14 @@ export default function StorefrontPage() {
             <section className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <span className="text-xs font-mono uppercase text-[#85887A] block font-light">Handpicked Volumes</span>
+                  <span className="text-xs font-mono uppercase text-[#596B32] font-semibold tracking-wider block">Handpicked Volumes</span>
                   <h2 className="font-display text-2xl sm:text-3xl font-light text-[#20231B] mt-0.5">
                     Essential Reading & Curated Editions
                   </h2>
                 </div>
                 <button
                   onClick={() => setActiveNavTab('books')}
-                  className="font-sans text-xs font-normal text-[#596B32] hover:text-[#34451D] flex items-center gap-1.5 underline underline-offset-4"
+                  className="font-sans text-xs font-medium text-[#596B32] hover:text-[#34451D] flex items-center gap-1.5 underline underline-offset-4"
                 >
                   <span>Explore Full Catalog</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -1226,12 +1328,12 @@ export default function StorefrontPage() {
                   <div
                     data-book-card
                     key={book.id}
-                    className={`bg-[#efead5] rounded-2xl p-4 border transition-all flex flex-col justify-between group ${
-                      book.hidden ? 'border-amber-400/80 bg-amber-500/[0.04]' : 'border-[#CDD3B5] hover:shadow-lg hover:border-[#7F9148]'
+                    className={`bg-white rounded-2xl p-4 border transition-all flex flex-col justify-between group shadow-[0_4px_16px_rgba(52,69,29,0.04)] ${
+                      book.hidden ? 'border-amber-400/80 bg-amber-500/[0.04]' : 'border-[#E2E7D8] hover:shadow-2xl hover:border-[#596B32] hover:-translate-y-1.5'
                     }`}
                   >
                     <div>
-                      <div className="aspect-[3/4] w-full rounded-xl bg-[#efead5] overflow-hidden mb-3 relative">
+                      <div className="aspect-[3/4] w-full rounded-xl bg-[#F0F4E8] border border-[#E2E7D8] overflow-hidden mb-3 relative shadow-inner">
                         {book.coverImage ? (
                           <img
                             src={book.coverImage}
@@ -1246,7 +1348,7 @@ export default function StorefrontPage() {
                           </div>
                         )}
                         {/* Category badge */}
-                        <span className="absolute top-2 left-2 px-2.5 py-0.5 rounded-full bg-[#E4E7D2] border border-[#CDD3B5] text-[10px] font-mono text-[#34451D] font-normal shadow-xs">
+                        <span className="absolute top-2 left-2 px-2.5 py-0.5 rounded-full bg-white/95 border border-[#E2E7D8] text-[10px] font-mono text-[#34451D] font-semibold shadow-sm">
                           {book.category}
                         </span>
                         {book.hidden && (
@@ -1255,18 +1357,18 @@ export default function StorefrontPage() {
                           </span>
                         )}
                       </div>
-                      <h4 className="font-display text-xs sm:text-sm font-normal text-[#20231B] line-clamp-1 group-hover:text-[#596B32] transition-colors">
+                      <h4 className="font-display text-sm font-semibold text-[#20231B] line-clamp-1 group-hover:text-[#596B32] transition-colors">
                         {book.title}
                       </h4>
-                      <p className="font-sans font-light text-xs text-[#85887A] truncate mt-0.5">{book.author}</p>
+                      <p className="font-sans font-normal text-xs text-[#7B806B] truncate mt-0.5">{book.author}</p>
                     </div>
-                    <div className="pt-3 border-t border-[#CDD3B5]/60 flex items-center justify-between mt-3">
-                      <span className="font-mono text-xs sm:text-sm font-medium text-[#34451D]">
+                    <div className="pt-3 border-t border-[#E2E7D8] flex items-center justify-between mt-3">
+                      <span className="font-mono text-sm sm:text-base font-bold text-[#34451D]">
                         LKR {book.price.toFixed(0)}
                       </span>
                       <button
                         onClick={() => addToCart(book)}
-                        className="px-3 py-1.5 rounded-full bg-[#596B32] hover:bg-[#34451D] text-[#efead5] text-[11px] font-normal transition-all active:scale-95 shadow-xs"
+                        className="px-4 py-2 rounded-full bg-[#34451D] hover:bg-[#20231B] text-white text-xs font-semibold transition-all active:scale-95 shadow-sm"
                       >
                         + Add to Bag
                       </button>
@@ -1277,19 +1379,19 @@ export default function StorefrontPage() {
             </section>
 
             {/* ── VOICES BETWEEN PAGES - Lumóra Testimonials ──────────── */}
-            <section ref={testimonialsRef as React.RefObject<HTMLElement>} className="bg-[#efead5] rounded-3xl p-8 sm:p-12 border border-[#CDD3B5] shadow-xs space-y-8">
+            <section ref={testimonialsRef as React.RefObject<HTMLElement>} className="bg-[#F0F4E8] rounded-3xl p-8 sm:p-12 border border-[#E2E7D8] shadow-xs space-y-8">
               <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                 <div>
-                  <span className="text-xs font-mono uppercase tracking-wider text-[#85887A] block mb-1 font-light">- READER REFLECTIONS</span>
+                  <span className="text-xs font-mono uppercase tracking-wider text-[#596B32] block mb-1 font-semibold">- READER REFLECTIONS</span>
                   <h2 className="font-display text-2xl sm:text-3xl font-light text-[#20231B]">
                     Voices Between Pages
                   </h2>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="px-3.5 py-1.5 rounded-full bg-[#E4E7D2] text-xs font-mono font-normal text-[#34451D]">
+                  <div className="px-3.5 py-1.5 rounded-full bg-white text-xs font-mono font-semibold text-[#34451D] border border-[#E2E7D8] shadow-xs">
                     4.9 / 5.0 Rating
                   </div>
-                  <span className="font-sans font-light text-xs text-[#85887A]">Over 3,400+ Verified Readers</span>
+                  <span className="font-sans font-light text-xs text-[#636855]">Over 3,400+ Verified Readers</span>
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -1298,14 +1400,14 @@ export default function StorefrontPage() {
                   { quote: "The archival preservation of Leonard Woolf's Baddegama and Martin Wickramasinghe's trilogy is breathtaking. The typography and packaging feel like an art gallery release.", name: 'Dr. Anoma Wijesuriya', role: 'Literary Historian & Visiting Scholar' },
                   { quote: "Courier delivery was astonishingly fast to Kandy. The book was securely sealed in eco-friendly waterproof packaging with prepaid return envelopes ready.", name: 'Malik Jayawardena', role: 'Colombo Readers Circle' }
                 ].map((t, idx) => (
-                  <div data-testimonial-card key={idx} className="p-6 rounded-2xl bg-[#efead5] border border-[#CDD3B5] flex flex-col justify-between space-y-4 hover:bg-[#E4E7D2] transition-colors">
+                  <div data-testimonial-card key={idx} className="p-6 rounded-2xl bg-white border border-[#E2E7D8] shadow-[0_4px_18px_rgba(52,69,29,0.04)] flex flex-col justify-between space-y-4 hover:shadow-xl hover:border-[#596B32] hover:-translate-y-1 transition-all">
                     <div className="space-y-3">
-                      <Quote className="w-5 h-5 text-[#596B32]/40" />
-                      <p className="font-sans font-light text-xs text-[#34451D] leading-relaxed italic">"{t.quote}"</p>
+                      <Quote className="w-5 h-5 text-[#596B32]/50" />
+                      <p className="font-sans font-light text-xs text-[#20231B] leading-relaxed italic">"{t.quote}"</p>
                     </div>
-                    <div className="pt-3 border-t border-[#CDD3B5]/60">
-                      <h5 className="font-display font-normal text-xs text-[#20231B]">{t.name}</h5>
-                      <span className="font-sans font-light text-[11px] text-[#85887A] block">{t.role}</span>
+                    <div className="pt-3 border-t border-[#E2E7D8]">
+                      <h5 className="font-display font-semibold text-xs sm:text-sm text-[#20231B]">{t.name}</h5>
+                      <span className="font-sans font-normal text-[11px] text-[#7B806B] block">{t.role}</span>
                     </div>
                   </div>
                 ))}
@@ -1333,13 +1435,13 @@ export default function StorefrontPage() {
                     <h3 className="font-display text-2xl font-light text-white tracking-tight">
                       Member Modules & System Architecture
                     </h3>
-                    <p className="font-sans font-light text-xs text-[#CDD3B5] mt-1">
+                    <p className="font-sans font-light text-xs text-[#E2E7D8] mt-1">
                       Complete end-to-end CRUD operations, REST endpoints, and role-based administration.
                     </p>
                   </div>
                   <Link
                     href="/login"
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#efead5] text-[#20231B] font-normal text-xs hover:bg-white transition-all self-start sm:self-auto shadow-md"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white text-[#20231B] font-normal text-xs hover:bg-[#F0F4E8] transition-all self-start sm:self-auto shadow-md"
                   >
                     <span>Staff / Admin Portal</span>
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -1355,13 +1457,13 @@ export default function StorefrontPage() {
                     { mod: 'M5', title: 'User Identity & Authentication', member: 'Gayathmi P.G.R.', id: 'IT25103013', icon: <User className="w-4 h-4 text-[#B7D85A]" /> },
                     { mod: 'M6', title: 'Orders & Shopping Cart Management', member: 'Diyes C.L.', id: 'IT25100263', icon: <ShoppingCart className="w-4 h-4 text-[#B7D85A]" /> },
                   ].map((m) => (
-                    <div key={m.mod} className="p-5 rounded-2xl bg-[#efead5]/10 border border-[#CDD3B5]/20 hover:bg-[#efead5]/20 transition-colors space-y-2.5">
+                    <div key={m.mod} className="p-5 rounded-2xl bg-white/10 border border-white/20 hover:bg-white/20 transition-colors space-y-2.5">
                       <div className="flex items-center justify-between">
                         <span className="px-2.5 py-0.5 rounded-md bg-[#34451D] text-[#B7D85A] border border-[#7F9148]/50 text-[10px] font-mono font-medium">{`Module ${m.mod}`}</span>
                         {m.icon}
                       </div>
                       <h4 className="font-display font-light text-white text-xs sm:text-sm">{m.title}</h4>
-                      <p className="font-sans font-light text-[11px] text-[#CDD3B5]">{m.member} · {m.id}</p>
+                      <p className="font-sans font-light text-[11px] text-[#E2E7D8]">{m.member} · {m.id}</p>
                     </div>
                   ))}
                 </div>
@@ -1381,7 +1483,7 @@ export default function StorefrontPage() {
             {/* ========================================================= */}
             {activeNavTab === 'books' && (
           <div className="space-y-8">
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-[#CDD3B5]">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-[#E2E7D8]">
               <div>
                 <span className="text-xs font-mono uppercase text-[#596B32] block tracking-wider">Curated Catalog</span>
                 <h1 className="text-3xl sm:text-4xl font-display font-light text-[#20231B] mt-1">Complete Bookstore Archive</h1>
@@ -1396,27 +1498,27 @@ export default function StorefrontPage() {
                   placeholder="Search by title, author, or genre..."
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-full bg-[#efead5] border border-[#CDD3B5] text-xs text-[#20231B] placeholder-[#85887A] focus:outline-none focus:border-[#596B32] shadow-sm transition-colors"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-full bg-white border border-[#E2E7D8] text-xs text-[#20231B] placeholder-[#85887A] focus:outline-none focus:border-[#596B32] shadow-xs transition-colors"
                 />
               </div>
             </div>
 
             {/* Admin Controls Banner for Books / Inventory / Catalog Authorized Staff */}
             {canManageBooks && (
-              <div className="bg-[#34451D] border border-[#7F9148]/50 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-[#efead5] shadow-md">
+              <div className="bg-[#34451D] border border-[#7F9148]/50 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-white shadow-md">
                 <div className="flex items-start sm:items-center gap-3">
                   <div className="w-3 h-3 rounded-full bg-[#B7D85A] animate-pulse shrink-0 mt-1 sm:mt-0" />
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-semibold text-xs sm:text-sm text-[#B7D85A]">Catalog Admin Mode Active</span>
-                      <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-[#596B32]/40 text-[#efead5] font-mono border border-[#7F9148]/50 font-medium">
+                      <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-[#596B32]/40 text-white font-mono border border-[#7F9148]/50 font-medium">
                         {activeStaff?.fullName || 'Admin Staff'} ({activeStaff?.role?.replace('_', ' ')})
                       </span>
-                      <span className="text-[10px] text-[#CDD3B5] font-mono">
+                      <span className="text-[10px] text-[#E2E7D8] font-mono">
                         · {books.length} Titles ({books.filter(b => !b.hidden).length} Active, {books.filter(b => b.hidden).length} Hidden)
                       </span>
                     </div>
-                    <p className="text-[11px] text-[#CDD3B5] mt-1 leading-relaxed">
+                    <p className="text-[11px] text-[#E2E7D8] mt-1 leading-relaxed">
                       You are authorized to add new publications, edit metadata & pricing, toggle customer visibility (Hide/Unhide), and remove titles.
                     </p>
                   </div>
@@ -1440,8 +1542,8 @@ export default function StorefrontPage() {
                   onClick={() => setSelectedCategory(cat)}
                   className={`px-4 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
                     selectedCategory === cat
-                      ? 'bg-[#34451D] text-[#efead5] shadow-sm'
-                      : 'bg-[#efead5] border border-[#CDD3B5] text-[#85887A] hover:text-[#20231B] hover:border-[#7F9148]'
+                      ? 'bg-[#34451D] text-white shadow-sm'
+                      : 'bg-white border border-[#E2E7D8] text-[#85887A] hover:text-[#20231B] hover:border-[#7F9148]'
                   }`}
                 >
                   {cat}
@@ -1451,7 +1553,7 @@ export default function StorefrontPage() {
 
             {/* Empty state if no books found */}
             {filteredBooks.length === 0 && (
-              <div className="bg-[#efead5] rounded-2xl p-12 text-center border border-[#CDD3B5] space-y-3">
+              <div className="bg-white rounded-2xl p-12 text-center border border-[#E2E7D8] space-y-3">
                 <BookOpen className="w-10 h-10 text-[#85887A] mx-auto stroke-1" />
                 <h3 className="text-sm font-semibold text-[#20231B]">No books match your criteria</h3>
                 <p className="text-xs text-[#85887A] max-w-sm mx-auto">
@@ -1462,7 +1564,7 @@ export default function StorefrontPage() {
                 {canManageBooks && (
                   <button
                     onClick={() => setIsAddBookModalOpen(true)}
-                    className="mt-2 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#596B32] text-[#efead5] text-xs font-medium hover:bg-[#34451D] transition-all shadow-sm"
+                    className="mt-2 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#596B32] text-white text-xs font-medium hover:bg-[#34451D] transition-all shadow-sm"
                   >
                     <Plus className="w-4 h-4" />
                     <span>Add First Book to Archive</span>
@@ -1476,16 +1578,16 @@ export default function StorefrontPage() {
               {filteredBooks.map((book) => (
                 <div
                   key={book.id}
-                  className={`bg-[#efead5] rounded-xl sm:rounded-2xl p-2.5 sm:p-4 border transition-all flex flex-col justify-between group relative ${
+                  className={`bg-white rounded-xl sm:rounded-2xl p-2.5 sm:p-4 border transition-all flex flex-col justify-between group relative shadow-[0_4px_16px_rgba(52,69,29,0.04)] ${
                     book.hidden
                       ? 'border-amber-400/80 bg-amber-500/[0.03] shadow-sm'
-                      : 'border-[#CDD3B5] hover:shadow-lg hover:border-[#7F9148]'
+                      : 'border-[#E2E7D8] hover:shadow-xl hover:border-[#596B32] hover:-translate-y-1'
                   }`}
                 >
                   <div>
                     {/* Admin Action Header (Exclusively shown to authorized catalog admins) */}
                     {canManageBooks && (
-                      <div className="flex items-center justify-between gap-1 pb-2 sm:pb-2.5 mb-2 sm:mb-2.5 border-b border-[#CDD3B5]">
+                      <div className="flex items-center justify-between gap-1 pb-2 sm:pb-2.5 mb-2 sm:mb-2.5 border-b border-[#E2E7D8]">
                         <div>
                           {book.hidden ? (
                             <span className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-900 text-[9px] sm:text-[10px] font-semibold font-mono border border-amber-300/60">
@@ -1504,7 +1606,7 @@ export default function StorefrontPage() {
                           {/* Edit button */}
                           <button
                             onClick={() => handleOpenEditBook(book)}
-                            className="p-1 sm:p-1.5 rounded-lg hover:bg-[#efead5] text-[#34451D] hover:text-[#20231B] transition-colors"
+                            className="p-1 sm:p-1.5 rounded-lg hover:bg-[#F0F4E8] text-[#34451D] hover:text-[#20231B] transition-colors"
                             title="Edit book details"
                           >
                             <Edit3 className="w-3 sm:w-3.5 h-3 sm:h-3.5" />
@@ -1515,7 +1617,7 @@ export default function StorefrontPage() {
                             onClick={() => handleToggleHideBook(book)}
                             className={`p-1 sm:p-1.5 rounded-lg transition-colors ${
                               book.hidden
-                                ? 'hover:bg-[#E4E7D2] text-[#596B32]'
+                                ? 'hover:bg-[#F0F4E8] text-[#596B32]'
                                 : 'hover:bg-amber-100 text-amber-700'
                             }`}
                             title={book.hidden ? 'Unhide (Make visible to customers)' : 'Hide (Hide from customers)'}
@@ -1535,7 +1637,7 @@ export default function StorefrontPage() {
                       </div>
                     )}
 
-                    <div className="aspect-[3/4] w-full rounded-lg sm:rounded-xl bg-[#efead5] overflow-hidden mb-2.5 sm:mb-3 relative">
+                    <div className="aspect-[3/4] w-full rounded-lg sm:rounded-xl bg-[#F0F4E8] border border-[#E2E7D8] overflow-hidden mb-2.5 sm:mb-3 relative">
                       {book.coverImage ? (
                         <img 
                           src={book.coverImage} 
@@ -1549,7 +1651,7 @@ export default function StorefrontPage() {
                           <BookOpen className="w-8 sm:w-10 h-8 sm:h-10 stroke-1" />
                         </div>
                       )}
-                      <span className="absolute top-1.5 sm:top-2 left-1.5 sm:left-2 px-2 py-0.5 rounded-full bg-[#efead5]/90 backdrop-blur-md text-[9px] sm:text-[10px] font-mono text-[#34451D] font-semibold shadow-sm border border-[#CDD3B5]/50">
+                      <span className="absolute top-1.5 sm:top-2 left-1.5 sm:left-2 px-2 py-0.5 rounded-full bg-white/95 backdrop-blur-md text-[9px] sm:text-[10px] font-mono text-[#34451D] font-semibold shadow-sm border border-[#E2E7D8]">
                         {book.category}
                       </span>
                       {book.hidden && (
@@ -1570,7 +1672,7 @@ export default function StorefrontPage() {
                     )}
                   </div>
 
-                  <div className="pt-2.5 sm:pt-4 border-t border-[#CDD3B5] flex flex-col xs:flex-row items-start xs:items-center justify-between gap-1.5 sm:gap-2 mt-2.5 sm:mt-4">
+                  <div className="pt-2.5 sm:pt-4 border-t border-[#E2E7D8] flex flex-col xs:flex-row items-start xs:items-center justify-between gap-1.5 sm:gap-2 mt-2.5 sm:mt-4">
                     <div>
                       <span className="text-[9px] sm:text-[10px] text-[#85887A] block font-mono">Retail Value</span>
                       <span className="font-mono text-xs sm:text-sm font-semibold text-[#20231B]">
@@ -1582,8 +1684,8 @@ export default function StorefrontPage() {
                       onClick={() => addToCart(book)}
                       className={`w-full xs:w-auto px-2.5 sm:px-3.5 py-1.5 rounded-full text-[11px] sm:text-xs font-medium shadow-sm transition-all active:scale-95 text-center ${
                         book.hidden
-                          ? 'bg-[#CDD3B5] text-[#20231B] hover:bg-[#AAB58A]'
-                          : 'bg-[#34451D] hover:bg-[#20231B] text-[#efead5]'
+                          ? 'bg-[#E2E7D8] text-[#20231B] hover:bg-[#D4DCC8]'
+                          : 'bg-[#34451D] hover:bg-[#20231B] text-white'
                       }`}
                     >
                       {book.hidden ? 'Test Bag' : '+ Add to Bag'}
@@ -1612,33 +1714,33 @@ export default function StorefrontPage() {
               {AUTHORS_LIST.map((author) => (
                 <div
                   key={author.name}
-                  className="bg-[#efead5] rounded-3xl p-8 border border-[#CDD3B5] shadow-sm flex flex-col justify-between space-y-6 hover:border-[#7F9148] transition-all"
+                  className="bg-white rounded-3xl p-8 border border-[#E2E7D8] shadow-[0_4px_20px_rgba(52,69,29,0.04)] flex flex-col justify-between space-y-6 hover:border-[#596B32] hover:shadow-xl transition-all"
                 >
                   <div className="space-y-4">
                     <div className="flex items-start justify-between gap-4">
                       <div>
-                        <h3 className="text-xl font-display font-normal text-[#20231B]">{author.name}</h3>
-                        <p className="text-xs font-mono text-[#596B32] mt-0.5">{author.period} · {author.origin}</p>
+                        <h3 className="text-xl font-display font-medium text-[#20231B]">{author.name}</h3>
+                        <p className="text-xs font-mono text-[#596B32] font-semibold mt-0.5">{author.period} · {author.origin}</p>
                       </div>
-                      <div className="h-10 w-10 rounded-full bg-[#efead5] flex items-center justify-center text-[#34451D] shrink-0 border border-[#CDD3B5]/50">
+                      <div className="h-10 w-10 rounded-full bg-[#F0F4E8] flex items-center justify-center text-[#34451D] shrink-0 border border-[#E2E7D8]">
                         <Feather className="w-4 h-4" />
                       </div>
                     </div>
 
-                    <p className="text-xs text-[#85887A] leading-relaxed">
+                    <p className="text-xs text-[#636855] leading-relaxed">
                       {author.bio}
                     </p>
 
-                    <blockquote className="p-4 rounded-2xl bg-[#efead5] border-l-2 border-[#596B32] text-xs font-serif italic text-[#34451D]">
+                    <blockquote className="p-4 rounded-2xl bg-[#F0F4E8] border-l-4 border-[#596B32] text-xs font-serif italic text-[#34451D]">
                       "{author.quote}"
                     </blockquote>
                   </div>
 
                   <div>
-                    <span className="text-[10px] font-mono text-[#85887A] uppercase block mb-2 tracking-wider">Canonical Works:</span>
+                    <span className="text-[10px] font-mono text-[#7B806B] uppercase block mb-2 tracking-wider font-medium">Canonical Works:</span>
                     <div className="flex flex-wrap gap-1.5">
                       {author.famousWorks.map(w => (
-                        <span key={w} className="px-3 py-1 rounded-full bg-[#efead5] border border-[#CDD3B5]/70 text-[11px] font-medium text-[#20231B]">
+                        <span key={w} className="px-3 py-1 rounded-full bg-[#F0F4E8] border border-[#E2E7D8] text-[11px] font-medium text-[#20231B]">
                           {w}
                         </span>
                       ))}
@@ -1656,9 +1758,9 @@ export default function StorefrontPage() {
         {activeNavTab === 'rentals' && (
           <div className="space-y-12 max-w-5xl mx-auto">
             <div className="text-center space-y-3">
-              <span className="text-xs font-mono uppercase text-[#596B32] tracking-widest block">Circular Literary Economy</span>
+              <span className="text-xs font-mono uppercase text-[#596B32] tracking-widest block font-semibold">Circular Literary Economy</span>
               <h1 className="text-4xl sm:text-5xl font-display font-light text-[#20231B]">Read More. Spend 70% Less.</h1>
-              <p className="text-xs sm:text-sm text-[#85887A] max-w-xl mx-auto leading-relaxed">
+              <p className="text-xs sm:text-sm text-[#7B806B] max-w-xl mx-auto leading-relaxed">
                 Why purchase expensive hardcover volumes you only require for a few semester weeks? Rent authentic textbooks with complimentary prepaid return envelopes.
               </p>
             </div>
@@ -1670,10 +1772,10 @@ export default function StorefrontPage() {
                 { step: '02', title: 'Doorstep Courier Delivery', desc: 'Delivered in pristine waterproof cases with prepaid return postage labels ready for hassle-free dispatch.' },
                 { step: '03', title: 'Renew, Return or Keep', desc: 'Easily extend with one click, hand back to any courier, or convert to permanent purchase by paying the net difference.' }
               ].map(s => (
-                <div key={s.step} className="bg-[#efead5] rounded-3xl p-6 border border-[#CDD3B5] shadow-sm space-y-3">
-                  <span className="font-mono text-xs font-medium text-[#34451D] bg-[#efead5] border border-[#CDD3B5]/60 px-2.5 py-1 rounded-full">{s.step}</span>
-                  <h3 className="font-normal font-display text-[#20231B] text-base">{s.title}</h3>
-                  <p className="text-xs text-[#85887A] leading-relaxed">{s.desc}</p>
+                <div key={s.step} className="bg-white rounded-3xl p-6 border border-[#E2E7D8] shadow-xs space-y-3">
+                  <span className="font-mono text-xs font-semibold text-[#B7D85A] bg-[#34451D] px-2.5 py-1 rounded-lg shadow-xs">{s.step}</span>
+                  <h3 className="font-medium font-display text-[#20231B] text-base">{s.title}</h3>
+                  <p className="text-xs text-[#636855] leading-relaxed">{s.desc}</p>
                 </div>
               ))}
             </div>
@@ -1681,19 +1783,19 @@ export default function StorefrontPage() {
             {/* Rental Plans Pricing Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {RENTAL_TIERS.map((tier) => (
-                <div key={tier.title} className="bg-[#efead5] rounded-3xl p-8 border border-[#CDD3B5] shadow-sm flex flex-col justify-between space-y-6 hover:border-[#7F9148] transition-all">
+                <div key={tier.title} className="bg-white rounded-3xl p-8 border border-[#E2E7D8] shadow-xs flex flex-col justify-between space-y-6 hover:border-[#596B32] hover:shadow-xl transition-all">
                   <div>
-                    <span className="px-3 py-1 rounded-full bg-[#E4E7D2] text-[#34451D] text-[11px] font-medium border border-[#CDD3B5]/50">
+                    <span className="px-3 py-1 rounded-full bg-[#F0F4E8] text-[#34451D] text-[11px] font-semibold border border-[#E2E7D8]">
                       {tier.badge}
                     </span>
-                    <h3 className="text-xl font-normal font-display text-[#20231B] mt-4">{tier.title}</h3>
+                    <h3 className="text-xl font-medium font-display text-[#20231B] mt-4">{tier.title}</h3>
                     <div className="mt-2 flex items-baseline gap-2">
                       <span className="text-3xl font-light font-display text-[#20231B]">{tier.price}</span>
-                      <span className="text-xs text-[#85887A] font-mono">/ {tier.duration}</span>
+                      <span className="text-xs text-[#7B806B] font-mono">/ {tier.duration}</span>
                     </div>
-                    <p className="text-xs text-[#596B32] mt-1 font-medium">{tier.saving}</p>
+                    <p className="text-xs text-[#596B32] mt-1 font-semibold">{tier.saving}</p>
 
-                    <ul className="mt-6 space-y-3 text-xs text-[#85887A]">
+                    <ul className="mt-6 space-y-3 text-xs text-[#636855]">
                       {tier.features.map((feat) => (
                         <li key={feat} className="flex items-center gap-2.5">
                           <CheckCircle2 className="w-4 h-4 text-[#596B32] shrink-0" />
@@ -1708,7 +1810,7 @@ export default function StorefrontPage() {
                       alert(`Rental plan selected: ${tier.title}! Please browse the catalog to pick your book.`);
                       setActiveNavTab('books');
                     }}
-                    className="w-full py-3 rounded-full bg-[#34451D] hover:bg-[#20231B] text-[#efead5] font-medium text-xs transition-all shadow-sm"
+                    className="w-full py-3 rounded-full bg-[#34451D] hover:bg-[#20231B] text-white font-semibold text-xs transition-all shadow-sm"
                   >
                     Choose Books to Rent
                   </button>
@@ -1724,85 +1826,85 @@ export default function StorefrontPage() {
         {activeNavTab === 'about' && (
           <div className="space-y-12 max-w-4xl mx-auto">
             <div className="text-center space-y-3">
-              <span className="text-xs font-mono uppercase text-[#596B32] tracking-widest block">Heritage & Governance</span>
+              <span className="text-xs font-mono uppercase text-[#596B32] tracking-widest block font-semibold">Heritage & Governance</span>
               <h1 className="text-4xl sm:text-5xl font-display font-light text-[#20231B]">About Sarasavi Pages</h1>
-              <p className="text-xs sm:text-sm text-[#85887A] max-w-xl mx-auto leading-relaxed">
+              <p className="text-xs sm:text-sm text-[#7B806B] max-w-xl mx-auto leading-relaxed">
                 Empowering Sri Lankan minds through authentic literature, software engineering academic resources, and accessible digital book lending.
               </p>
             </div>
 
-            <div className="bg-[#efead5] rounded-3xl p-8 sm:p-10 border border-[#CDD3B5] shadow-sm space-y-6">
+            <div className="bg-white rounded-3xl p-8 sm:p-10 border border-[#E2E7D8] shadow-xs space-y-6">
               <h2 className="text-2xl font-light font-display text-[#20231B]">The Sarasavi Pages Vision</h2>
-              <p className="text-xs sm:text-sm text-[#85887A] leading-relaxed">
+              <p className="text-xs sm:text-sm text-[#636855] leading-relaxed">
                 Founded as an academic initiative under the <strong>SLIIT Faculty of Computing</strong> (Software Engineering Year 2 Semester 1 - SE2030 Group Project B9G2), Sarasavi Pages bridges historical Sri Lankan literary treasures and modern computing education.
               </p>
-              <p className="text-xs sm:text-sm text-[#85887A] leading-relaxed">
+              <p className="text-xs sm:text-sm text-[#636855] leading-relaxed">
                 Whether it is the timeless village narratives of Martin Wickramasinghe, the poignant historical prose of Leonard Woolf, or the complex distributed architectures authored by Martin Kleppmann, Sarasavi Pages ensures that students, scholars, and lifelong readers have seamless, affordable access.
               </p>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6 border-t border-[#CDD3B5]">
-                <div className="p-5 rounded-2xl bg-[#efead5] border border-[#CDD3B5]/70">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6 border-t border-[#E2E7D8]">
+                <div className="p-5 rounded-2xl bg-[#F0F4E8] border border-[#E2E7D8]">
                   <h4 className="text-xs font-semibold text-[#34451D]">Authentic Heritage</h4>
-                  <p className="text-[11px] text-[#85887A] mt-1">Preserving canonical Sinhala, Tamil, and English national works.</p>
+                  <p className="text-[11px] text-[#636855] mt-1">Preserving canonical Sinhala, Tamil, and English national works.</p>
                 </div>
-                <div className="p-5 rounded-2xl bg-[#efead5] border border-[#CDD3B5]/70">
+                <div className="p-5 rounded-2xl bg-[#F0F4E8] border border-[#E2E7D8]">
                   <h4 className="text-xs font-semibold text-[#596B32]">70% Cheaper Lending</h4>
-                  <p className="text-[11px] text-[#85887A] mt-1">Smart book rentals so university students never skip learning.</p>
+                  <p className="text-[11px] text-[#636855] mt-1">Smart book rentals so university students never skip learning.</p>
                 </div>
-                <div className="p-5 rounded-2xl bg-[#efead5] border border-[#CDD3B5]/70">
+                <div className="p-5 rounded-2xl bg-[#F0F4E8] border border-[#E2E7D8]">
                   <h4 className="text-xs font-semibold text-[#7F9148]">Integrated Logistics</h4>
-                  <p className="text-[11px] text-[#85887A] mt-1">Partnered with Domex and SL Post for islandwide courier delivery.</p>
+                  <p className="text-[11px] text-[#636855] mt-1">Partnered with Domex and SL Post for islandwide courier delivery.</p>
                 </div>
               </div>
             </div>
 
             {/* Team Members */}
-            <div className="bg-[#efead5] rounded-3xl p-8 sm:p-10 border border-[#CDD3B5] shadow-sm space-y-6">
+            <div className="bg-white rounded-3xl p-8 sm:p-10 border border-[#E2E7D8] shadow-xs space-y-6">
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-lg font-light font-display text-[#20231B]">Project Engineering Team (Group B9G2)</h3>
-                  <p className="text-xs text-[#85887A]">SE2030 Software Engineering - Group Project ID: 2026-Y2-S1-MLB-B9G2-01</p>
+                  <p className="text-xs text-[#7B806B]">SE2030 Software Engineering - Group Project ID: 2026-Y2-S1-MLB-B9G2-01</p>
                 </div>
-                <span className="px-3 py-1 rounded-full bg-[#efead5] border border-[#CDD3B5]/70 text-[#34451D] text-xs font-mono font-semibold">
+                <span className="px-3 py-1 rounded-full bg-[#F0F4E8] border border-[#E2E7D8] text-[#34451D] text-xs font-mono font-semibold">
                   6 Members
                 </span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                <div className="p-4 rounded-2xl bg-[#efead5] border border-[#CDD3B5]/70">
+                <div className="p-4 rounded-2xl bg-[#F0F4E8] border border-[#E2E7D8] hover:border-[#596B32] transition-colors">
                   <div className="text-xs font-semibold text-[#20231B]">Gunathilaka H.D.T.T.</div>
                   <div className="text-[10px] font-mono text-[#596B32] font-semibold">IT25101540 | Module M1</div>
-                  <div className="text-[11px] text-[#85887A] mt-1">Admin & Staff Management</div>
+                  <div className="text-[11px] text-[#636855] mt-1">Admin & Staff Management</div>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-[#efead5] border border-[#CDD3B5]/70">
+                <div className="p-4 rounded-2xl bg-[#F0F4E8] border border-[#E2E7D8] hover:border-[#596B32] transition-colors">
                   <div className="text-xs font-semibold text-[#20231B]">Anaf M.K.A.S.</div>
                   <div className="text-[10px] font-mono text-[#596B32] font-semibold">IT25102345 | Module M2</div>
-                  <div className="text-[11px] text-[#85887A] mt-1">Payment Systems & Gateways</div>
+                  <div className="text-[11px] text-[#636855] mt-1">Payment Systems & Gateways</div>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-[#efead5] border border-[#CDD3B5]/70">
+                <div className="p-4 rounded-2xl bg-[#F0F4E8] border border-[#E2E7D8] hover:border-[#596B32] transition-colors">
                   <div className="text-xs font-semibold text-[#20231B]">Zeen A.C.</div>
                   <div className="text-[10px] font-mono text-[#596B32] font-semibold">IT25103342 | Module M3</div>
-                  <div className="text-[11px] text-[#85887A] mt-1">Customer Service & Complaints</div>
+                  <div className="text-[11px] text-[#636855] mt-1">Customer Service & Complaints</div>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-[#efead5] border border-[#CDD3B5]/70">
+                <div className="p-4 rounded-2xl bg-[#F0F4E8] border border-[#E2E7D8] hover:border-[#596B32] transition-colors">
                   <div className="text-xs font-semibold text-[#20231B]">Dissanayake S.A.S.D.</div>
                   <div className="text-[10px] font-mono text-[#596B32] font-semibold">IT25101062 | Module M4</div>
-                  <div className="text-[11px] text-[#85887A] mt-1">Inventory & Stock Audit Control</div>
+                  <div className="text-[11px] text-[#636855] mt-1">Inventory & Stock Audit Control</div>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-[#efead5] border border-[#CDD3B5]/70">
+                <div className="p-4 rounded-2xl bg-[#F0F4E8] border border-[#E2E7D8] hover:border-[#596B32] transition-colors">
                   <div className="text-xs font-semibold text-[#20231B]">Gayathmi P.G.R.</div>
                   <div className="text-[10px] font-mono text-[#596B32] font-semibold">IT25103013 | Module M5</div>
-                  <div className="text-[11px] text-[#85887A] mt-1">User Identity & Authentication</div>
+                  <div className="text-[11px] text-[#636855] mt-1">User Identity & Authentication</div>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-[#efead5] border border-[#CDD3B5]/70">
+                <div className="p-4 rounded-2xl bg-[#F0F4E8] border border-[#E2E7D8] hover:border-[#596B32] transition-colors">
                   <div className="text-xs font-semibold text-[#20231B]">Diyes C.L.</div>
                   <div className="text-[10px] font-mono text-[#596B32] font-semibold">IT25100263 | Module M6</div>
-                  <div className="text-[11px] text-[#85887A] mt-1">Orders & Shopping Cart Management</div>
+                  <div className="text-[11px] text-[#636855] mt-1">Orders & Shopping Cart Management</div>
                 </div>
               </div>
             </div>
@@ -1819,15 +1921,15 @@ export default function StorefrontPage() {
             className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
             onClick={() => setIsTicketModalOpen(false)}
           />
-          <div className="relative w-full max-w-lg bg-[#efead5] rounded-3xl p-5 sm:p-8 shadow-2xl border border-[#CDD3B5] z-10 space-y-5 sm:space-y-6 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-4 border-b border-[#CDD3B5]">
+          <div className="relative w-full max-w-lg bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-[#E2E7D8] z-10 space-y-5 sm:space-y-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-4 border-b border-[#E2E7D8]">
               <div>
                 <span className="text-[10px] font-mono uppercase text-[#596B32] font-semibold tracking-wider">[ MODULE M3 · CUSTOMER CARE ]</span>
                 <h3 className="text-xl font-normal font-display text-[#20231B]">Submit Support Ticket</h3>
               </div>
               <button 
                 onClick={() => setIsTicketModalOpen(false)}
-                className="p-1.5 rounded-full hover:bg-[#efead5] text-[#85887A]"
+                className="p-1.5 rounded-full hover:bg-[#F0F4E8] text-[#85887A]"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1843,7 +1945,7 @@ export default function StorefrontPage() {
                     setTicketStatus('idle');
                     setIsTicketModalOpen(false);
                   }}
-                  className="mt-4 px-6 py-2.5 rounded-full bg-[#34451D] hover:bg-[#20231B] text-[#efead5] text-xs font-medium"
+                  className="mt-4 px-6 py-2.5 rounded-full bg-[#34451D] hover:bg-[#20231B] text-white text-xs font-medium"
                 >
                   Close
                 </button>
@@ -1851,49 +1953,49 @@ export default function StorefrontPage() {
             ) : (
               <form onSubmit={handleTicketSubmit} className="space-y-4 text-xs">
                 <div>
-                  <label className="block text-[#85887A] font-medium mb-1">Your Full Name</label>
+                  <label className="block text-[#7B806B] font-medium mb-1">Your Full Name</label>
                   <input
                     type="text"
                     required
                     value={ticketForm.customerName}
                     onChange={e => setTicketForm({ ...ticketForm, customerName: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32]"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:bg-white focus:outline-none focus:border-[#596B32]"
                     placeholder="e.g. Kasun Perera"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[#85887A] font-medium mb-1">Contact Phone / WhatsApp</label>
+                  <label className="block text-[#7B806B] font-medium mb-1">Contact Phone / WhatsApp</label>
                   <input
                     type="text"
                     required
                     value={ticketForm.contactNumber}
                     onChange={e => setTicketForm({ ...ticketForm, contactNumber: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32]"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:bg-white focus:outline-none focus:border-[#596B32]"
                     placeholder="+94 7X XXX XXXX"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[#85887A] font-medium mb-1">Inquiry Subject</label>
+                  <label className="block text-[#7B806B] font-medium mb-1">Inquiry Subject</label>
                   <input
                     type="text"
                     required
                     value={ticketForm.subject}
                     onChange={e => setTicketForm({ ...ticketForm, subject: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32]"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:bg-white focus:outline-none focus:border-[#596B32]"
                     placeholder="e.g. Courier delivery status / Rental renewal"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[#85887A] font-medium mb-1">Message Description</label>
+                  <label className="block text-[#7B806B] font-medium mb-1">Message Description</label>
                   <textarea
                     rows={3}
                     required
                     value={ticketForm.description}
                     onChange={e => setTicketForm({ ...ticketForm, description: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32]"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:bg-white focus:outline-none focus:border-[#596B32]"
                     placeholder="Please specify order or book reference..."
                   />
                 </div>
@@ -1902,14 +2004,14 @@ export default function StorefrontPage() {
                   <button
                     type="button"
                     onClick={() => setIsTicketModalOpen(false)}
-                    className="px-4 py-2.5 rounded-full border border-[#CDD3B5] text-[#85887A] text-xs font-medium hover:bg-[#efead5]"
+                    className="px-4 py-2.5 rounded-full border border-[#E2E7D8] text-[#85887A] text-xs font-medium hover:bg-[#F0F4E8]"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={ticketStatus === 'submitting'}
-                    className="px-5 py-2.5 rounded-full bg-[#34451D] hover:bg-[#20231B] text-[#efead5] text-xs font-medium shadow-sm transition-all"
+                    className="px-5 py-2.5 rounded-full bg-[#34451D] hover:bg-[#20231B] text-white text-xs font-medium shadow-sm transition-all"
                   >
                     {ticketStatus === 'submitting' ? 'Submitting...' : 'Send Inquiry'}
                   </button>
@@ -1930,18 +2032,18 @@ export default function StorefrontPage() {
           />
 
           {/* Drawer Content */}
-          <div className="relative w-full max-w-md bg-[#efead5] border-l border-[#CDD3B5] h-full shadow-2xl flex flex-col p-4 sm:p-6 z-10 overflow-y-auto">
-            <div className="flex items-center justify-between pb-4 border-b border-[#CDD3B5]">
+          <div className="relative w-full max-w-md bg-white border-l border-[#E2E7D8] h-full shadow-2xl flex flex-col p-4 sm:p-6 z-10 overflow-y-auto">
+            <div className="flex items-center justify-between pb-4 border-b border-[#E2E7D8]">
               <div className="flex items-center gap-2">
                 <ShoppingCart className="w-5 h-5 text-[#34451D]" />
                 <h3 className="font-normal font-display text-[#20231B] text-lg">Your Bag</h3>
-                <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#efead5] text-[#34451D] border border-[#CDD3B5]/70 font-mono font-medium">
+                <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#F0F4E8] text-[#34451D] border border-[#E2E7D8] font-mono font-medium">
                   {cart.reduce((s, i) => s + i.quantity, 0)}
                 </span>
               </div>
               <button 
                 onClick={() => setIsCartOpen(false)}
-                className="p-1.5 rounded-full hover:bg-[#efead5] text-[#85887A]"
+                className="p-1.5 rounded-full hover:bg-[#F0F4E8] text-[#85887A]"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1951,19 +2053,19 @@ export default function StorefrontPage() {
             <div className="flex-1 py-4 space-y-3 overflow-y-auto">
               {cart.length === 0 ? (
                 <div className="text-center py-16 text-[#85887A] space-y-2">
-                  <ShoppingCart className="w-10 h-10 mx-auto text-[#CDD3B5] stroke-1" />
+                  <ShoppingCart className="w-10 h-10 mx-auto text-[#E2E7D8] stroke-1" />
                   <p className="text-xs">Your shopping bag is empty.</p>
                 </div>
               ) : (
                 cart.map(item => (
-                  <div key={item.book.id} className="p-4 rounded-2xl bg-[#efead5] border border-[#CDD3B5] flex items-center justify-between gap-3">
+                  <div key={item.book.id} className="p-4 rounded-2xl bg-[#F8F9F5] border border-[#E2E7D8] flex items-center justify-between gap-3">
                     <div className="flex-1 min-w-0">
                       <h4 className="text-xs font-semibold text-[#20231B] truncate">{item.book.title}</h4>
                       <p className="text-[11px] font-mono text-[#596B32] font-medium mt-0.5">LKR {item.book.price.toFixed(2)} each</p>
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <div className="flex items-center border border-[#CDD3B5] rounded-full bg-[#efead5]">
+                      <div className="flex items-center border border-[#E2E7D8] rounded-full bg-white">
                         <button 
                           onClick={() => updateQuantity(item.book.id, -1)}
                           className="p-1.5 hover:text-[#20231B] text-[#85887A]"
@@ -1993,18 +2095,18 @@ export default function StorefrontPage() {
 
             {/* Promo Code Input */}
             {cart.length > 0 && (
-              <div className="pt-4 border-t border-[#CDD3B5] space-y-2">
+              <div className="pt-4 border-t border-[#E2E7D8] space-y-2">
                 <div className="flex gap-2">
                   <input
                     type="text"
                     value={promoCode}
                     onChange={(e) => setPromoCode(e.target.value)}
                     placeholder="Coupon (e.g. WELCOME10)"
-                    className="flex-1 px-3.5 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-xs text-[#20231B] focus:outline-none focus:border-[#596B32] uppercase font-mono"
+                    className="flex-1 px-3.5 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs text-[#20231B] focus:outline-none focus:border-[#596B32] uppercase font-mono"
                   />
                   <button
                     onClick={applyPromo}
-                    className="px-4 py-2 rounded-xl bg-[#34451D] text-[#efead5] text-xs font-medium hover:bg-[#20231B] transition-all"
+                    className="px-4 py-2 rounded-xl bg-[#34451D] text-white text-xs font-medium hover:bg-[#20231B] transition-all"
                   >
                     Apply
                   </button>
@@ -2021,7 +2123,7 @@ export default function StorefrontPage() {
 
             {/* Checkout Total */}
             {cart.length > 0 && (
-              <div className="pt-4 border-t border-[#CDD3B5] space-y-2">
+              <div className="pt-4 border-t border-[#E2E7D8] space-y-2">
                 <div className="flex justify-between text-xs text-[#85887A]">
                   <span>Subtotal</span>
                   <span className="font-mono">LKR {subtotal.toFixed(2)}</span>
@@ -2032,14 +2134,14 @@ export default function StorefrontPage() {
                     <span className="font-mono">- LKR {discountAmount.toFixed(2)}</span>
                   </div>
                 )}
-                <div className="flex justify-between text-sm font-semibold text-[#20231B] pt-2 border-t border-[#CDD3B5]">
+                <div className="flex justify-between text-sm font-semibold text-[#20231B] pt-2 border-t border-[#E2E7D8]">
                   <span>Total Due</span>
                   <span className="font-mono">LKR {total.toFixed(2)}</span>
                 </div>
 
                 <button
-                  onClick={() => alert(`Order placed successfully for LKR ${total.toFixed(2)}! Dispatched via Module M6 & Payment recorded in Module M2.`)}
-                  className="w-full mt-3 py-3 rounded-full bg-[#34451D] hover:bg-[#20231B] text-[#efead5] font-medium text-xs shadow-md transition-all flex items-center justify-center gap-2"
+                  onClick={handleProceedToCheckout}
+                  className="w-full mt-3 py-3 rounded-full bg-[#34451D] hover:bg-[#20231B] text-white font-medium text-xs shadow-md transition-all flex items-center justify-center gap-2 active:scale-95"
                 >
                   <span>Proceed to Checkout</span>
                   <ArrowRight className="w-4 h-4" />
@@ -2050,8 +2152,374 @@ export default function StorefrontPage() {
         </div>
       )}
 
+      {/* ── CHECKOUT MODAL (MULTI-STEP) ──────────────────────────────────── */}
+      {isCheckoutOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="relative w-full max-w-xl bg-white rounded-3xl border border-[#E2E7D8] shadow-2xl max-h-[92vh] overflow-y-auto">
+            {/* Header */}
+            <div className="flex items-center justify-between p-5 sm:p-7 border-b border-[#E2E7D8]">
+              <div>
+                <span className="text-[10px] font-mono uppercase text-[#596B32] font-semibold tracking-wider block">
+                  {checkoutStep === 'shipping' ? 'Step 1 of 2 · Delivery Details' : checkoutStep === 'payment' ? 'Step 2 of 2 · Secure Payment' : '✓ Order Confirmed'}
+                </span>
+                <h3 className="font-display font-normal text-xl text-[#20231B] mt-0.5">
+                  {checkoutStep === 'shipping' ? 'Shipping Information' : checkoutStep === 'payment' ? 'Payment Details' : 'Order Placed Successfully!'}
+                </h3>
+              </div>
+              {checkoutStep !== 'success' && (
+                <button onClick={() => { setIsCheckoutOpen(false); setCheckoutStep('shipping'); }} className="p-1.5 rounded-full hover:bg-[#F0F4E8] text-[#85887A] transition-colors">
+                  <X className="w-5 h-5" />
+                </button>
+              )}
+            </div>
+
+            {/* Progress Bar */}
+            {checkoutStep !== 'success' && (
+              <div className="px-5 sm:px-7 pt-4">
+                <div className="h-1.5 bg-[#F0F4E8] rounded-full overflow-hidden">
+                  <div className={`h-full bg-[#34451D] rounded-full transition-all duration-500 ${checkoutStep === 'shipping' ? 'w-1/2' : 'w-full'}`} />
+                </div>
+              </div>
+            )}
+
+            <div className="p-5 sm:p-7">
+              {/* STEP 1: SHIPPING */}
+              {checkoutStep === 'shipping' && (
+                <form onSubmit={handleShippingSubmit} className="space-y-4 text-xs">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[#85887A] font-medium mb-1">Full Name *</label>
+                      <input required value={shippingForm.fullName} onChange={e => setShippingForm({...shippingForm, fullName: e.target.value})}
+                        placeholder="e.g. Kasun Perera" className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:bg-white focus:outline-none focus:border-[#596B32]" />
+                    </div>
+                    <div>
+                      <label className="block text-[#85887A] font-medium mb-1">Email Address *</label>
+                      <input required type="email" value={shippingForm.email} onChange={e => setShippingForm({...shippingForm, email: e.target.value})}
+                        placeholder="you@email.com" className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:bg-white focus:outline-none focus:border-[#596B32]" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[#85887A] font-medium mb-1">Mobile / WhatsApp *</label>
+                    <input required value={shippingForm.phone} onChange={e => setShippingForm({...shippingForm, phone: e.target.value})}
+                      placeholder="+94 7X XXX XXXX" className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:bg-white focus:outline-none focus:border-[#596B32]" />
+                  </div>
+                  <div>
+                    <label className="block text-[#85887A] font-medium mb-1">Street Address *</label>
+                    <input required value={shippingForm.address} onChange={e => setShippingForm({...shippingForm, address: e.target.value})}
+                      placeholder="No. 12, Galle Road, Dehiwala" className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:bg-white focus:outline-none focus:border-[#596B32]" />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-[#85887A] font-medium mb-1">City *</label>
+                      <input required value={shippingForm.city} onChange={e => setShippingForm({...shippingForm, city: e.target.value})}
+                        placeholder="Colombo" className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:bg-white focus:outline-none focus:border-[#596B32]" />
+                    </div>
+                    <div>
+                      <label className="block text-[#85887A] font-medium mb-1">District *</label>
+                      <select value={shippingForm.district} onChange={e => setShippingForm({...shippingForm, district: e.target.value})}
+                        className="w-full px-3 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:bg-white focus:outline-none focus:border-[#596B32]">
+                        {['Colombo','Gampaha','Kalutara','Kandy','Matale','Nuwara Eliya','Galle','Matara','Hambantota','Jaffna','Kilinochchi','Mannar','Mullaitivu','Vavuniya','Puttalam','Kurunegala','Anuradhapura','Polonnaruwa','Badulla','Monaragala','Ratnapura','Kegalle','Trincomalee','Batticaloa','Ampara'].map(d => (
+                          <option key={d} value={d}>{d}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[#85887A] font-medium mb-1">Postal Code</label>
+                      <input value={shippingForm.postalCode} onChange={e => setShippingForm({...shippingForm, postalCode: e.target.value})}
+                        placeholder="00300" className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:bg-white focus:outline-none focus:border-[#596B32]" />
+                    </div>
+                  </div>
+                  {/* Order Summary in shipping step */}
+                  <div className="p-4 rounded-2xl bg-[#F0F4E8] border border-[#E2E7D8] space-y-2">
+                    <p className="text-[#34451D] font-semibold text-xs mb-2">Order Summary</p>
+                    {cart.map(i => (
+                      <div key={i.book.id} className="flex justify-between text-[11px] text-[#85887A]">
+                        <span className="truncate mr-2">{i.book.title} × {i.quantity}</span>
+                        <span className="font-mono shrink-0">LKR {(i.book.price * i.quantity).toFixed(2)}</span>
+                      </div>
+                    ))}
+                    {promoApplied && <div className="flex justify-between text-[11px] text-[#596B32] font-medium"><span>Discount</span><span className="font-mono">- LKR {discountAmount.toFixed(2)}</span></div>}
+                    <div className="flex justify-between text-xs font-semibold text-[#20231B] pt-1 border-t border-[#E2E7D8]"><span>Total</span><span className="font-mono">LKR {total.toFixed(2)}</span></div>
+                  </div>
+                  <div className="flex justify-end gap-2 pt-2">
+                    <button type="button" onClick={() => setIsCheckoutOpen(false)} className="px-4 py-2.5 rounded-full border border-[#E2E7D8] text-[#85887A] text-xs font-medium hover:bg-[#F0F4E8]">Cancel</button>
+                    <button type="submit" className="px-6 py-2.5 rounded-full bg-[#34451D] hover:bg-[#20231B] text-white text-xs font-medium shadow-md transition-all active:scale-95">Continue to Payment →</button>
+                  </div>
+                </form>
+              )}
+
+              {/* STEP 2: PAYMENT */}
+              {checkoutStep === 'payment' && (
+                <form onSubmit={handlePaymentSubmit} className="space-y-4 text-xs">
+                  <div>
+                    <label className="block text-[#85887A] font-medium mb-2">Payment Method *</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {(['CREDIT_CARD', 'DEBIT_CARD', 'BANK_TRANSFER', 'CASH_ON_DELIVERY'] as const).map(m => (
+                        <button key={m} type="button" onClick={() => setPaymentForm({...paymentForm, method: m})}
+                          className={`p-3 rounded-xl border text-xs font-medium transition-all ${
+                            paymentForm.method === m ? 'border-[#34451D] bg-[#34451D] text-white' : 'border-[#E2E7D8] bg-white text-[#20231B] hover:border-[#596B32]'
+                          }`}>
+                          {m === 'CREDIT_CARD' ? '💳 Credit Card' : m === 'DEBIT_CARD' ? '🏧 Debit Card' : m === 'BANK_TRANSFER' ? '🏦 Bank Transfer' : '💵 Cash on Delivery'}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {paymentForm.method !== 'CASH_ON_DELIVERY' && paymentForm.method !== 'BANK_TRANSFER' && (
+                    <>
+                      <div>
+                        <label className="block text-[#85887A] font-medium mb-1">Card Number *</label>
+                        <input required maxLength={19} value={paymentForm.cardNumber}
+                          onChange={e => setPaymentForm({...paymentForm, cardNumber: e.target.value.replace(/\D/g,'').replace(/(\d{4})/g,'$1 ').trim()})}
+                          placeholder="1234 5678 9012 3456" className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] font-mono focus:bg-white focus:outline-none focus:border-[#596B32]" />
+                      </div>
+                      <div>
+                        <label className="block text-[#85887A] font-medium mb-1">Cardholder Name *</label>
+                        <input required value={paymentForm.cardHolder} onChange={e => setPaymentForm({...paymentForm, cardHolder: e.target.value})}
+                          placeholder="KASUN PERERA" className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] uppercase focus:bg-white focus:outline-none focus:border-[#596B32]" />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-[#85887A] font-medium mb-1">Expiry Date *</label>
+                          <input required maxLength={5} value={paymentForm.expiry}
+                            onChange={e => setPaymentForm({...paymentForm, expiry: e.target.value.replace(/\D/g,'').replace(/(\d{2})/,'$1/').slice(0,5)})}
+                            placeholder="MM/YY" className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] font-mono focus:bg-white focus:outline-none focus:border-[#596B32]" />
+                        </div>
+                        <div>
+                          <label className="block text-[#85887A] font-medium mb-1">CVV *</label>
+                          <input required type="password" maxLength={4} value={paymentForm.cvv} onChange={e => setPaymentForm({...paymentForm, cvv: e.target.value.replace(/\D/g,'')})}
+                            placeholder="•••" className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] font-mono focus:bg-white focus:outline-none focus:border-[#596B32]" />
+                        </div>
+                      </div>
+                    </>
+                  )}
+                  {paymentForm.method === 'BANK_TRANSFER' && (
+                    <div className="p-4 rounded-2xl bg-[#F0F4E8] border border-[#E2E7D8] text-xs text-[#34451D] space-y-1">
+                      <p className="font-semibold">Bank Transfer Details:</p>
+                      <p>Bank: Commercial Bank of Ceylon</p>
+                      <p>Account: 1234567890 · Branch: Colombo Fort</p>
+                      <p>Reference: Your order ID (provided after confirmation)</p>
+                    </div>
+                  )}
+                  {paymentForm.method === 'CASH_ON_DELIVERY' && (
+                    <div className="p-4 rounded-2xl bg-[#F0F4E8] border border-[#E2E7D8] text-xs text-[#34451D]">
+                      <p className="font-semibold">Cash on Delivery Selected</p>
+                      <p className="mt-1 text-[#85887A]">Our delivery partner will collect LKR {total.toFixed(2)} at your doorstep. Exact change appreciated.</p>
+                    </div>
+                  )}
+                  {/* Final total */}
+                  <div className="p-4 rounded-2xl bg-[#34451D] text-white flex justify-between items-center">
+                    <span className="text-xs font-medium">Total Payable</span>
+                    <span className="text-lg font-mono font-light">LKR {total.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between gap-2 pt-2">
+                    <button type="button" onClick={() => setCheckoutStep('shipping')} className="px-4 py-2.5 rounded-full border border-[#E2E7D8] text-[#85887A] text-xs font-medium hover:bg-[#F0F4E8]">← Back</button>
+                    <button type="submit" disabled={checkoutProcessing} className="px-6 py-2.5 rounded-full bg-[#34451D] hover:bg-[#20231B] text-white text-xs font-medium shadow-md transition-all active:scale-95 disabled:opacity-60 flex items-center gap-2">
+                      {checkoutProcessing ? <><span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />Processing...</> : <><Shield className="w-3.5 h-3.5" />Confirm & Pay LKR {total.toFixed(2)}</>}
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {/* STEP 3: SUCCESS + INVOICE */}
+              {checkoutStep === 'success' && orderInvoice && (
+                <div className="space-y-6 text-center">
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="w-16 h-16 rounded-full bg-[#34451D] flex items-center justify-center">
+                      <CheckCircle2 className="w-8 h-8 text-[#B7D85A]" />
+                    </div>
+                    <h4 className="font-display text-lg font-normal text-[#20231B]">Payment Successful!</h4>
+                    <p className="text-xs text-[#85887A] max-w-sm">Your order has been placed. A confirmation email has been sent to <strong className="text-[#34451D]">{orderInvoice.email}</strong></p>
+                  </div>
+
+                  {/* Invoice Preview */}
+                  <div className="text-left p-5 rounded-2xl bg-[#F0F4E8] border border-[#E2E7D8] space-y-3 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="font-mono text-[10px] text-[#596B32] font-semibold tracking-wider uppercase">Invoice</span>
+                      <span className="font-mono text-[#34451D] font-bold">{orderInvoice.invoiceNo}</span>
+                    </div>
+                    <div className="space-y-1 text-[11px]">
+                      {orderInvoice.items.map(i => (
+                        <div key={i.title} className="flex justify-between text-[#85887A]">
+                          <span className="truncate mr-2">{i.title} × {i.qty}</span>
+                          <span className="font-mono shrink-0">LKR {(i.price * i.qty).toFixed(2)}</span>
+                        </div>
+                      ))}
+                    </div>
+                    {orderInvoice.discount > 0 && (
+                      <div className="flex justify-between text-[11px] text-[#596B32] font-medium">
+                        <span>Discount</span><span className="font-mono">- LKR {orderInvoice.discount.toFixed(2)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between font-semibold text-[#20231B] pt-2 border-t border-[#E2E7D8]">
+                      <span>Total Paid</span><span className="font-mono">LKR {orderInvoice.total.toFixed(2)}</span>
+                    </div>
+                    <p className="text-[10px] text-[#85887A]">Date: {orderInvoice.date} · Payment: {orderInvoice.paymentMethod}</p>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <button onClick={() => handleDownloadInvoice(orderInvoice)}
+                      className="flex-1 py-2.5 rounded-full border border-[#34451D] text-[#34451D] text-xs font-medium hover:bg-[#F0F4E8] transition-all flex items-center justify-center gap-2">
+                      <ArrowUpRight className="w-3.5 h-3.5" />Download Invoice (.txt)
+                    </button>
+                    <button onClick={() => { setIsCheckoutOpen(false); setCheckoutStep('shipping'); setOrderInvoice(null); }}
+                      className="flex-1 py-2.5 rounded-full bg-[#34451D] hover:bg-[#20231B] text-white text-xs font-medium shadow-md transition-all">
+                      Continue Shopping
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MEMBERSHIP PURCHASE MODAL ─────────────────────────────────────── */}
+      {isMembershipModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="relative w-full max-w-xl bg-white rounded-3xl border border-[#E2E7D8] shadow-2xl max-h-[92vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-5 sm:p-7 border-b border-[#E2E7D8]">
+              <div>
+                <span className="text-[10px] font-mono uppercase text-[#596B32] font-semibold tracking-wider block">Sarasavi Pages Membership</span>
+                <h3 className="font-display font-normal text-xl text-[#20231B] mt-0.5">
+                  {membershipStep === 'select' ? 'Choose Your Plan' : membershipStep === 'payment' ? 'Complete Payment' : 'Membership Activated!'}
+                </h3>
+                {userMembership && membershipStep === 'select' && (
+                  <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full bg-[#34451D] text-[#B7D85A] text-[10px] font-mono">
+                    <CheckCircle2 className="w-3 h-3" /> Active: {MEMBERSHIP_PLANS.find(p => p.id === userMembership)?.label}
+                  </span>
+                )}
+              </div>
+              {membershipStep !== 'success' && (
+                <button onClick={() => { setIsMembershipModalOpen(false); setMembershipStep('select'); }} className="p-1.5 rounded-full hover:bg-[#F0F4E8] text-[#85887A]">
+                  <X className="w-5 h-5" />
+                </button>
+              )}
+            </div>
+
+            <div className="p-5 sm:p-7 space-y-5">
+              {membershipStep === 'select' && (
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {MEMBERSHIP_PLANS.map(plan => (
+                      <div key={plan.id}
+                        onClick={() => setSelectedMembershipPlan(plan)}
+                        className={`p-5 rounded-2xl border-2 cursor-pointer transition-all ${
+                          selectedMembershipPlan.id === plan.id ? 'border-[#34451D] bg-[#34451D] text-white' : 'border-[#E2E7D8] bg-white hover:border-[#596B32]'
+                        }`}>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className={`text-xs font-mono font-semibold ${selectedMembershipPlan.id === plan.id ? 'text-[#B7D85A]' : 'text-[#596B32]'}`}>{plan.duration}</span>
+                          {selectedMembershipPlan.id === plan.id && <Check className="w-4 h-4 text-[#B7D85A]" />}
+                        </div>
+                        <h4 className={`font-display text-base font-normal ${selectedMembershipPlan.id === plan.id ? 'text-white' : 'text-[#20231B]'}`}>{plan.label}</h4>
+                        <p className={`text-2xl font-light font-mono mt-1 ${selectedMembershipPlan.id === plan.id ? 'text-[#B7D85A]' : 'text-[#34451D]'}`}>LKR {plan.price.toFixed(0)}</p>
+                        <ul className={`mt-3 space-y-1.5 text-[11px] ${selectedMembershipPlan.id === plan.id ? 'text-[#E2E7D8]' : 'text-[#85887A]'}`}>
+                          {plan.benefits.map(b => (
+                            <li key={b} className="flex items-center gap-1.5">
+                              <Check className={`w-3 h-3 shrink-0 ${selectedMembershipPlan.id === plan.id ? 'text-[#B7D85A]' : 'text-[#596B32]'}`} />
+                              {b}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex justify-between gap-2">
+                    <button onClick={() => setIsMembershipModalOpen(false)} className="px-4 py-2.5 rounded-full border border-[#E2E7D8] text-[#85887A] text-xs font-medium hover:bg-[#F0F4E8]">Maybe Later</button>
+                    <button onClick={() => setMembershipStep('payment')} className="px-6 py-2.5 rounded-full bg-[#34451D] hover:bg-[#20231B] text-white text-xs font-medium shadow-md transition-all active:scale-95">
+                      Get {selectedMembershipPlan.label} — LKR {selectedMembershipPlan.price} →
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {membershipStep === 'payment' && (
+                <form onSubmit={handleMembershipPayment} className="space-y-4 text-xs">
+                  <div className="p-4 rounded-2xl bg-[#F0F4E8] border border-[#E2E7D8] flex justify-between items-center">
+                    <span className="text-[#34451D] font-medium text-xs">{selectedMembershipPlan.label} · {selectedMembershipPlan.duration}</span>
+                    <span className="font-mono font-semibold text-[#20231B]">LKR {selectedMembershipPlan.price.toFixed(2)}</span>
+                  </div>
+                  <div>
+                    <label className="block text-[#85887A] font-medium mb-2">Payment Method *</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {(['CREDIT_CARD', 'DEBIT_CARD', 'BANK_TRANSFER'] as const).map(m => (
+                        <button key={m} type="button" onClick={() => setMembershipPaymentForm({...membershipPaymentForm, method: m})}
+                          className={`p-2.5 rounded-xl border text-[11px] font-medium transition-all ${
+                            membershipPaymentForm.method === m ? 'border-[#34451D] bg-[#34451D] text-white' : 'border-[#E2E7D8] bg-white text-[#20231B] hover:border-[#596B32]'
+                          }`}>
+                          {m === 'CREDIT_CARD' ? '💳 Credit' : m === 'DEBIT_CARD' ? '🏧 Debit' : '🏦 Bank'}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  {membershipPaymentForm.method !== 'BANK_TRANSFER' && (
+                    <>
+                      <div>
+                        <label className="block text-[#85887A] font-medium mb-1">Card Number *</label>
+                        <input required maxLength={19} value={membershipPaymentForm.cardNumber}
+                          onChange={e => setMembershipPaymentForm({...membershipPaymentForm, cardNumber: e.target.value.replace(/\D/g,'').replace(/(\d{4})/g,'$1 ').trim()})}
+                          placeholder="1234 5678 9012 3456" className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] font-mono focus:outline-none focus:border-[#596B32] focus:bg-white" />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-[#85887A] font-medium mb-1">Expiry *</label>
+                          <input required maxLength={5} value={membershipPaymentForm.expiry}
+                            onChange={e => setMembershipPaymentForm({...membershipPaymentForm, expiry: e.target.value.replace(/\D/g,'').replace(/(\d{2})/,'$1/').slice(0,5)})}
+                            placeholder="MM/YY" className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] font-mono text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-white" />
+                        </div>
+                        <div>
+                          <label className="block text-[#85887A] font-medium mb-1">CVV *</label>
+                          <input required type="password" maxLength={4} value={membershipPaymentForm.cvv}
+                            onChange={e => setMembershipPaymentForm({...membershipPaymentForm, cvv: e.target.value.replace(/\D/g,'')})}
+                            placeholder="•••" className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] font-mono text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-white" />
+                        </div>
+                      </div>
+                    </>
+                  )}
+                  <div className="flex justify-between gap-2 pt-2">
+                    <button type="button" onClick={() => setMembershipStep('select')} className="px-4 py-2.5 rounded-full border border-[#E2E7D8] text-[#85887A] text-xs font-medium hover:bg-[#F0F4E8]">← Back</button>
+                    <button type="submit" disabled={membershipProcessing} className="px-6 py-2.5 rounded-full bg-[#34451D] hover:bg-[#20231B] text-white text-xs font-medium shadow-md transition-all active:scale-95 disabled:opacity-60 flex items-center gap-2">
+                      {membershipProcessing ? <><span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />Processing...</> : <><Shield className="w-3.5 h-3.5" />Pay LKR {selectedMembershipPlan.price}</>}
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {membershipStep === 'success' && membershipInvoice && (
+                <div className="space-y-5 text-center">
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="w-16 h-16 rounded-full bg-[#34451D] flex items-center justify-center">
+                      <Award className="w-8 h-8 text-[#B7D85A]" />
+                    </div>
+                    <h4 className="font-display text-lg font-normal text-[#20231B]">Membership Activated!</h4>
+                    <p className="text-xs text-[#85887A] max-w-sm">Welcome to <strong className="text-[#34451D]">{membershipInvoice.plan}</strong>. Your benefits are now active for {membershipInvoice.duration}.</p>
+                  </div>
+                  <div className="text-left p-5 rounded-2xl bg-[#F0F4E8] border border-[#E2E7D8] space-y-2 text-xs">
+                    <div className="flex justify-between"><span className="text-[#85887A]">Invoice No</span><span className="font-mono text-[#34451D] font-bold">{membershipInvoice.invoiceNo}</span></div>
+                    <div className="flex justify-between"><span className="text-[#85887A]">Plan</span><span className="font-medium text-[#20231B]">{membershipInvoice.plan}</span></div>
+                    <div className="flex justify-between"><span className="text-[#85887A]">Duration</span><span className="text-[#20231B]">{membershipInvoice.duration}</span></div>
+                    <div className="flex justify-between font-semibold text-[#20231B] pt-1 border-t border-[#E2E7D8]"><span>Amount Paid</span><span className="font-mono">LKR {membershipInvoice.price.toFixed(2)}</span></div>
+                    <p className="text-[10px] text-[#85887A]">{membershipInvoice.date}</p>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <button onClick={() => handleDownloadMembershipInvoice(membershipInvoice)}
+                      className="flex-1 py-2.5 rounded-full border border-[#34451D] text-[#34451D] text-xs font-medium hover:bg-[#F0F4E8] transition-all flex items-center justify-center gap-2">
+                      <ArrowUpRight className="w-3.5 h-3.5" />Download Invoice (.txt)
+                    </button>
+                    <button onClick={() => { setIsMembershipModalOpen(false); setMembershipStep('select'); }}
+                      className="flex-1 py-2.5 rounded-full bg-[#34451D] hover:bg-[#20231B] text-white text-xs font-medium shadow-md transition-all">
+                      Done
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── GRAND EDITORIAL FOOTER (LUMÓRA SIGNATURE FOOTER) ───── */}
-      <footer className="w-full bg-[#20231B] text-[#efead5] pt-16 pb-12 px-6 sm:px-12 mt-20 border-t border-[#34451D]">
+      <footer className="w-full bg-[#20231B] text-white pt-16 pb-12 px-6 sm:px-12 mt-20 border-t border-[#34451D]">
         <div className="max-w-7xl mx-auto space-y-16">
           
           {/* Top Inquiries & Quick Links */}
@@ -2060,31 +2528,31 @@ export default function StorefrontPage() {
               <span className="text-[11px] font-mono uppercase tracking-widest text-[#B7D85A] block">Direct Inquiries</span>
               <a 
                 href="mailto:curator@sarasavipages.lk" 
-                className="text-xl sm:text-2xl font-display font-light text-[#efead5] hover:text-[#B7D85A] transition-colors underline underline-offset-8"
+                className="text-xl sm:text-2xl font-display font-light text-white hover:text-[#B7D85A] transition-colors underline underline-offset-8"
               >
                 curator@sarasavipages.lk
               </a>
-              <p className="text-xs text-[#CDD3B5] max-w-sm leading-relaxed">
+              <p className="text-xs text-[#E2E7D8] max-w-sm leading-relaxed">
                 For rare manuscript acquisitions, university academic bulk lending, and Sri Lankan publisher distribution partnerships.
               </p>
             </div>
 
             <div className="md:col-span-3 space-y-3 text-xs">
               <span className="text-[11px] font-mono uppercase tracking-widest text-[#B7D85A] block">Navigation</span>
-              <ul className="space-y-2 text-[#CDD3B5]">
-                <li><button onClick={() => { setActiveNavTab('books'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-[#efead5] transition-colors">Literary Catalog</button></li>
-                <li><button onClick={() => { setActiveNavTab('writers'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-[#efead5] transition-colors">Authors & Pantheon</button></li>
-                <li><button onClick={() => { setActiveNavTab('rentals'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-[#efead5] transition-colors">Student Lending Tiers</button></li>
-                <li><button onClick={() => { setActiveNavTab('about'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-[#efead5] transition-colors">SLIIT Project & Heritage</button></li>
+              <ul className="space-y-2 text-[#E2E7D8]">
+                <li><button onClick={() => { setActiveNavTab('books'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-white transition-colors">Literary Catalog</button></li>
+                <li><button onClick={() => { setActiveNavTab('writers'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-white transition-colors">Authors & Pantheon</button></li>
+                <li><button onClick={() => { setActiveNavTab('rentals'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-white transition-colors">Student Lending Tiers</button></li>
+                <li><button onClick={() => { setActiveNavTab('about'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="hover:text-white transition-colors">SLIIT Project & Heritage</button></li>
               </ul>
             </div>
 
             <div className="md:col-span-3 space-y-3 text-xs">
               <span className="text-[11px] font-mono uppercase tracking-widest text-[#B7D85A] block">Administration</span>
-              <ul className="space-y-2 text-[#CDD3B5]">
-                <li><Link href="/login" className="hover:text-[#efead5] transition-colors">Staff / Admin Login</Link></li>
-                <li><Link href="/admin/dashboard" className="hover:text-[#efead5] transition-colors">M1 Staff Management</Link></li>
-                <li><button onClick={() => setIsTicketModalOpen(true)} className="hover:text-[#efead5] transition-colors">M3 Support Desk</button></li>
+              <ul className="space-y-2 text-[#E2E7D8]">
+                <li><Link href="/login" className="hover:text-white transition-colors">Staff / Admin Login</Link></li>
+                <li><Link href="/admin/dashboard" className="hover:text-white transition-colors">M1 Staff Management</Link></li>
+                <li><button onClick={() => setIsTicketModalOpen(true)} className="hover:text-white transition-colors">M3 Support Desk</button></li>
                 <li><span className="text-[#85887A]">Colombo, Sri Lanka</span></li>
               </ul>
             </div>
@@ -2092,7 +2560,7 @@ export default function StorefrontPage() {
 
           {/* Monumental Giant Brand Typography */}
           <div className="overflow-hidden">
-            <h2 className="text-6xl sm:text-9xl lg:text-[130px] font-reina font-light tracking-tight text-[#efead5]/90 leading-none select-none lowercase">
+            <h2 className="text-6xl sm:text-9xl lg:text-[130px] font-reina font-light tracking-tight text-white/90 leading-none select-none lowercase">
               sarasavi pages<span className="text-2xl sm:text-5xl lg:text-6xl font-light text-[#B7D85A]/60 align-top">®</span>
             </h2>
           </div>
@@ -2108,16 +2576,16 @@ export default function StorefrontPage() {
       {/* ── MODAL: ADD NEW BOOK TO CATALOG ────────────────────────────── */}
       {isAddBookModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-[#efead5] rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-[#CDD3B5] shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-start justify-between border-b border-[#CDD3B5] pb-4">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-[#E2E7D8] shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-start justify-between border-b border-[#E2E7D8] pb-4">
               <div>
                 <span className="text-[11px] font-mono uppercase text-[#596B32] tracking-wider font-semibold block">Bookstore Catalog Management</span>
-                <h3 className="font-display font-normal text-xl sm:text-2xl text-[#20231B] mt-0.5">Register New Book</h3>
-                <p className="text-xs text-[#85887A] mt-1">Add a canonical or academic volume to the Sarasavi Pages public archive</p>
+                <h3 className="font-display font-medium text-xl sm:text-2xl text-[#20231B] mt-0.5">Register New Book</h3>
+                <p className="text-xs text-[#7B806B] mt-1">Add a canonical or academic volume to the Sarasavi Pages public archive</p>
               </div>
               <button
                 onClick={() => setIsAddBookModalOpen(false)}
-                className="p-1.5 rounded-full hover:bg-[#efead5] text-[#85887A] transition-colors"
+                className="p-1.5 rounded-full hover:bg-[#F0F4E8] text-[#85887A] transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -2132,7 +2600,7 @@ export default function StorefrontPage() {
                   placeholder="e.g. Madol Doova or Clean Architecture"
                   value={newBookForm.title}
                   onChange={e => setNewBookForm({ ...newBookForm, title: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-[#CDD3B5] text-xs text-[#20231B] focus:outline-none focus:border-[#596B32] bg-[#efead5]"
+                  className="w-full px-4 py-2.5 rounded-xl border border-[#E2E7D8] text-xs text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-white bg-[#F8F9F5]"
                 />
               </div>
 
@@ -2145,7 +2613,7 @@ export default function StorefrontPage() {
                     placeholder="e.g. Martin Wickramasinghe"
                     value={newBookForm.author}
                     onChange={e => setNewBookForm({ ...newBookForm, author: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#CDD3B5] text-xs text-[#20231B] focus:outline-none focus:border-[#596B32] bg-[#efead5]"
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#E2E7D8] text-xs text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-white bg-[#F8F9F5]"
                   />
                 </div>
 
@@ -2154,7 +2622,7 @@ export default function StorefrontPage() {
                   <select
                     value={newBookForm.category}
                     onChange={e => setNewBookForm({ ...newBookForm, category: e.target.value })}
-                    className="w-full px-3 py-2.5 rounded-xl border border-[#CDD3B5] text-xs text-[#20231B] focus:outline-none focus:border-[#596B32] bg-[#efead5]"
+                    className="w-full px-3 py-2.5 rounded-xl border border-[#E2E7D8] text-xs text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-white bg-[#F8F9F5]"
                   >
                     <option value="Classic Fiction">Classic Fiction</option>
                     <option value="Literature">Literature</option>
@@ -2178,7 +2646,7 @@ export default function StorefrontPage() {
                     required
                     value={newBookForm.price}
                     onChange={e => setNewBookForm({ ...newBookForm, price: Number(e.target.value) })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#CDD3B5] text-xs font-mono text-[#20231B] focus:outline-none focus:border-[#596B32] bg-[#efead5]"
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#E2E7D8] text-xs font-mono text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-white bg-[#F8F9F5]"
                   />
                 </div>
 
@@ -2189,7 +2657,7 @@ export default function StorefrontPage() {
                     min="0"
                     value={newBookForm.stockQuantity}
                     onChange={e => setNewBookForm({ ...newBookForm, stockQuantity: Number(e.target.value) })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#CDD3B5] text-xs font-mono text-[#20231B] focus:outline-none focus:border-[#596B32] bg-[#efead5]"
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#E2E7D8] text-xs font-mono text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-white bg-[#F8F9F5]"
                   />
                 </div>
 
@@ -2199,7 +2667,7 @@ export default function StorefrontPage() {
                     type="text"
                     value={newBookForm.isbn}
                     onChange={e => setNewBookForm({ ...newBookForm, isbn: e.target.value })}
-                    className="w-full px-3 py-2.5 rounded-xl border border-[#CDD3B5] text-xs font-mono text-[#20231B] focus:outline-none focus:border-[#596B32] bg-[#efead5]"
+                    className="w-full px-3 py-2.5 rounded-xl border border-[#E2E7D8] text-xs font-mono text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-white bg-[#F8F9F5]"
                   />
                 </div>
               </div>
@@ -2211,7 +2679,7 @@ export default function StorefrontPage() {
                   placeholder="https://images.unsplash.com/..."
                   value={newBookForm.coverImage}
                   onChange={e => setNewBookForm({ ...newBookForm, coverImage: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-[#CDD3B5] text-xs font-mono text-[#20231B] focus:outline-none focus:border-[#596B32] bg-[#efead5]"
+                  className="w-full px-4 py-2.5 rounded-xl border border-[#E2E7D8] text-xs font-mono text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-white bg-[#F8F9F5]"
                 />
               </div>
 
@@ -2222,21 +2690,21 @@ export default function StorefrontPage() {
                   placeholder="Summary of novel or textbook curriculum..."
                   value={newBookForm.description}
                   onChange={e => setNewBookForm({ ...newBookForm, description: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-[#CDD3B5] text-xs text-[#20231B] focus:outline-none focus:border-[#596B32] bg-[#efead5]"
+                  className="w-full px-4 py-2.5 rounded-xl border border-[#E2E7D8] text-xs text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-white bg-[#F8F9F5]"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#CDD3B5]">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#E2E7D8]">
                 <button
                   type="button"
                   onClick={() => setIsAddBookModalOpen(false)}
-                  className="px-4 py-2.5 rounded-full border border-[#CDD3B5] text-xs font-medium text-[#85887A] hover:bg-[#efead5] transition-colors"
+                  className="px-4 py-2.5 rounded-full border border-[#E2E7D8] text-xs font-medium text-[#7B806B] hover:bg-[#F0F4E8] transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 rounded-full bg-[#34451D] hover:bg-[#20231B] text-[#efead5] text-xs font-medium shadow-md transition-all active:scale-95"
+                  className="px-6 py-2.5 rounded-full bg-[#34451D] hover:bg-[#20231B] text-white text-xs font-semibold shadow-md transition-all active:scale-95"
                 >
                   Publish to Bookstore
                 </button>
@@ -2249,16 +2717,16 @@ export default function StorefrontPage() {
       {/* ── MODAL: EDIT BOOK DETAILS ─────────────────────────────────── */}
       {isEditBookModalOpen && editingBook && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-[#efead5] rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-[#CDD3B5] shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-start justify-between border-b border-[#CDD3B5] pb-4">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-[#E2E7D8] shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-start justify-between border-b border-[#E2E7D8] pb-4">
               <div>
                 <span className="text-[11px] font-mono uppercase text-[#596B32] tracking-wider font-semibold block">Catalog Administrator Control</span>
-                <h3 className="font-display font-normal text-xl sm:text-2xl text-[#20231B] mt-0.5">Edit Book Details</h3>
-                <p className="text-xs text-[#85887A] mt-1">Updating ID: <span className="font-mono text-[#596B32] font-bold">{editingBook.id}</span></p>
+                <h3 className="font-display font-medium text-xl sm:text-2xl text-[#20231B] mt-0.5">Edit Book Details</h3>
+                <p className="text-xs text-[#7B806B] mt-1">Updating ID: <span className="font-mono text-[#596B32] font-bold">{editingBook.id}</span></p>
               </div>
               <button
                 onClick={() => { setIsEditBookModalOpen(false); setEditingBook(null); }}
-                className="p-1.5 rounded-full hover:bg-[#efead5] text-[#85887A] transition-colors"
+                className="p-1.5 rounded-full hover:bg-[#F0F4E8] text-[#85887A] transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -2272,7 +2740,7 @@ export default function StorefrontPage() {
                   required
                   value={editingBook.title}
                   onChange={e => setEditingBook({ ...editingBook, title: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-[#CDD3B5] text-xs text-[#20231B] focus:outline-none focus:border-[#596B32] bg-[#efead5]"
+                  className="w-full px-4 py-2.5 rounded-xl border border-[#E2E7D8] text-xs text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-white bg-[#F8F9F5]"
                 />
               </div>
 
@@ -2284,7 +2752,7 @@ export default function StorefrontPage() {
                     required
                     value={editingBook.author}
                     onChange={e => setEditingBook({ ...editingBook, author: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#CDD3B5] text-xs text-[#20231B] focus:outline-none focus:border-[#596B32] bg-[#efead5]"
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#E2E7D8] text-xs text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-white bg-[#F8F9F5]"
                   />
                 </div>
 
@@ -2293,7 +2761,7 @@ export default function StorefrontPage() {
                   <select
                     value={editingBook.category}
                     onChange={e => setEditingBook({ ...editingBook, category: e.target.value })}
-                    className="w-full px-3 py-2.5 rounded-xl border border-[#CDD3B5] text-xs text-[#20231B] focus:outline-none focus:border-[#596B32] bg-[#efead5]"
+                    className="w-full px-3 py-2.5 rounded-xl border border-[#E2E7D8] text-xs text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-white bg-[#F8F9F5]"
                   >
                     <option value="Classic Fiction">Classic Fiction</option>
                     <option value="Literature">Literature</option>
@@ -2317,7 +2785,7 @@ export default function StorefrontPage() {
                     required
                     value={editingBook.price}
                     onChange={e => setEditingBook({ ...editingBook, price: Number(e.target.value) })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#CDD3B5] text-xs font-mono text-[#20231B] focus:outline-none focus:border-[#596B32] bg-[#efead5]"
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#E2E7D8] text-xs font-mono text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-white bg-[#F8F9F5]"
                   />
                 </div>
 
@@ -2328,7 +2796,7 @@ export default function StorefrontPage() {
                     min="0"
                     value={editingBook.stockQuantity}
                     onChange={e => setEditingBook({ ...editingBook, stockQuantity: Number(e.target.value) })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#CDD3B5] text-xs font-mono text-[#20231B] focus:outline-none focus:border-[#596B32] bg-[#efead5]"
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#E2E7D8] text-xs font-mono text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-white bg-[#F8F9F5]"
                   />
                 </div>
 
@@ -2338,7 +2806,7 @@ export default function StorefrontPage() {
                     type="text"
                     value={editingBook.isbn || ''}
                     onChange={e => setEditingBook({ ...editingBook, isbn: e.target.value })}
-                    className="w-full px-3 py-2.5 rounded-xl border border-[#CDD3B5] text-xs font-mono text-[#20231B] focus:outline-none focus:border-[#596B32] bg-[#efead5]"
+                    className="w-full px-3 py-2.5 rounded-xl border border-[#E2E7D8] text-xs font-mono text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-white bg-[#F8F9F5]"
                   />
                 </div>
               </div>
@@ -2349,7 +2817,7 @@ export default function StorefrontPage() {
                   type="url"
                   value={editingBook.coverImage || ''}
                   onChange={e => setEditingBook({ ...editingBook, coverImage: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-[#CDD3B5] text-xs font-mono text-[#20231B] focus:outline-none focus:border-[#596B32] bg-[#efead5]"
+                  className="w-full px-4 py-2.5 rounded-xl border border-[#E2E7D8] text-xs font-mono text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-white bg-[#F8F9F5]"
                 />
               </div>
 
@@ -2359,21 +2827,21 @@ export default function StorefrontPage() {
                   rows={3}
                   value={editingBook.description || ''}
                   onChange={e => setEditingBook({ ...editingBook, description: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-[#CDD3B5] text-xs text-[#20231B] focus:outline-none focus:border-[#596B32] bg-[#efead5]"
+                  className="w-full px-4 py-2.5 rounded-xl border border-[#E2E7D8] text-xs text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-white bg-[#F8F9F5]"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#CDD3B5]">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#E2E7D8]">
                 <button
                   type="button"
                   onClick={() => { setIsEditBookModalOpen(false); setEditingBook(null); }}
-                  className="px-4 py-2.5 rounded-full border border-[#CDD3B5] text-xs font-medium text-[#85887A] hover:bg-[#efead5] transition-colors"
+                  className="px-4 py-2.5 rounded-full border border-[#E2E7D8] text-xs font-medium text-[#7B806B] hover:bg-[#F0F4E8] transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 rounded-full bg-[#596B32] hover:bg-[#34451D] text-[#efead5] text-xs font-medium shadow-md transition-all active:scale-95"
+                  className="px-6 py-2.5 rounded-full bg-[#34451D] hover:bg-[#20231B] text-white text-xs font-semibold shadow-md transition-all active:scale-95"
                 >
                   Save Changes
                 </button>
@@ -2386,13 +2854,13 @@ export default function StorefrontPage() {
       {/* ── MODAL: DELETE CONFIRMATION ─────────────────────────────────── */}
       {deleteConfirmBook && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-[#efead5] rounded-3xl p-6 sm:p-8 max-w-md w-full border border-red-300 shadow-2xl space-y-5 text-center">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full border border-red-200 shadow-2xl space-y-5 text-center">
             <div className="w-12 h-12 rounded-2xl bg-red-50 border border-red-200 text-red-600 flex items-center justify-center mx-auto">
               <Trash2 className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="font-display font-normal text-lg text-[#20231B]">Delete Book from Archive?</h3>
-              <p className="text-xs text-[#85887A] mt-2 leading-relaxed">
+              <h3 className="font-display font-medium text-lg text-[#20231B]">Delete Book from Archive?</h3>
+              <p className="text-xs text-[#7B806B] mt-2 leading-relaxed">
                 Are you sure you want to permanently delete <strong className="text-[#20231B] font-semibold">"{deleteConfirmBook.title}"</strong> by {deleteConfirmBook.author}?
               </p>
               <p className="text-[11px] text-red-600 mt-1 font-medium">This will remove this book from customer storefront catalogs.</p>
@@ -2400,13 +2868,13 @@ export default function StorefrontPage() {
             <div className="flex items-center justify-center gap-3 pt-2">
               <button
                 onClick={() => setDeleteConfirmBook(null)}
-                className="px-5 py-2.5 rounded-full border border-[#CDD3B5] text-xs font-medium text-[#85887A] hover:bg-[#efead5] transition-colors"
+                className="px-5 py-2.5 rounded-full border border-[#E2E7D8] text-xs font-medium text-[#7B806B] hover:bg-[#F0F4E8] transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirmDelete}
-                className="px-6 py-2.5 rounded-full bg-red-600 hover:bg-red-700 text-white text-xs font-medium shadow-md transition-all active:scale-95"
+                className="px-6 py-2.5 rounded-full bg-red-600 hover:bg-red-700 text-white text-xs font-semibold shadow-md transition-all active:scale-95"
               >
                 Delete Permanently
               </button>
@@ -2417,14 +2885,14 @@ export default function StorefrontPage() {
 
       {/* ── ADMIN TOAST NOTIFICATION ──────────────────────────────────── */}
       {adminNotification && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-2xl bg-[#34451D] text-[#efead5] border border-[#7F9148]/50 shadow-2xl max-w-sm">
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-2xl bg-[#34451D] text-white border border-[#7F9148]/50 shadow-2xl max-w-sm">
           <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${
             adminNotification.type === 'error' ? 'bg-red-400' : adminNotification.type === 'info' ? 'bg-[#B7D85A]' : 'bg-[#B7D85A]'
           }`} />
           <p className="text-xs leading-snug flex-1 font-medium">{adminNotification.message}</p>
           <button
             onClick={() => setAdminNotification(null)}
-            className="p-1 text-[#CDD3B5] hover:text-[#efead5] transition-colors"
+            className="p-1 text-[#E2E7D8] hover:text-white transition-colors"
           >
             <X className="w-3.5 h-3.5" />
           </button>
