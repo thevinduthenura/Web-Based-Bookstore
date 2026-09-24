@@ -162,12 +162,12 @@ export default function PaymentDashboardPage() {
 
   if (!isAuthorized) {
     return (
-      <div className="glass-card rounded-2xl p-8 max-w-lg mx-auto text-center space-y-4">
-        <div className="h-12 w-12 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 flex items-center justify-center mx-auto">
-          <Lock className="w-6 h-6" />
+      <div className="bg-[#efead5] border border-[#CDD3B5] rounded-3xl p-8 max-w-lg mx-auto text-center space-y-4 shadow-xs">
+        <div className="h-12 w-12 rounded-2xl bg-[#E4E7D2] border border-[#CDD3B5] text-[#34451D] flex items-center justify-center mx-auto">
+          <Lock className="w-6 h-6 text-[#596B32]" />
         </div>
-        <h2 className="text-lg font-bold text-white">Access Restricted</h2>
-        <p className="text-xs text-ink-muted leading-relaxed">
+        <h2 className="text-lg font-display font-light text-[#20231B]">Access Restricted</h2>
+        <p className="text-xs text-[#85887A] leading-relaxed">
           You do not have administrative permissions to access Module 2 (Payment Management).
           This panel is exclusively reserved for the Payment Administrator (Anaf M.K.A.S.) or Super Admin.
         </p>
@@ -310,31 +310,31 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
   });
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-6 pb-12 font-sans">
       {/* Top Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold mb-2">
-            <CreditCard className="w-3.5 h-3.5" />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E4E7D2] border border-[#CDD3B5] text-[#34451D] text-xs font-semibold mb-2">
+            <CreditCard className="w-3.5 h-3.5 text-[#596B32]" />
             Module 2: Payment Administration
           </div>
-          <h1 className="text-2xl font-bold text-white">Payment & Gateway Operations</h1>
-          <p className="text-xs text-ink-muted mt-1">
-            Assigned Owner: <span className="text-emerald-400 font-semibold">Anaf M.K.A.S. (IT25102345)</span> | Role: <span className="font-mono text-white">PAYMENT_ADMIN</span>
+          <h1 className="text-2xl font-light font-display text-[#20231B]">Payment &amp; Gateway Operations</h1>
+          <p className="text-xs text-[#85887A] mt-1">
+            Assigned Owner: <span className="text-[#34451D] font-semibold">Anaf M.K.A.S. (IT25102345)</span> | Role: <span className="font-mono text-[#20231B]">PAYMENT_ADMIN</span>
           </p>
         </div>
 
         <div className="flex items-center gap-2.5">
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-lg shadow-emerald-900/30 transition-all"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#34451D] hover:bg-[#596B32] text-[#efead5] text-xs font-medium shadow-sm transition-all"
           >
             <Plus className="w-4 h-4" />
-            <span>+ Record New Payment</span>
+            <span>Record New Payment</span>
           </button>
           <button
             onClick={fetchPayments}
-            className="p-2.5 rounded-xl bg-surface-card border border-surface-border text-ink-muted hover:text-white transition-all"
+            className="p-2.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#85887A] hover:text-[#20231B] transition-all shadow-sm"
             title="Refresh from API"
           >
             <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
@@ -343,23 +343,23 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
       </div>
 
       {/* Operations Legend */}
-      <div className="glass-card p-3.5 rounded-xl border border-emerald-500/20 bg-emerald-950/10 flex flex-wrap items-center justify-between gap-3 text-xs">
-        <div className="flex items-center gap-2 font-semibold text-emerald-400">
-          <Layers className="w-4 h-4" />
+      <div className="p-3.5 rounded-xl border border-[#CDD3B5] bg-[#efead5] flex flex-wrap items-center justify-between gap-3 text-xs shadow-sm">
+        <div className="flex items-center gap-2 font-medium text-[#34451D]">
+          <Layers className="w-4 h-4 text-[#596B32]" />
           <span>Payment Operations:</span>
         </div>
         <div className="flex flex-wrap items-center gap-2 font-mono text-[11px]">
-          <span className="px-2.5 py-1 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+          <span className="px-2.5 py-1 rounded-md bg-[#E4E7D2] text-[#34451D] border border-[#CDD3B5]">
             Record Payment
           </span>
-          <span className="px-2.5 py-1 rounded-md bg-sky-500/20 text-sky-300 border border-sky-500/30">
-            Search & Invoices
+          <span className="px-2.5 py-1 rounded-md bg-[#efead5] text-[#596B32] border border-[#CDD3B5]">
+            Search &amp; Invoices
           </span>
-          <span className="px-2.5 py-1 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/30">
-            Status & Refund
+          <span className="px-2.5 py-1 rounded-md bg-[#E4E7D2] text-[#7F9148] border border-[#CDD3B5]">
+            Status &amp; Refund
           </span>
-          <span className="px-2.5 py-1 rounded-md bg-red-500/20 text-red-300 border border-red-500/30">
-            Void & Delete
+          <span className="px-2.5 py-1 rounded-md bg-rose-50 text-rose-700 border border-rose-200">
+            Void &amp; Delete
           </span>
         </div>
       </div>
@@ -367,7 +367,7 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
       {/* Notification Toast */}
       {notification && (
         <div className={`p-3.5 rounded-xl flex items-center justify-between text-xs border ${
-          notification.type === 'success' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-red-500/10 border-red-500/20 text-red-400'
+          notification.type === 'success' ? 'bg-[#E4E7D2] border-[#CDD3B5] text-[#34451D]' : 'bg-rose-50 border-rose-200 text-rose-700'
         }`}>
           <span>{notification.message}</span>
           <button onClick={() => setNotification(null)} className="hover:opacity-80">
@@ -378,88 +378,88 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="glass-card p-5 rounded-2xl">
+        <div className="bg-[#efead5] border border-[#CDD3B5] p-5 rounded-2xl shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-ink-muted">Total Paid Revenue</span>
-            <div className="h-8 w-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+            <span className="text-xs font-medium text-[#85887A]">Total Paid Revenue</span>
+            <div className="h-8 w-8 rounded-lg bg-[#E4E7D2] text-[#34451D] flex items-center justify-center">
               <DollarSign className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-bold text-white font-display">
+            <span className="text-2xl font-light text-[#20231B] font-display">
               LKR {totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </span>
           </div>
-          <p className="text-[11px] text-emerald-400 mt-1 flex items-center gap-1 font-mono">
+          <p className="text-[11px] text-[#596B32] mt-1 flex items-center gap-1 font-mono">
             Active Verified Transactions
           </p>
         </div>
 
-        <div className="glass-card p-5 rounded-2xl">
+        <div className="bg-[#efead5] border border-[#CDD3B5] p-5 rounded-2xl shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-ink-muted">Processed Payments</span>
-            <div className="h-8 w-8 rounded-lg bg-brand-500/10 text-brand-400 flex items-center justify-center">
+            <span className="text-xs font-medium text-[#85887A]">Processed Payments</span>
+            <div className="h-8 w-8 rounded-lg bg-[#E4E7D2] text-[#596B32] flex items-center justify-center">
               <Receipt className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-bold text-white font-display">
+            <span className="text-2xl font-light text-[#20231B] font-display">
               {processedCount} Orders
             </span>
           </div>
-          <p className="text-[11px] text-ink-faint mt-1">Visa, MasterCard, PayHere</p>
+          <p className="text-[11px] text-[#85887A] mt-1">Visa, MasterCard, PayHere</p>
         </div>
 
-        <div className="glass-card p-5 rounded-2xl">
+        <div className="bg-[#efead5] border border-[#CDD3B5] p-5 rounded-2xl shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-ink-muted">Pending Verifications</span>
-            <div className="h-8 w-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center">
+            <span className="text-xs font-medium text-[#85887A]">Pending Verifications</span>
+            <div className="h-8 w-8 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center border border-amber-200">
               <Clock className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-bold text-white font-display">
+            <span className="text-2xl font-light text-[#20231B] font-display">
               {pendingCount} Awaiting
             </span>
           </div>
-          <p className="text-[11px] text-amber-400 mt-1">Cash on Delivery & Cheques</p>
+          <p className="text-[11px] text-amber-700 mt-1">Cash on Delivery &amp; Cheques</p>
         </div>
 
-        <div className="glass-card p-5 rounded-2xl">
+        <div className="bg-[#efead5] border border-[#CDD3B5] p-5 rounded-2xl shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-ink-muted">Refunds Issued</span>
-            <div className="h-8 w-8 rounded-lg bg-sky-500/10 text-sky-400 flex items-center justify-center">
+            <span className="text-xs font-medium text-[#85887A]">Refunds Issued</span>
+            <div className="h-8 w-8 rounded-lg bg-[#E4E7D2] text-[#7F9148] flex items-center justify-center">
               <RotateCcw className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-bold text-white font-display">
+            <span className="text-2xl font-light text-[#20231B] font-display">
               {refundedCount} Reversals
             </span>
           </div>
-          <p className="text-[11px] text-ink-faint mt-1">Customer return requests</p>
+          <p className="text-[11px] text-[#85887A] mt-1">Customer return requests</p>
         </div>
       </div>
 
       {/* Filter and Search Bar [R] */}
-      <div className="glass-card p-4 rounded-2xl flex flex-col md:flex-row gap-3 items-center justify-between">
+      <div className="bg-[#efead5] border border-[#CDD3B5] p-4 rounded-2xl flex flex-col md:flex-row gap-3 items-center justify-between shadow-sm">
         <div className="relative w-full md:w-80">
-          <Search className="w-4 h-4 text-ink-faint absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-[#85887A] absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="[R] Search by Ref, Customer, Order ID..."
-            className="w-full pl-9 pr-4 py-2 rounded-xl bg-surface border border-surface-border text-xs text-white placeholder:text-ink-faint focus:outline-none focus:border-emerald-500 transition-all"
+            placeholder="Search by Ref, Customer, Order ID..."
+            className="w-full pl-9 pr-4 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-xs text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:border-[#596B32] transition-all"
           />
         </div>
 
         <div className="flex items-center gap-2 w-full md:w-auto">
-          <Filter className="w-4 h-4 text-ink-faint hidden sm:block" />
+          <Filter className="w-4 h-4 text-[#85887A] hidden sm:block" />
           <select
             value={selectedStatus}
             onChange={(e) => setSelectedStatus(e.target.value)}
-            className="w-full md:w-auto px-3 py-2 rounded-xl bg-surface border border-surface-border text-xs text-white focus:outline-none focus:border-emerald-500 font-mono transition-all"
+            className="w-full md:w-auto px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-xs text-[#20231B] focus:outline-none focus:border-[#596B32] font-mono transition-all"
           >
             <option value="ALL">All Statuses ({payments.length})</option>
             <option value="PAID">Paid Only</option>
@@ -471,11 +471,11 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
       </div>
 
       {/* Payments Table [R, U, D] */}
-      <div className="glass-card rounded-2xl overflow-hidden border border-surface-border">
+      <div className="bg-[#efead5] rounded-2xl overflow-hidden border border-[#CDD3B5] shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-surface-border bg-surface-card/60 text-[11px] font-mono uppercase tracking-wider text-ink-muted">
+              <tr className="border-b border-[#CDD3B5] bg-[#E4E7D2]/60 text-[11px] font-mono uppercase tracking-wider text-[#34451D]">
                 <th className="py-3 px-4">Txn / Invoice</th>
                 <th className="py-3 px-4">Order / Customer</th>
                 <th className="py-3 px-4">Amount</th>
@@ -485,34 +485,34 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
                 <th className="py-3 px-4 text-right">Actions (CRUD)</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-surface-border/50 text-xs">
+            <tbody className="divide-y divide-[#CDD3B5]/50 text-xs">
               {filteredPayments.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-8 text-center text-ink-muted">
+                  <td colSpan={7} className="py-8 text-center text-[#85887A]">
                     No payment transactions match the selected filters.
                   </td>
                 </tr>
               ) : (
                 filteredPayments.map((item) => (
-                  <tr key={item.id} className="hover:bg-surface-card/40 transition-colors">
+                  <tr key={item.id} className="hover:bg-[#E4E7D2]/20 transition-colors">
                     <td className="py-3.5 px-4 font-mono">
-                      <span className="font-semibold text-white">{item.reference}</span>
-                      <div className="text-[10px] text-ink-muted">{item.invoiceNumber || 'INV-' + item.id}</div>
+                      <span className="font-semibold text-[#20231B]">{item.reference}</span>
+                      <div className="text-[10px] text-[#85887A]">{item.invoiceNumber || 'INV-' + item.id}</div>
                     </td>
                     <td className="py-3.5 px-4">
-                      <div className="font-medium text-white">{item.customerName || `Customer #${item.customerId}`}</div>
-                      <div className="text-[10px] text-ink-muted">Order Ref: #{item.orderId}</div>
+                      <div className="font-medium text-[#20231B]">{item.customerName || `Customer #${item.customerId}`}</div>
+                      <div className="text-[10px] text-[#85887A]">Order Ref: #{item.orderId}</div>
                     </td>
-                    <td className="py-3.5 px-4 font-mono font-semibold text-white">
+                    <td className="py-3.5 px-4 font-mono font-semibold text-[#20231B]">
                       {item.currency} {item.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </td>
                     <td className="py-3.5 px-4">
                       <span className={`px-2.5 py-1 rounded-md text-[10px] font-semibold tracking-wide border ${
-                        item.method === 'PAYHERE' ? 'bg-sky-500/20 text-sky-300 border-sky-500/30' :
-                        item.method === 'VISA' || item.method === 'CARD' ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30' :
-                        item.method === 'CASH_ON_DELIVERY' || item.method === 'COD' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' :
-                        item.method === 'STRIPE' ? 'bg-violet-500/20 text-violet-300 border-violet-500/30' :
-                        'bg-surface border-surface-border text-ink-light'
+                        item.method === 'PAYHERE' ? 'bg-[#efead5] text-[#596B32] border-[#CDD3B5]' :
+                        item.method === 'VISA' || item.method === 'CARD' ? 'bg-[#E4E7D2] text-[#34451D] border-[#CDD3B5]' :
+                        item.method === 'CASH_ON_DELIVERY' || item.method === 'COD' ? 'bg-[#E4E7D2] text-[#7F9148] border-[#CDD3B5]' :
+                        item.method === 'STRIPE' ? 'bg-[#efead5] text-[#20231B] border-[#CDD3B5]' :
+                        'bg-[#efead5] border-[#CDD3B5] text-[#20231B]'
                       }`}>
                         {item.method}
                       </span>
@@ -520,20 +520,20 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
                     <td className="py-3.5 px-4">
                       <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold border ${
                         item.status === 'PAID'
-                          ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                          ? 'bg-[#E4E7D2] border-[#CDD3B5] text-[#34451D]'
                           : item.status === 'PENDING'
-                          ? 'bg-amber-500/10 border-amber-500/20 text-amber-400'
+                          ? 'bg-amber-50 border-amber-200 text-amber-800'
                           : item.status === 'REFUNDED'
-                          ? 'bg-sky-500/10 border-sky-500/20 text-sky-400'
-                          : 'bg-red-500/10 border-red-500/20 text-red-400'
+                          ? 'bg-[#efead5] border-[#CDD3B5] text-[#596B32]'
+                          : 'bg-rose-50 border-rose-200 text-rose-700'
                       }`}>
                         <span className={`w-1.5 h-1.5 rounded-full ${
-                          item.status === 'PAID' ? 'bg-emerald-400' : item.status === 'PENDING' ? 'bg-amber-400' : 'bg-sky-400'
+                          item.status === 'PAID' ? 'bg-[#596B32]' : item.status === 'PENDING' ? 'bg-amber-500' : 'bg-[#7F9148]'
                         }`} />
                         {item.status}
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 text-ink-muted text-[11px] whitespace-nowrap">
+                    <td className="py-3.5 px-4 text-[#85887A] text-[11px] whitespace-nowrap">
                       {item.createdAt}
                     </td>
                     <td className="py-3.5 px-4 text-right">
@@ -541,7 +541,7 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
                         {/* View Details */}
                         <button
                           onClick={() => setSelectedPayment(item)}
-                          className="p-1.5 rounded-lg bg-surface border border-surface-border text-ink-muted hover:text-white transition-all"
+                          className="p-1.5 rounded-lg bg-[#efead5] border border-[#CDD3B5] text-[#85887A] hover:text-[#20231B] transition-all shadow-sm"
                           title="View Details"
                         >
                           <Eye className="w-3.5 h-3.5" />
@@ -550,7 +550,7 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
                         {/* Download Receipt */}
                         <button
                           onClick={() => handleDownloadInvoice(item)}
-                          className="p-1.5 rounded-lg bg-surface border border-surface-border text-emerald-400 hover:bg-emerald-500/10 transition-all"
+                          className="p-1.5 rounded-lg bg-[#efead5] border border-[#CDD3B5] text-[#596B32] hover:bg-[#E4E7D2] transition-all shadow-sm"
                           title="Download Receipt"
                         >
                           <Download className="w-3.5 h-3.5" />
@@ -560,7 +560,7 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
                         {item.status === 'PENDING' && (
                           <button
                             onClick={() => handleUpdateStatus(item.id, 'PAID')}
-                            className="px-2 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 text-[11px] font-medium transition-all"
+                            className="px-2 py-1 rounded-lg bg-[#E4E7D2] text-[#34451D] hover:bg-[#CDD3B5] text-[11px] font-medium transition-all shadow-sm"
                             title="Approve Payment"
                           >
                             Approve
@@ -574,7 +574,7 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
                               setRefundTargetId(item.id);
                               setIsRefundModalOpen(true);
                             }}
-                            className="p-1.5 rounded-lg bg-surface border border-surface-border text-sky-400 hover:bg-sky-500/10 transition-all"
+                            className="p-1.5 rounded-lg bg-[#efead5] border border-[#CDD3B5] text-[#7F9148] hover:bg-[#E4E7D2] transition-all shadow-sm"
                             title="Issue Refund"
                           >
                             <RotateCcw className="w-3.5 h-3.5" />
@@ -584,7 +584,7 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
                         {/* Void / Delete */}
                         <button
                           onClick={() => handleDeletePayment(item.id)}
-                          className="p-1.5 rounded-lg bg-surface border border-surface-border text-red-400 hover:bg-red-500/10 transition-all"
+                          className="p-1.5 rounded-lg bg-[#efead5] border border-[#CDD3B5] text-rose-600 hover:bg-rose-50 transition-all shadow-sm"
                           title="Void & Delete Payment"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -601,70 +601,70 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
 
       {/* [C] CREATE MODAL: Record New Payment */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="glass-card rounded-2xl w-full max-w-md p-6 border border-surface-border space-y-4">
-            <div className="flex items-center justify-between border-b border-surface-border pb-3">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <CreditCard className="w-5 h-5 text-emerald-400" />
+        <div className="fixed inset-0 z-50 bg-[#20231B]/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#efead5] rounded-2xl w-full max-w-md p-6 border border-[#CDD3B5] space-y-4 shadow-xl">
+            <div className="flex items-center justify-between border-b border-[#CDD3B5] pb-3">
+              <h3 className="text-base font-medium font-display text-[#20231B] flex items-center gap-2">
+                <CreditCard className="w-5 h-5 text-[#596B32]" />
                 <span>Record New Payment</span>
               </h3>
-              <button onClick={() => setIsAddModalOpen(false)} className="text-ink-muted hover:text-white">
+              <button onClick={() => setIsAddModalOpen(false)} className="text-[#85887A] hover:text-[#20231B]">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleCreatePayment} className="space-y-3 text-xs">
               <div>
-                <label className="block text-ink-muted mb-1 font-medium">Order Reference ID</label>
+                <label className="block text-[#85887A] mb-1 font-medium">Order Reference ID</label>
                 <input
                   type="number"
                   required
                   value={newPayment.orderId}
                   onChange={(e) => setNewPayment({ ...newPayment, orderId: Number(e.target.value) })}
-                  className="w-full px-3 py-2 rounded-xl bg-surface border border-surface-border text-white focus:outline-none focus:border-emerald-500"
+                  className="w-full px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32]"
                 />
               </div>
 
               <div>
-                <label className="block text-ink-muted mb-1 font-medium">Customer ID</label>
+                <label className="block text-[#85887A] mb-1 font-medium">Customer ID</label>
                 <input
                   type="number"
                   required
                   value={newPayment.customerId}
                   onChange={(e) => setNewPayment({ ...newPayment, customerId: Number(e.target.value) })}
-                  className="w-full px-3 py-2 rounded-xl bg-surface border border-surface-border text-white focus:outline-none focus:border-emerald-500"
+                  className="w-full px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-ink-muted mb-1 font-medium">Amount</label>
+                  <label className="block text-[#85887A] mb-1 font-medium">Amount</label>
                   <input
                     type="number"
                     step="0.01"
                     required
                     value={newPayment.amount}
                     onChange={(e) => setNewPayment({ ...newPayment, amount: Number(e.target.value) })}
-                    className="w-full px-3 py-2 rounded-xl bg-surface border border-surface-border text-white focus:outline-none focus:border-emerald-500 font-mono"
+                    className="w-full px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32] font-mono"
                   />
                 </div>
                 <div>
-                  <label className="block text-ink-muted mb-1 font-medium">Currency</label>
+                  <label className="block text-[#85887A] mb-1 font-medium">Currency</label>
                   <input
                     type="text"
                     disabled
                     value={newPayment.currency}
-                    className="w-full px-3 py-2 rounded-xl bg-surface/50 border border-surface-border text-ink-muted font-mono"
+                    className="w-full px-3 py-2 rounded-xl bg-[#E4E7D2]/50 border border-[#CDD3B5] text-[#85887A] font-mono"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-ink-muted mb-1 font-medium">Payment Gateway / Method</label>
+                <label className="block text-[#85887A] mb-1 font-medium">Payment Gateway / Method</label>
                 <select
                   value={newPayment.paymentMethod}
                   onChange={(e) => setNewPayment({ ...newPayment, paymentMethod: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-surface border border-surface-border text-white focus:outline-none focus:border-emerald-500 font-mono"
+                  className="w-full px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32] font-mono"
                 >
                   <option value="CARD">Credit / Debit Card (Visa/Master)</option>
                   <option value="PAYHERE">PayHere Gateway</option>
@@ -673,17 +673,17 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
                 </select>
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-surface-border">
+              <div className="flex justify-end gap-2 pt-3 border-t border-[#CDD3B5]">
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-surface border border-surface-border text-ink-muted hover:text-white"
+                  className="px-4 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#85887A] hover:text-[#20231B]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow-glow"
+                  className="px-4 py-2 rounded-xl bg-[#34451D] hover:bg-[#596B32] text-[#efead5] font-medium shadow-sm"
                 >
                   Record Transaction
                 </button>
@@ -695,45 +695,45 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
 
       {/* [U] REFUND MODAL */}
       {isRefundModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="glass-card rounded-2xl w-full max-w-md p-6 border border-surface-border space-y-4">
-            <div className="flex items-center justify-between border-b border-surface-border pb-3">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <RotateCcw className="w-5 h-5 text-sky-400" />
+        <div className="fixed inset-0 z-50 bg-[#20231B]/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#efead5] rounded-2xl w-full max-w-md p-6 border border-[#CDD3B5] space-y-4 shadow-xl">
+            <div className="flex items-center justify-between border-b border-[#CDD3B5] pb-3">
+              <h3 className="text-base font-medium font-display text-[#20231B] flex items-center gap-2">
+                <RotateCcw className="w-5 h-5 text-[#596B32]" />
                 <span>Issue Customer Refund</span>
               </h3>
-              <button onClick={() => setIsRefundModalOpen(false)} className="text-ink-muted hover:text-white">
+              <button onClick={() => setIsRefundModalOpen(false)} className="text-[#85887A] hover:text-[#20231B]">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleProcessRefund} className="space-y-3 text-xs">
-              <p className="text-ink-muted">
-                Transaction Ref #{refundTargetId} will be marked as <strong className="text-sky-400">REFUNDED</strong> and reverse authorization will be recorded in gateway logs.
+              <p className="text-[#85887A]">
+                Transaction Ref #{refundTargetId} will be marked as <strong className="text-[#34451D]">REFUNDED</strong> and reverse authorization will be recorded in gateway logs.
               </p>
               <div>
-                <label className="block text-ink-muted mb-1 font-medium">Refund Reason</label>
+                <label className="block text-[#85887A] mb-1 font-medium">Refund Reason</label>
                 <textarea
                   required
                   rows={3}
                   value={refundReason}
                   onChange={(e) => setRefundReason(e.target.value)}
                   placeholder="e.g. Customer returned damaged book or cancelled order"
-                  className="w-full px-3 py-2 rounded-xl bg-surface border border-surface-border text-white focus:outline-none focus:border-sky-500"
+                  className="w-full px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32]"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-surface-border">
+              <div className="flex justify-end gap-2 pt-3 border-t border-[#CDD3B5]">
                 <button
                   type="button"
                   onClick={() => setIsRefundModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-surface border border-surface-border text-ink-muted hover:text-white"
+                  className="px-4 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#85887A] hover:text-[#20231B]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold"
+                  className="px-4 py-2 rounded-xl bg-[#34451D] hover:bg-[#596B32] text-[#efead5] font-medium shadow-sm"
                 >
                   Process Reversal
                 </button>
@@ -745,57 +745,57 @@ Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
 
       {/* [R] VIEW DETAILS MODAL */}
       {selectedPayment && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="glass-card rounded-2xl w-full max-w-lg p-6 border border-surface-border space-y-4">
-            <div className="flex items-center justify-between border-b border-surface-border pb-3">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <Receipt className="w-5 h-5 text-emerald-400" />
-                <span>Transaction & Invoice Details</span>
+        <div className="fixed inset-0 z-50 bg-[#20231B]/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#efead5] rounded-2xl w-full max-w-lg p-6 border border-[#CDD3B5] space-y-4 shadow-xl">
+            <div className="flex items-center justify-between border-b border-[#CDD3B5] pb-3">
+              <h3 className="text-base font-medium font-display text-[#20231B] flex items-center gap-2">
+                <Receipt className="w-5 h-5 text-[#596B32]" />
+                <span>Transaction &amp; Invoice Details</span>
               </h3>
-              <button onClick={() => setSelectedPayment(null)} className="text-ink-muted hover:text-white">
+              <button onClick={() => setSelectedPayment(null)} className="text-[#85887A] hover:text-[#20231B]">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="space-y-3 text-xs">
-              <div className="grid grid-cols-2 gap-3 p-3 rounded-xl bg-surface/50 font-mono">
+              <div className="grid grid-cols-2 gap-3 p-3 rounded-xl bg-[#efead5] border border-[#CDD3B5] font-mono">
                 <div>
-                  <span className="text-ink-muted text-[11px]">Transaction Ref:</span>
-                  <p className="text-white font-bold">{selectedPayment.reference}</p>
+                  <span className="text-[#85887A] text-[11px]">Transaction Ref:</span>
+                  <p className="text-[#20231B] font-bold">{selectedPayment.reference}</p>
                 </div>
                 <div>
-                  <span className="text-ink-muted text-[11px]">Invoice Number:</span>
-                  <p className="text-white font-bold">{selectedPayment.invoiceNumber || 'INV-' + selectedPayment.id}</p>
+                  <span className="text-[#85887A] text-[11px]">Invoice Number:</span>
+                  <p className="text-[#20231B] font-bold">{selectedPayment.invoiceNumber || 'INV-' + selectedPayment.id}</p>
                 </div>
                 <div>
-                  <span className="text-ink-muted text-[11px]">Amount:</span>
-                  <p className="text-emerald-400 font-bold">{selectedPayment.currency} {selectedPayment.amount.toFixed(2)}</p>
+                  <span className="text-[#85887A] text-[11px]">Amount:</span>
+                  <p className="text-[#34451D] font-bold">{selectedPayment.currency} {selectedPayment.amount.toFixed(2)}</p>
                 </div>
                 <div>
-                  <span className="text-ink-muted text-[11px]">Current Status:</span>
-                  <p className="text-white font-bold">{selectedPayment.status}</p>
+                  <span className="text-[#85887A] text-[11px]">Current Status:</span>
+                  <p className="text-[#20231B] font-bold">{selectedPayment.status}</p>
                 </div>
               </div>
 
               <div>
-                <span className="text-ink-muted text-[11px]">Gateway Security Response:</span>
-                <p className="mt-1 p-2.5 rounded-xl bg-surface border border-surface-border text-ink-light">
+                <span className="text-[#85887A] text-[11px]">Gateway Security Response:</span>
+                <p className="mt-1 p-2.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B]">
                   {selectedPayment.gatewayMessage}
                 </p>
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-3 border-t border-surface-border">
+            <div className="flex justify-end gap-2 pt-3 border-t border-[#CDD3B5]">
               <button
                 onClick={() => handleDownloadInvoice(selectedPayment)}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#34451D] hover:bg-[#596B32] text-[#efead5] font-medium text-xs shadow-sm"
               >
                 <Download className="w-3.5 h-3.5" />
                 <span>Download Invoice File</span>
               </button>
               <button
                 onClick={() => setSelectedPayment(null)}
-                className="px-4 py-2 rounded-xl bg-surface border border-surface-border text-ink-muted hover:text-white text-xs"
+                className="px-4 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#85887A] hover:text-[#20231B] text-xs"
               >
                 Close
               </button>

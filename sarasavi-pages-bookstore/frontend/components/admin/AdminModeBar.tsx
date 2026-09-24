@@ -20,57 +20,57 @@ export default function AdminModeBar({ showOnStorefront = false }: AdminModeBarP
   };
 
   return (
-    <div className="w-full bg-[#122215] border-b border-[#243d29] text-xs py-2 px-4 sm:px-6 z-50 text-white">
+    <div className="w-full bg-[#20231B] border-b border-[#34451D] text-xs py-2 px-4 sm:px-6 z-50 text-[#efead5] font-sans">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
         {/* Left: ADMIN MODE Pill Badge */}
         <div className="flex items-center gap-3">
-          <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full border border-emerald-400/40 bg-emerald-500/20 text-emerald-300 text-[11px] font-medium tracking-wide uppercase">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full border border-[#7F9148]/60 bg-[#34451D] text-[#B7D85A] text-[11px] font-semibold tracking-wide uppercase font-mono">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#B7D85A] animate-pulse" />
             <span>ADMIN MODE</span>
           </div>
 
           {user && (
-            <span className="hidden sm:inline-flex items-center gap-1.5 text-[#8ca38f] font-mono text-[11px]">
-              <span className="text-[#3b543e]">|</span>
-              <span className="text-[#cadbc8] font-medium">{user.fullName || user.username}</span>
-              <span className="text-[#7d9981]">({user.role.replace('_', ' ')})</span>
+            <span className="hidden sm:inline-flex items-center gap-1.5 text-[#CDD3B5] font-mono text-[11px]">
+              <span className="text-[#596B32]">|</span>
+              <span className="text-[#efead5] font-medium">{user.fullName || user.username}</span>
+              <span className="text-[#AAB58A]">({user.role.replace('_', ' ')})</span>
             </span>
           )}
         </div>
 
         {/* Right: Navigation Links */}
-        <div className="flex items-center gap-4 sm:gap-6 text-[#cadbc8] font-normal text-xs">
+        <div className="flex items-center gap-4 sm:gap-6 text-[#CDD3B5] font-normal text-xs">
           <Link
             href="/admin/dashboard"
-            className="hover:text-white transition-colors flex items-center gap-1"
+            className="hover:text-[#B7D85A] transition-colors flex items-center gap-1"
           >
             <span>Dashboard</span>
           </Link>
 
           <Link
             href="/admin/staff"
-            className="hover:text-white transition-colors hidden xs:inline"
+            className="hover:text-[#B7D85A] transition-colors hidden xs:inline"
           >
             <span>Users</span>
           </Link>
 
           <Link
             href="/admin/customer-service/dashboard"
-            className="hover:text-white transition-colors hidden md:inline"
+            className="hover:text-[#B7D85A] transition-colors hidden md:inline"
           >
             <span>Reviews</span>
           </Link>
 
           <Link
             href="/admin/inventory/dashboard"
-            className="hover:text-white transition-colors hidden sm:inline"
+            className="hover:text-[#B7D85A] transition-colors hidden sm:inline"
           >
             <span>Rentals</span>
           </Link>
 
           <Link
             href="/admin/orders/dashboard"
-            className="hover:text-white transition-colors hidden lg:inline"
+            className="hover:text-[#B7D85A] transition-colors hidden lg:inline"
           >
             <span>Orders</span>
           </Link>
@@ -78,7 +78,7 @@ export default function AdminModeBar({ showOnStorefront = false }: AdminModeBarP
           {showOnStorefront && (
             <Link
               href="/admin/dashboard"
-              className="inline-flex items-center gap-1 text-emerald-300 hover:text-emerald-200 font-medium text-xs transition-colors"
+              className="inline-flex items-center gap-1 text-[#B7D85A] hover:text-[#efead5] font-medium text-xs transition-colors"
             >
               <span>Go to Admin Panel</span>
               <ArrowRight className="w-3 h-3" />
@@ -88,7 +88,7 @@ export default function AdminModeBar({ showOnStorefront = false }: AdminModeBarP
           {/* Sign out link */}
           <button
             onClick={handleSignOut}
-            className="text-red-300 hover:text-red-200 font-medium transition-colors flex items-center gap-1"
+            className="text-red-400 hover:text-red-300 font-medium transition-colors flex items-center gap-1"
             title="Sign out of admin session"
           >
             <span>Sign out</span>

@@ -98,46 +98,46 @@ export default function Sidebar() {
   const visibleNav = NAV_ITEMS.filter((item) => item.allowedRoles.includes(user.role));
 
   return (
-    <aside className="w-64 flex-shrink-0 bg-white border-r border-slate-200/90 flex flex-col justify-between h-screen sticky top-0 text-slate-900 shadow-sm z-20">
+    <aside className="w-64 flex-shrink-0 bg-[#efead5] border-r border-[#CDD3B5] flex flex-col justify-between h-screen sticky top-0 text-[#20231B] shadow-sm z-20 font-sans">
       {/* Brand Header */}
       <div>
-        <div className="p-5 border-b border-slate-100 flex items-center gap-3">
-          <div className="h-10 w-10 rounded-2xl bg-slate-900 flex items-center justify-center text-white flex-shrink-0 shadow-sm">
-            <div className="flex gap-0.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-300" />
-              <span className="w-1.5 h-1.5 rounded-full bg-white" />
+        <div className="p-5 border-b border-[#CDD3B5] flex items-center gap-3">
+          <div className="h-10 w-10 rounded-2xl bg-[#34451D] flex items-center justify-center text-[#efead5] flex-shrink-0 shadow-sm">
+            <div className="flex gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#B7D85A]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#7F9148]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#efead5]" />
             </div>
           </div>
           <div>
-            <span className="text-base text-slate-900 tracking-tight block font-bold leading-none">
-              sarasavi <span className="text-emerald-700">pages</span>
+            <span className="text-base text-[#20231B] tracking-tight block font-display font-light leading-none">
+              sarasavi <span className="text-[#596B32] font-normal">pages</span>
             </span>
-            <span className="text-[11px] text-slate-500 font-medium mt-1 block">Admin Control Hub</span>
+            <span className="text-[11px] text-[#85887A] font-medium mt-1 block">Admin Control Hub</span>
           </div>
         </div>
 
         {/* User Role Banner */}
-        <div className="px-4 py-3 mx-3 my-3 rounded-2xl bg-slate-50 border border-slate-200/90 shadow-xs">
+        <div className="px-4 py-3 mx-3 my-3 rounded-2xl bg-[#efead5] border border-[#CDD3B5] shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500">
+            <span className="text-[10px] uppercase font-semibold tracking-wider text-[#85887A] font-mono">
               Current Access
             </span>
             <span className={`text-[10px] font-sans px-2 py-0.5 rounded-full font-bold ${
               user.role === 'SUPER_ADMIN' 
-                ? 'bg-emerald-100 text-emerald-900 border border-emerald-300' 
-                : 'bg-slate-200 text-slate-800'
+                ? 'bg-[#E4E7D2] text-[#34451D] border border-[#CDD3B5]' 
+                : 'bg-[#CDD3B5] text-[#20231B]'
             }`}>
               {user.role === 'SUPER_ADMIN' ? 'FULL ACCESS' : 'LIMITED'}
             </span>
           </div>
-          <p className="text-xs font-bold text-slate-900 mt-1.5 truncate">{user.fullName}</p>
-          <p className="text-xs text-emerald-800 font-bold font-sans mt-0.5">{user.role}</p>
+          <p className="text-xs font-semibold text-[#20231B] mt-1.5 truncate">{user.fullName}</p>
+          <p className="text-xs text-[#596B32] font-semibold font-sans mt-0.5">{user.role}</p>
         </div>
 
         {/* Navigation links */}
         <nav className="px-3 space-y-1 mt-2">
-          <div className="px-3 py-1.5 text-[11px] uppercase font-bold tracking-wider text-slate-500">
+          <div className="px-3 py-1.5 text-[11px] uppercase font-semibold tracking-wider text-[#85887A] font-mono">
             {user.role === 'SUPER_ADMIN' ? 'All Systems' : 'Your Module Access'}
           </div>
 
@@ -151,22 +151,22 @@ export default function Sidebar() {
                 href={item.href}
                 className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition-all group ${
                   isActive
-                    ? 'bg-slate-900 text-white shadow-sm font-semibold'
-                    : 'text-slate-700 hover:text-slate-950 hover:bg-slate-100 font-medium'
+                    ? 'bg-[#34451D] text-[#efead5] shadow-sm font-semibold'
+                    : 'text-[#20231B] hover:text-[#34451D] hover:bg-[#efead5] font-medium'
                 }`}
               >
                 <div className="flex items-center gap-3">
                   <Icon className={`w-4 h-4 transition-colors ${
-                    isActive ? 'text-emerald-400' : 'text-slate-500 group-hover:text-emerald-700'
+                    isActive ? 'text-[#B7D85A]' : 'text-[#85887A] group-hover:text-[#596B32]'
                   }`} />
                   <span>{item.label}</span>
                 </div>
 
                 {item.badge && (
-                  <span className={`text-[10px] px-1.5 py-0.5 rounded font-sans font-bold ${
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono font-semibold ${
                     isActive
-                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/40'
-                      : 'bg-slate-100 text-slate-600 border border-slate-200'
+                      ? 'bg-[#596B32]/40 text-[#B7D85A] border border-[#7F9148]/50'
+                      : 'bg-[#efead5] text-[#34451D] border border-[#CDD3B5]'
                   }`}>
                     {item.badge}
                   </span>
@@ -178,16 +178,16 @@ export default function Sidebar() {
       </div>
 
       {/* Footer logout / user profile button */}
-      <div className="p-3 border-t border-slate-200/80 space-y-1">
+      <div className="p-3 border-t border-[#CDD3B5] space-y-1">
         <Link
           href="/"
-          className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-slate-700 hover:text-slate-950 hover:bg-slate-100 transition-all"
+          className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-[#20231B] hover:text-[#34451D] hover:bg-[#efead5] transition-all"
         >
           <div className="flex items-center gap-2.5">
-            <Globe className="w-4 h-4 text-emerald-700" />
+            <Globe className="w-4 h-4 text-[#596B32]" />
             <span>Customer Storefront</span>
           </div>
-          <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+          <ChevronRight className="w-3.5 h-3.5 text-[#85887A]" />
         </Link>
 
         <button

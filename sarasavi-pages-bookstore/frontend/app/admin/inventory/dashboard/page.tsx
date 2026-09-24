@@ -112,12 +112,12 @@ export default function InventoryDashboardPage() {
 
   if (!isAuthorized) {
     return (
-      <div className="glass-card rounded-2xl p-8 max-w-lg mx-auto text-center space-y-4">
-        <div className="h-12 w-12 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 flex items-center justify-center mx-auto">
-          <Lock className="w-6 h-6" />
+      <div className="bg-[#efead5] border border-[#CDD3B5] rounded-3xl p-8 max-w-lg mx-auto text-center space-y-4 shadow-xs">
+        <div className="h-12 w-12 rounded-2xl bg-[#E4E7D2] border border-[#CDD3B5] text-[#34451D] flex items-center justify-center mx-auto">
+          <Lock className="w-6 h-6 text-[#596B32]" />
         </div>
-        <h2 className="text-lg font-bold text-white">Access Restricted</h2>
-        <p className="text-xs text-ink-muted leading-relaxed">
+        <h2 className="text-lg font-display font-light text-[#20231B]">Access Restricted</h2>
+        <p className="text-xs text-[#85887A] leading-relaxed">
           You do not have administrative permissions to access Module 4 (Inventory & Catalog).
           This panel is exclusively reserved for the Inventory Administrator (Dissanayake S.A.S.D.) or Super Admin.
         </p>
@@ -269,55 +269,55 @@ export default function InventoryDashboardPage() {
   });
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-6 pb-12 selection:bg-[#34451D] selection:text-[#efead5]">
       {/* Top Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-400 text-xs font-semibold mb-2">
-            <Boxes className="w-3.5 h-3.5" />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E4E7D2] border border-[#CDD3B5] text-[#34451D] text-xs font-semibold mb-2">
+            <Boxes className="w-3.5 h-3.5 text-[#596B32]" />
             Module 4: Inventory & Catalog
           </div>
-          <h1 className="text-2xl font-bold text-white">Book Catalog & Stock Control</h1>
-          <p className="text-xs text-ink-muted mt-1">
-            Assigned Owner: <span className="text-violet-400 font-semibold">Dissanayake S.A.S.D. (IT25101062)</span> | Role: <span className="font-mono text-white">INVENTORY_ADMIN</span>
+          <h1 className="text-2xl font-display font-light text-[#20231B]">Book Catalog & Stock Control</h1>
+          <p className="text-xs text-[#85887A] mt-1">
+            Assigned Owner: <span className="text-[#34451D] font-semibold">Dissanayake S.A.S.D. (IT25101062)</span> | Role: <span className="font-semibold text-[#596B32]">INVENTORY_ADMIN</span>
           </p>
         </div>
 
         <div className="flex items-center gap-2.5">
           <button 
             onClick={() => setIsAddModalOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold shadow-lg shadow-violet-900/30 transition-all"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#34451D] hover:bg-[#20231B] text-[#efead5] text-xs font-semibold shadow-xs active:scale-95 transition-all"
           >
             <Plus className="w-4 h-4" />
             <span>+ Register New Book</span>
           </button>
           <button
             onClick={fetchInventory}
-            className="p-2.5 rounded-xl bg-surface-card border border-surface-border text-ink-muted hover:text-white transition-all"
+            className="p-2.5 rounded-full bg-[#efead5] hover:bg-[#E4E7D2] border border-[#CDD3B5] text-[#20231B] transition-all shadow-xs"
             title="Refresh from API"
           >
-            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-4 h-4 text-[#596B32] ${isLoading ? 'animate-spin' : ''}`} />
           </button>
         </div>
       </div>
 
       {/* Operations Legend */}
-      <div className="glass-card p-3.5 rounded-xl border border-violet-500/20 bg-violet-950/10 flex flex-wrap items-center justify-between gap-3 text-xs">
-        <div className="flex items-center gap-2 font-semibold text-violet-400">
-          <Layers className="w-4 h-4" />
+      <div className="bg-[#efead5] p-3.5 rounded-2xl border border-[#CDD3B5] shadow-xs flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div className="flex items-center gap-2 font-semibold text-[#34451D]">
+          <Layers className="w-4 h-4 text-[#596B32]" />
           <span>Inventory Operations:</span>
         </div>
-        <div className="flex flex-wrap items-center gap-2 font-mono text-[11px]">
-          <span className="px-2.5 py-1 rounded-md bg-violet-500/20 text-violet-300 border border-violet-500/30">
+        <div className="flex flex-wrap items-center gap-2 font-sans text-[11px]">
+          <span className="px-2.5 py-1 rounded-full bg-[#E4E7D2] text-[#34451D] border border-[#CDD3B5] font-semibold">
             Register Book
           </span>
-          <span className="px-2.5 py-1 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+          <span className="px-2.5 py-1 rounded-full bg-[#E4E7D2] text-[#34451D] border border-[#CDD3B5] font-semibold">
             Catalog & Alerts
           </span>
-          <span className="px-2.5 py-1 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/30">
+          <span className="px-2.5 py-1 rounded-full bg-[#E4E7D2] text-[#34451D] border border-[#CDD3B5] font-semibold">
             Restock / Adjust
           </span>
-          <span className="px-2.5 py-1 rounded-md bg-red-500/20 text-red-300 border border-red-500/30">
+          <span className="px-2.5 py-1 rounded-full bg-rose-100 text-rose-950 border border-rose-300 font-semibold">
             Delete Item
           </span>
         </div>
@@ -325,11 +325,11 @@ export default function InventoryDashboardPage() {
 
       {/* Notification Toast */}
       {notification && (
-        <div className={`p-3.5 rounded-xl flex items-center justify-between text-xs border ${
-          notification.type === 'success' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-red-500/10 border-red-500/20 text-red-400'
+        <div className={`p-3.5 rounded-2xl flex items-center justify-between text-xs border font-medium ${
+          notification.type === 'success' ? 'bg-[#E4E7D2] border-[#7F9148] text-[#34451D]' : 'bg-rose-50 border-rose-300 text-rose-900'
         }`}>
           <span>{notification.message}</span>
-          <button onClick={() => setNotification(null)} className="hover:opacity-80">
+          <button onClick={() => setNotification(null)} className="hover:opacity-80 text-[#85887A]">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -337,80 +337,80 @@ export default function InventoryDashboardPage() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="glass-card p-5 rounded-2xl">
+        <div className="bg-[#efead5] border border-[#CDD3B5] hover:border-[#7F9148] p-5 rounded-2xl transition-all shadow-xs group">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-ink-muted">Total Titles in Catalog</span>
-            <div className="h-8 w-8 rounded-lg bg-violet-500/10 text-violet-400 flex items-center justify-center">
-              <BookOpen className="w-4 h-4" />
+            <span className="text-xs font-semibold text-[#85887A]">Total Titles in Catalog</span>
+            <div className="h-9 w-9 rounded-2xl bg-[#E4E7D2] text-[#34451D] border border-[#CDD3B5] flex items-center justify-center">
+              <BookOpen className="w-4 h-4 text-[#596B32]" />
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-bold text-white font-display">{totalTitles} Titles</span>
+            <span className="text-3xl font-display font-light text-[#20231B]">{totalTitles}</span>
           </div>
-          <p className="text-[11px] text-ink-faint mt-1">{categories.length} Unique Categories</p>
+          <p className="text-[11px] text-[#85887A] mt-1">{categories.length} Unique Categories</p>
         </div>
 
-        <div className="glass-card p-5 rounded-2xl">
+        <div className="bg-[#efead5] border border-[#CDD3B5] hover:border-[#7F9148] p-5 rounded-2xl transition-all shadow-xs group">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-ink-muted">Total Warehouse Units</span>
-            <div className="h-8 w-8 rounded-lg bg-brand-500/10 text-brand-400 flex items-center justify-center">
-              <Package className="w-4 h-4" />
+            <span className="text-xs font-semibold text-[#85887A]">Total Warehouse Units</span>
+            <div className="h-9 w-9 rounded-2xl bg-[#E4E7D2] text-[#34451D] border border-[#CDD3B5] flex items-center justify-center">
+              <Package className="w-4 h-4 text-[#596B32]" />
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-bold text-white font-display">{totalStockUnits} Copies</span>
+            <span className="text-3xl font-display font-light text-[#20231B]">{totalStockUnits}</span>
           </div>
-          <p className="text-[11px] text-ink-faint mt-1">Available across warehouse bins</p>
+          <p className="text-[11px] text-[#85887A] mt-1">Available across warehouse bins</p>
         </div>
 
-        <div className="glass-card p-5 rounded-2xl">
+        <div className="bg-[#efead5] border border-[#CDD3B5] hover:border-[#7F9148] p-5 rounded-2xl transition-all shadow-xs group">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-ink-muted">Low Stock Alerts</span>
-            <div className="h-8 w-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center">
-              <AlertTriangle className="w-4 h-4" />
+            <span className="text-xs font-semibold text-[#85887A]">Low Stock Alerts</span>
+            <div className="h-9 w-9 rounded-2xl bg-amber-100 text-amber-900 border border-amber-300 flex items-center justify-center">
+              <AlertTriangle className="w-4 h-4 text-amber-700" />
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-bold text-amber-400 font-display">{lowStockCount} Items</span>
+            <span className="text-3xl font-display font-light text-amber-800">{lowStockCount} Items</span>
           </div>
-          <p className="text-[11px] text-amber-400/80 mt-1 font-mono">Stock &lt;= Safety Threshold</p>
+          <p className="text-[11px] text-[#85887A] mt-1">Stock &lt;= Safety Threshold</p>
         </div>
 
-        <div className="glass-card p-5 rounded-2xl">
+        <div className="bg-[#efead5] border border-[#CDD3B5] hover:border-[#7F9148] p-5 rounded-2xl transition-all shadow-xs group">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-ink-muted">Inventory Valuation</span>
-            <div className="h-8 w-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
-              <Boxes className="w-4 h-4" />
+            <span className="text-xs font-semibold text-[#85887A]">Inventory Valuation</span>
+            <div className="h-9 w-9 rounded-2xl bg-[#E4E7D2] text-[#34451D] border border-[#CDD3B5] flex items-center justify-center">
+              <Boxes className="w-4 h-4 text-[#596B32]" />
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-bold text-white font-display">
+            <span className="text-2xl font-display font-light text-[#20231B]">
               LKR {stockItems.reduce((acc, i) => acc + (i.sellingPrice * i.stockQuantity), 0).toLocaleString()}
             </span>
           </div>
-          <p className="text-[11px] text-emerald-400 mt-1">Estimated Retail Value</p>
+          <p className="text-[11px] text-[#596B32] font-semibold mt-1">Estimated Retail Value</p>
         </div>
       </div>
 
       {/* Filter and Search Bar [R] */}
-      <div className="glass-card p-4 rounded-2xl flex flex-col md:flex-row gap-3 items-center justify-between">
+      <div className="bg-[#efead5] p-4 rounded-2xl border border-[#CDD3B5] shadow-xs flex flex-col md:flex-row gap-3 items-center justify-between">
         <div className="relative w-full md:w-80">
-          <Search className="w-4 h-4 text-ink-faint absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-[#85887A] absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="[R] Search by title, author, ISBN, Book ID..."
-            className="w-full pl-9 pr-4 py-2 rounded-xl bg-surface border border-surface-border text-xs text-white placeholder:text-ink-faint focus:outline-none focus:border-violet-500 transition-all"
+            placeholder="Search by title, author, ISBN, Book ID..."
+            className="w-full pl-10 pr-4 py-2.5 rounded-full bg-[#efead5] border border-[#CDD3B5] text-xs text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:border-[#596B32] focus:bg-[#efead5] font-medium transition-all shadow-xs"
           />
         </div>
 
         <div className="flex items-center gap-2 w-full md:w-auto">
-          <Filter className="w-4 h-4 text-ink-faint hidden sm:block" />
+          <Filter className="w-4 h-4 text-[#85887A] hidden sm:block" />
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="w-full md:w-auto px-3 py-2 rounded-xl bg-surface border border-surface-border text-xs text-white focus:outline-none focus:border-violet-500 font-mono transition-all"
+            className="w-full md:w-auto px-4 py-2.5 rounded-full bg-[#efead5] border border-[#CDD3B5] text-xs text-[#20231B] focus:outline-none focus:border-[#596B32] font-semibold font-sans transition-all shadow-xs"
           >
             <option value="ALL">All Categories ({stockItems.length})</option>
             {categories.map(cat => (
@@ -421,77 +421,71 @@ export default function InventoryDashboardPage() {
       </div>
 
       {/* Inventory Table [R, U, D] */}
-      <div className="glass-card rounded-2xl overflow-hidden border border-surface-border">
+      <div className="bg-[#efead5] rounded-2xl overflow-hidden border border-[#CDD3B5] shadow-xs">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-surface-border bg-surface-card/60 text-[11px] font-mono uppercase tracking-wider text-ink-muted">
-                <th className="py-3 px-4">Book Details</th>
-                <th className="py-3 px-4">Category / Shelf</th>
-                <th className="py-3 px-4">Unit Price</th>
-                <th className="py-3 px-4">Stock Level</th>
-                <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4 text-right">Actions (CRUD)</th>
+          <table className="w-full text-left text-xs">
+            <thead className="bg-[#efead5]/60 border-b border-[#CDD3B5] text-[#596B32] uppercase tracking-wider text-[11px] font-semibold">
+              <tr>
+                <th className="py-3.5 px-4">Book Details</th>
+                <th className="py-3.5 px-4">Category / Shelf</th>
+                <th className="py-3.5 px-4">Unit Price</th>
+                <th className="py-3.5 px-4">Stock Level</th>
+                <th className="py-3.5 px-4">Status</th>
+                <th className="py-3.5 px-4 text-right">Actions (CRUD)</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-surface-border/50 text-xs">
+            <tbody className="divide-y divide-[#CDD3B5]/40 bg-[#efead5]">
               {filteredItems.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-ink-muted">
+                  <td colSpan={6} className="py-12 text-center text-[#85887A] font-medium">
                     No books in warehouse matching the search criteria.
                   </td>
                 </tr>
               ) : (
                 filteredItems.map((item) => (
-                  <tr key={item.id} className="hover:bg-surface-card/40 transition-colors">
+                  <tr key={item.id} className="hover:bg-[#efead5]/50 transition-colors">
                     <td className="py-3.5 px-4">
-                      <div className="font-semibold text-white">{item.title}</div>
-                      <div className="text-[11px] text-ink-muted flex items-center gap-2 mt-0.5">
+                      <div className="font-display font-normal text-sm text-[#20231B]">{item.title}</div>
+                      <div className="text-[11px] text-[#85887A] flex items-center gap-2 mt-0.5 font-sans">
                         <span>{item.author}</span>
                         <span className="opacity-40">|</span>
-                        <span className="font-mono text-[10px] text-violet-400">{item.bookId}</span>
+                        <span className="text-[10px] text-[#596B32] font-semibold">{item.bookId}</span>
                         <span className="opacity-40">|</span>
-                        <span className="font-mono text-[10px] text-ink-faint">{item.isbn}</span>
+                        <span className="text-[10px] text-[#85887A]">{item.isbn}</span>
                       </div>
                     </td>
                     <td className="py-3.5 px-4">
-                      <span className={`px-2.5 py-1 rounded-md text-[10px] font-semibold tracking-wide border ${
-                        item.category === 'FICTION' ? 'bg-pink-500/20 text-pink-300 border-pink-500/30' :
-                        item.category === 'LITERATURE' ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' :
-                        item.category === 'TECHNOLOGY' ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30' :
-                        item.category === 'ACADEMIC' ? 'bg-violet-500/20 text-violet-300 border-violet-500/30' :
-                        'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
-                      }`}>
+                      <span className="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-[#E4E7D2] text-[#34451D] border border-[#CDD3B5]">
                         {item.category}
                       </span>
                       {item.location && (
-                        <div className="text-[10px] text-ink-faint flex items-center gap-1 mt-1">
-                          <MapPin className="w-2.5 h-2.5 text-violet-400" />
+                        <div className="text-[10px] text-[#85887A] flex items-center gap-1 mt-1">
+                          <MapPin className="w-2.5 h-2.5 text-[#596B32]" />
                           <span>{item.location}</span>
                         </div>
                       )}
                     </td>
-                    <td className="py-3.5 px-4 font-mono font-semibold text-white">
+                    <td className="py-3.5 px-4 font-semibold text-[#20231B]">
                       LKR {item.sellingPrice.toFixed(2)}
                     </td>
-                    <td className="py-3.5 px-4 font-mono">
+                    <td className="py-3.5 px-4">
                       <div className="flex items-center gap-2">
                         <span className={`text-sm font-bold ${
-                          item.stockQuantity <= item.safetyStockLevel ? 'text-amber-400' : 'text-white'
+                          item.stockQuantity <= item.safetyStockLevel ? 'text-amber-700' : 'text-[#20231B]'
                         }`}>
                           {item.stockQuantity}
                         </span>
-                        <span className="text-[10px] text-ink-muted">(min: {item.safetyStockLevel})</span>
+                        <span className="text-[10px] text-[#85887A]">(min: {item.safetyStockLevel})</span>
                       </div>
                     </td>
                     <td className="py-3.5 px-4">
                       <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold border ${
                         item.stockQuantity > item.safetyStockLevel
-                          ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
-                          : 'bg-amber-500/10 border-amber-500/20 text-amber-400'
+                          ? 'bg-[#E4E7D2] border-[#CDD3B5] text-[#34451D]'
+                          : 'bg-amber-100 border-amber-300 text-amber-950'
                       }`}>
                         <span className={`w-1.5 h-1.5 rounded-full ${
-                          item.stockQuantity > item.safetyStockLevel ? 'bg-emerald-400' : 'bg-amber-400 animate-pulse'
+                          item.stockQuantity > item.safetyStockLevel ? 'bg-[#596B32]' : 'bg-amber-600 animate-pulse'
                         }`} />
                         {item.stockQuantity > item.safetyStockLevel ? 'IN_STOCK' : 'LOW_STOCK'}
                       </span>
@@ -501,7 +495,7 @@ export default function InventoryDashboardPage() {
                         {/* Quick Restock Button */}
                         <button
                           onClick={() => handleOpenAdjust(item)}
-                          className="px-2.5 py-1.5 rounded-xl bg-violet-600/20 hover:bg-violet-600/30 border border-violet-500/30 text-violet-300 text-xs font-medium transition-all"
+                          className="px-3 py-1.5 rounded-full bg-[#efead5] hover:bg-[#E4E7D2] border border-[#CDD3B5] text-[#34451D] text-xs font-semibold transition-all shadow-xs"
                           title="Restock / Adjust Stock"
                         >
                           Restock
@@ -510,7 +504,7 @@ export default function InventoryDashboardPage() {
                         {/* Edit Details */}
                         <button
                           onClick={() => handleOpenEdit(item)}
-                          className="p-1.5 rounded-xl bg-surface border border-surface-border text-ink-muted hover:text-white transition-all"
+                          className="p-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] hover:text-[#34451D] hover:bg-[#E4E7D2] transition-all shadow-xs"
                           title="Edit Item Details"
                         >
                           <Edit3 className="w-3.5 h-3.5" />
@@ -519,7 +513,7 @@ export default function InventoryDashboardPage() {
                         {/* Delete Item */}
                         <button
                           onClick={() => handleDeleteItem(item.id, item.title)}
-                          className="p-1.5 rounded-xl bg-surface border border-surface-border text-red-400 hover:bg-red-500/10 transition-all"
+                          className="p-2 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 transition-all shadow-xs"
                           title="Delete Item"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -536,73 +530,73 @@ export default function InventoryDashboardPage() {
 
       {/* [C] ADD ITEM MODAL */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="glass-card rounded-2xl w-full max-w-lg p-6 border border-surface-border space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-surface-border pb-3">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <Boxes className="w-5 h-5 text-violet-400" />
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#efead5] rounded-3xl w-full max-w-lg p-6 border border-[#CDD3B5] space-y-4 max-h-[90vh] overflow-y-auto text-[#20231B] shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[#CDD3B5]/60 pb-3">
+              <h3 className="text-base font-semibold text-[#20231B] flex items-center gap-2">
+                <Boxes className="w-5 h-5 text-[#596B32]" />
                 <span>Register New Book in Warehouse</span>
               </h3>
-              <button onClick={() => setIsAddModalOpen(false)} className="text-ink-muted hover:text-white">
-                <X className="w-5 h-5" />
+              <button onClick={() => setIsAddModalOpen(false)} className="w-7 h-7 rounded-full bg-[#efead5] hover:bg-[#E4E7D2] text-[#85887A] hover:text-[#20231B] flex items-center justify-center transition-colors">
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
 
             <form onSubmit={handleCreateItem} className="space-y-3 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-ink-muted mb-1 font-medium">Book ID (e.g. BK-106)</label>
+                  <label className="block text-[#20231B] mb-1 font-semibold">Book ID (e.g. BK-106)</label>
                   <input
                     type="text"
                     required
                     placeholder="BK-106"
                     value={newItem.bookId}
                     onChange={(e) => setNewItem({ ...newItem, bookId: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-surface border border-surface-border text-white focus:outline-none focus:border-violet-500 font-mono"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:border-[#596B32] focus:bg-[#efead5] font-sans"
                   />
                 </div>
                 <div>
-                  <label className="block text-ink-muted mb-1 font-medium">ISBN Number</label>
+                  <label className="block text-[#20231B] mb-1 font-semibold">ISBN Number</label>
                   <input
                     type="text"
                     required
                     placeholder="978-955-0201-99-9"
                     value={newItem.isbn}
                     onChange={(e) => setNewItem({ ...newItem, isbn: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-surface border border-surface-border text-white focus:outline-none focus:border-violet-500 font-mono"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:border-[#596B32] focus:bg-[#efead5] font-sans"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-ink-muted mb-1 font-medium">Book Title</label>
+                <label className="block text-[#20231B] mb-1 font-semibold">Book Title</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. Martin Wickramasinghe Anthology"
                   value={newItem.title}
                   onChange={(e) => setNewItem({ ...newItem, title: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-surface border border-surface-border text-white focus:outline-none focus:border-violet-500"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:border-[#596B32] focus:bg-[#efead5]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-ink-muted mb-1 font-medium">Author</label>
+                  <label className="block text-[#20231B] mb-1 font-semibold">Author</label>
                   <input
                     type="text"
                     required
                     value={newItem.author}
                     onChange={(e) => setNewItem({ ...newItem, author: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-surface border border-surface-border text-white focus:outline-none focus:border-violet-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:border-[#596B32] focus:bg-[#efead5]"
                   />
                 </div>
                 <div>
-                  <label className="block text-ink-muted mb-1 font-medium">Category</label>
+                  <label className="block text-[#20231B] mb-1 font-semibold">Category</label>
                   <select
                     value={newItem.category}
                     onChange={(e) => setNewItem({ ...newItem, category: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-surface border border-surface-border text-white focus:outline-none focus:border-violet-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-[#efead5] font-semibold"
                   >
                     <option value="Classic Fiction">Classic Fiction</option>
                     <option value="Historical">Historical</option>
@@ -616,61 +610,61 @@ export default function InventoryDashboardPage() {
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-ink-muted mb-1 font-medium">Stock Qty</label>
+                  <label className="block text-[#20231B] mb-1 font-semibold">Stock Qty</label>
                   <input
                     type="number"
                     required
                     min={0}
                     value={newItem.stockQuantity}
                     onChange={(e) => setNewItem({ ...newItem, stockQuantity: Number(e.target.value) })}
-                    className="w-full px-3 py-2 rounded-xl bg-surface border border-surface-border text-white focus:outline-none focus:border-violet-500 font-mono"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-[#efead5]"
                   />
                 </div>
                 <div>
-                  <label className="block text-ink-muted mb-1 font-medium">Safety Level</label>
+                  <label className="block text-[#20231B] mb-1 font-semibold">Safety Level</label>
                   <input
                     type="number"
                     required
                     min={1}
                     value={newItem.safetyStockLevel}
                     onChange={(e) => setNewItem({ ...newItem, safetyStockLevel: Number(e.target.value) })}
-                    className="w-full px-3 py-2 rounded-xl bg-surface border border-surface-border text-white focus:outline-none focus:border-violet-500 font-mono"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-[#efead5]"
                   />
                 </div>
                 <div>
-                  <label className="block text-ink-muted mb-1 font-medium">Price (LKR)</label>
+                  <label className="block text-[#20231B] mb-1 font-semibold">Price (LKR)</label>
                   <input
                     type="number"
                     required
                     min={0}
                     value={newItem.sellingPrice}
                     onChange={(e) => setNewItem({ ...newItem, sellingPrice: Number(e.target.value) })}
-                    className="w-full px-3 py-2 rounded-xl bg-surface border border-surface-border text-white focus:outline-none focus:border-violet-500 font-mono"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-[#efead5]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-ink-muted mb-1 font-medium">Shelf / Bin Location</label>
+                <label className="block text-[#20231B] mb-1 font-semibold">Shelf / Bin Location</label>
                 <input
                   type="text"
                   value={newItem.location}
                   onChange={(e) => setNewItem({ ...newItem, location: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-surface border border-surface-border text-white focus:outline-none focus:border-violet-500"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:border-[#596B32] focus:bg-[#efead5]"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-surface-border">
+              <div className="flex justify-end gap-2 pt-3 border-t border-[#CDD3B5]/60">
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-surface border border-surface-border text-ink-muted hover:text-white"
+                  className="px-4 py-2.5 rounded-full bg-[#efead5] hover:bg-[#E4E7D2] border border-[#CDD3B5] text-[#20231B] font-medium text-xs transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-semibold shadow-glow"
+                  className="px-6 py-2.5 rounded-full bg-[#34451D] hover:bg-[#20231B] text-[#efead5] font-semibold text-xs shadow-xs"
                 >
                   Register Item
                 </button>
@@ -682,30 +676,30 @@ export default function InventoryDashboardPage() {
 
       {/* [U] ADJUST STOCK MODAL */}
       {isAdjustModalOpen && activeItem && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="glass-card rounded-2xl w-full max-w-md p-6 border border-surface-border space-y-4">
-            <div className="flex items-center justify-between border-b border-surface-border pb-3">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <Boxes className="w-5 h-5 text-violet-400" />
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#efead5] rounded-3xl w-full max-w-md p-6 border border-[#CDD3B5] space-y-4 text-[#20231B] shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[#CDD3B5]/60 pb-3">
+              <h3 className="text-base font-semibold text-[#20231B] flex items-center gap-2">
+                <Boxes className="w-5 h-5 text-[#596B32]" />
                 <span>Adjust Stock: {activeItem.title}</span>
               </h3>
-              <button onClick={() => setIsAdjustModalOpen(false)} className="text-ink-muted hover:text-white">
-                <X className="w-5 h-5" />
+              <button onClick={() => setIsAdjustModalOpen(false)} className="w-7 h-7 rounded-full bg-[#efead5] hover:bg-[#E4E7D2] text-[#85887A] hover:text-[#20231B] flex items-center justify-center transition-colors">
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
 
             <form onSubmit={handleSaveAdjust} className="space-y-3 text-xs">
-              <div className="p-3 rounded-xl bg-surface/50 font-mono flex items-center justify-between">
-                <span className="text-ink-muted">Current Quantity:</span>
-                <span className="font-bold text-lg text-white">{activeItem.stockQuantity} Copies</span>
+              <div className="p-3 rounded-2xl bg-[#E4E7D2] border border-[#CDD3B5] flex items-center justify-between text-[#34451D]">
+                <span className="font-semibold text-xs">Current Quantity:</span>
+                <span className="font-bold text-lg text-[#20231B]">{activeItem.stockQuantity} Copies</span>
               </div>
 
               <div>
-                <label className="block text-ink-muted mb-1 font-medium">Adjustment Type</label>
+                <label className="block text-[#20231B] mb-1 font-semibold">Adjustment Type</label>
                 <select
                   value={adjustData.adjustmentType}
                   onChange={(e) => setAdjustData({ ...adjustData, adjustmentType: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-surface border border-surface-border text-white focus:outline-none focus:border-violet-500 font-mono"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-[#efead5] font-semibold"
                 >
                   <option value="RESTOCK">RESTOCK (+ Add Stock)</option>
                   <option value="DAMAGE">DAMAGE (- Write-off Damaged Copies)</option>
@@ -715,39 +709,39 @@ export default function InventoryDashboardPage() {
               </div>
 
               <div>
-                <label className="block text-ink-muted mb-1 font-medium">Quantity to Change</label>
+                <label className="block text-[#20231B] mb-1 font-semibold">Quantity to Change</label>
                 <input
                   type="number"
                   required
                   min={1}
                   value={adjustData.quantity}
                   onChange={(e) => setAdjustData({ ...adjustData, quantity: Number(e.target.value) })}
-                  className="w-full px-3 py-2 rounded-xl bg-surface border border-surface-border text-white focus:outline-none focus:border-violet-500 font-mono"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-[#efead5]"
                 />
               </div>
 
               <div>
-                <label className="block text-ink-muted mb-1 font-medium">Audit Reason</label>
+                <label className="block text-[#20231B] mb-1 font-semibold">Audit Reason</label>
                 <input
                   type="text"
                   required
                   value={adjustData.reason}
                   onChange={(e) => setAdjustData({ ...adjustData, reason: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-surface border border-surface-border text-white focus:outline-none focus:border-violet-500"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:border-[#596B32] focus:bg-[#efead5]"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-surface-border">
+              <div className="flex justify-end gap-2 pt-3 border-t border-[#CDD3B5]/60">
                 <button
                   type="button"
                   onClick={() => setIsAdjustModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-surface border border-surface-border text-ink-muted hover:text-white"
+                  className="px-4 py-2.5 rounded-full bg-[#efead5] hover:bg-[#E4E7D2] border border-[#CDD3B5] text-[#20231B] font-medium text-xs transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-semibold"
+                  className="px-6 py-2.5 rounded-full bg-[#34451D] hover:bg-[#20231B] text-[#efead5] font-semibold text-xs shadow-xs"
                 >
                   Apply Stock Change
                 </button>
@@ -759,74 +753,74 @@ export default function InventoryDashboardPage() {
 
       {/* EDIT ITEM DETAILS MODAL */}
       {isEditModalOpen && activeItem && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="glass-card rounded-2xl w-full max-w-md p-6 border border-surface-border space-y-4">
-            <div className="flex items-center justify-between border-b border-surface-border pb-3">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <Edit3 className="w-5 h-5 text-violet-400" />
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#efead5] rounded-3xl w-full max-w-md p-6 border border-[#CDD3B5] space-y-4 text-[#20231B] shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[#CDD3B5]/60 pb-3">
+              <h3 className="text-base font-semibold text-[#20231B] flex items-center gap-2">
+                <Edit3 className="w-5 h-5 text-[#596B32]" />
                 <span>Edit Item: {activeItem.bookId}</span>
               </h3>
-              <button onClick={() => setIsEditModalOpen(false)} className="text-ink-muted hover:text-white">
-                <X className="w-5 h-5" />
+              <button onClick={() => setIsEditModalOpen(false)} className="w-7 h-7 rounded-full bg-[#efead5] hover:bg-[#E4E7D2] text-[#85887A] hover:text-[#20231B] flex items-center justify-center transition-colors">
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
 
             <form onSubmit={handleSaveEdit} className="space-y-3 text-xs">
               <div>
-                <label className="block text-ink-muted mb-1 font-medium">Title</label>
+                <label className="block text-[#20231B] mb-1 font-semibold">Title</label>
                 <input
                   type="text"
                   required
                   value={activeItem.title}
                   onChange={(e) => setActiveItem({ ...activeItem, title: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-surface border border-surface-border text-white focus:outline-none focus:border-violet-500"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-[#efead5]"
                 />
               </div>
 
               <div>
-                <label className="block text-ink-muted mb-1 font-medium">Author</label>
+                <label className="block text-[#20231B] mb-1 font-semibold">Author</label>
                 <input
                   type="text"
                   required
                   value={activeItem.author}
                   onChange={(e) => setActiveItem({ ...activeItem, author: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-surface border border-surface-border text-white focus:outline-none focus:border-violet-500"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-[#efead5]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-ink-muted mb-1 font-medium">Selling Price (LKR)</label>
+                  <label className="block text-[#20231B] mb-1 font-semibold">Selling Price (LKR)</label>
                   <input
                     type="number"
                     required
                     value={activeItem.sellingPrice}
                     onChange={(e) => setActiveItem({ ...activeItem, sellingPrice: Number(e.target.value) })}
-                    className="w-full px-3 py-2 rounded-xl bg-surface border border-surface-border text-white focus:outline-none focus:border-violet-500 font-mono"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-[#efead5]"
                   />
                 </div>
                 <div>
-                  <label className="block text-ink-muted mb-1 font-medium">Shelf Location</label>
+                  <label className="block text-[#20231B] mb-1 font-semibold">Shelf Location</label>
                   <input
                     type="text"
                     value={activeItem.location || ''}
                     onChange={(e) => setActiveItem({ ...activeItem, location: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-surface border border-surface-border text-white focus:outline-none focus:border-violet-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-[#efead5]"
                   />
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-surface-border">
+              <div className="flex justify-end gap-2 pt-3 border-t border-[#CDD3B5]/60">
                 <button
                   type="button"
                   onClick={() => setIsEditModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-surface border border-surface-border text-ink-muted hover:text-white"
+                  className="px-4 py-2.5 rounded-full bg-[#efead5] hover:bg-[#E4E7D2] border border-[#CDD3B5] text-[#20231B] font-medium text-xs transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-semibold"
+                  className="px-6 py-2.5 rounded-full bg-[#34451D] hover:bg-[#20231B] text-[#efead5] font-semibold text-xs shadow-xs"
                 >
                   Save Details
                 </button>

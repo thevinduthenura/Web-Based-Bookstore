@@ -332,17 +332,17 @@ function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen bg-[#c8d8c6] bg-gradient-to-b from-[#bed4bc] via-[#cadbc8] to-[#e0ede0] text-[#122215] flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden font-sans selection:bg-[#122215] selection:text-white">
+    <div className="min-h-screen bg-[#efead5] bg-gradient-to-b from-[#efead5] via-[#E4E7D2] to-[#efead5] text-[#20231B] flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden font-sans selection:bg-[#34451D] selection:text-[#efead5]">
       
       {/* Soft Ambient Botanical Glow */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-emerald-500/10 rounded-full blur-[160px] pointer-events-none" />
-      <div className="absolute bottom-10 right-10 w-96 h-96 bg-white/40 rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-[#B7D85A]/15 rounded-full blur-[160px] pointer-events-none" />
+      <div className="absolute bottom-10 right-10 w-96 h-96 bg-[#CDD3B5]/40 rounded-full blur-[140px] pointer-events-none" />
 
       {/* Top Header Bar */}
       <div className="sm:mx-auto sm:w-full sm:max-w-md px-4 mb-6 flex items-center justify-between">
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-xs font-medium text-[#3b4e40] hover:text-[#122215] transition-colors"
+          className="inline-flex items-center gap-2 text-xs font-medium text-[#596B32] hover:text-[#20231B] transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Bookstore</span>
@@ -351,22 +351,22 @@ function LoginForm() {
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md px-4">
         {/* Unified Light iOS Glass Login Card */}
-        <div className="ios-glass bg-white/85 backdrop-blur-2xl p-8 sm:p-10 rounded-[32px] sm:rounded-[40px] border border-white/70 shadow-[0_8px_32px_rgba(0,0,0,0.08)] relative">
+        <div className="bg-[#efead5] p-8 sm:p-10 rounded-[32px] sm:rounded-[40px] border border-[#CDD3B5] shadow-[0_12px_40px_rgba(52,69,29,0.08)] relative">
           
           {/* Logo & Clean Organic Emblem */}
           <div className="text-center space-y-2.5 mb-8">
             <Link href="/" className="inline-flex items-center gap-2 mb-1 group">
               <div className="flex items-center -space-x-1">
-                <div className="w-3.5 h-3.5 rounded-full bg-[#122215] group-hover:scale-110 transition-transform" />
-                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 group-hover:scale-110 transition-transform" />
-                <div className="w-3.5 h-3.5 rounded-full bg-[#122215] group-hover:scale-110 transition-transform" />
+                <div className="w-3.5 h-3.5 rounded-full bg-[#34451D] group-hover:scale-110 transition-transform" />
+                <div className="w-2.5 h-2.5 rounded-full bg-[#B7D85A] group-hover:scale-110 transition-transform" />
+                <div className="w-3.5 h-3.5 rounded-full bg-[#596B32] group-hover:scale-110 transition-transform" />
               </div>
-              <span className="font-medium text-xl tracking-tight text-[#122215]">
-                sarasavi<span className="font-normal text-[#526456]">pages</span>
+              <span className="font-display font-light text-2xl tracking-tight text-[#20231B]">
+                sarasavi<span className="font-normal text-[#596B32]">pages</span>
               </span>
             </Link>
-            <p className="text-xs text-[#526456] max-w-xs mx-auto leading-relaxed">
-              sign in to access your personal library, orders, and bookstore services.
+            <p className="text-xs text-[#85887A] max-w-xs mx-auto leading-relaxed">
+              Sign in to access your personal library, orders, and bookstore services.
             </p>
           </div>
 
@@ -381,25 +381,25 @@ function LoginForm() {
           {/* ── THE SINGLE UNIFIED LOGIN FORM ───────────────────────────── */}
           <form onSubmit={handleUnifiedSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-medium text-[#2d3e31] mb-1.5">
+              <label className="block text-xs font-medium text-[#34451D] mb-1.5">
                 Email or Username
               </label>
               <div className="relative">
-                <User className="w-4 h-4 text-[#738477] absolute left-4 top-1/2 -translate-y-1/2" />
+                <User className="w-4 h-4 text-[#85887A] absolute left-4 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   required
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
                   placeholder="Enter your email or username"
-                  className="w-full pl-11 pr-4 py-3 rounded-full bg-white/90 border border-black/[0.08] text-xs text-[#122215] placeholder:text-[#8a998e] focus:outline-none focus:border-[#122215] focus:ring-1 focus:ring-[#122215] transition-all shadow-sm"
+                  className="w-full pl-11 pr-4 py-3 rounded-full bg-[#efead5] border border-[#CDD3B5] text-xs text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:border-[#596B32] focus:ring-1 focus:ring-[#596B32] transition-all shadow-sm"
                 />
               </div>
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-xs font-medium text-[#2d3e31]">
+                <label className="block text-xs font-medium text-[#34451D]">
                   Password
                 </label>
                 <button
@@ -409,37 +409,37 @@ function LoginForm() {
                     setModalSuccess(null);
                     setShowRegisterModal(true);
                   }}
-                  className="text-[11px] text-emerald-700 hover:text-emerald-800 hover:underline flex items-center gap-1 font-medium transition-colors"
+                  className="text-[11px] text-[#596B32] hover:text-[#34451D] hover:underline flex items-center gap-1 font-medium transition-colors"
                 >
                   <UserPlus className="w-3 h-3" />
                   <span>Create new account?</span>
                 </button>
               </div>
               <div className="relative">
-                <Lock className="w-4 h-4 text-[#738477] absolute left-4 top-1/2 -translate-y-1/2" />
+                <Lock className="w-4 h-4 text-[#85887A] absolute left-4 top-1/2 -translate-y-1/2" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
-                  className="w-full pl-11 pr-11 py-3 rounded-full bg-white/90 border border-black/[0.08] text-xs text-[#122215] placeholder:text-[#8a998e] focus:outline-none focus:border-[#122215] focus:ring-1 focus:ring-[#122215] transition-all font-mono shadow-sm"
+                  className="w-full pl-11 pr-11 py-3 rounded-full bg-[#efead5] border border-[#CDD3B5] text-xs text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:border-[#596B32] focus:ring-1 focus:ring-[#596B32] transition-all font-mono shadow-sm"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#738477] hover:text-[#122215] transition-colors"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#85887A] hover:text-[#20231B] transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
 
-            {/* Sleek Black Pill Sign In Button */}
+            {/* Sleek Dark Forest Pill Sign In Button */}
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-3.5 rounded-full bg-[#122215] hover:bg-black text-white font-medium text-xs shadow-md active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 mt-4"
+              className="w-full py-3.5 rounded-full bg-[#34451D] hover:bg-[#20231B] text-[#efead5] font-medium text-xs shadow-md active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 mt-4"
             >
               <span>{isSubmitting ? 'Signing in...' : 'Sign In'}</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -451,20 +451,20 @@ function LoginForm() {
       {/* ── REGISTER CUSTOMER MODAL (Light iOS Glass Style) ─────────── */}
       {showRegisterModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-          <div className="bg-white/95 backdrop-blur-2xl border border-white/60 rounded-[32px] p-7 max-w-md w-full shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between mb-5 pb-3 border-b border-black/[0.06]">
+          <div className="bg-[#efead5] border border-[#CDD3B5] rounded-[32px] p-7 max-w-md w-full shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between mb-5 pb-3 border-b border-[#CDD3B5]">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center">
+                <div className="w-9 h-9 rounded-full bg-[#E4E7D2] text-[#34451D] flex items-center justify-center border border-[#CDD3B5]/60">
                   <UserPlus className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-[#122215]">Create Reader Account</h3>
-                  <p className="text-[11px] text-[#526456]">Join the Sarasavi Pages literary community</p>
+                  <h3 className="text-sm font-semibold text-[#20231B]">Create Reader Account</h3>
+                  <p className="text-[11px] text-[#85887A]">Join the Sarasavi Pages literary community</p>
                 </div>
               </div>
               <button
                 onClick={() => setShowRegisterModal(false)}
-                className="w-7 h-7 rounded-full bg-black/[0.04] hover:bg-black/[0.08] text-[#526456] hover:text-[#122215] flex items-center justify-center transition-colors"
+                className="w-7 h-7 rounded-full bg-[#efead5] hover:bg-[#E4E7D2] text-[#85887A] hover:text-[#20231B] flex items-center justify-center transition-colors"
                 title="Close"
               >
                 <X className="w-3.5 h-3.5" />
@@ -489,43 +489,43 @@ function LoginForm() {
             <form onSubmit={handleRegisterCustomer} className="space-y-3 text-xs">
               <div className="grid grid-cols-2 gap-2.5">
                 <div>
-                  <label className="block text-[#3b4e40] font-medium mb-1">First Name *</label>
+                  <label className="block text-[#34451D] font-medium mb-1">First Name *</label>
                   <input
                     type="text"
                     required
                     value={regForm.firstName}
                     onChange={(e) => setRegForm({ ...regForm, firstName: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-full bg-white border border-black/[0.08] text-[#122215] placeholder:text-[#8a998e] focus:outline-none focus:border-[#122215]"
+                    className="w-full px-3.5 py-2.5 rounded-full bg-[#efead5] border border-[#CDD3B5] text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:border-[#596B32]"
                     placeholder="e.g. Kasun"
                   />
                 </div>
                 <div>
-                  <label className="block text-[#3b4e40] font-medium mb-1">Last Name *</label>
+                  <label className="block text-[#34451D] font-medium mb-1">Last Name *</label>
                   <input
                     type="text"
                     required
                     value={regForm.lastName}
                     onChange={(e) => setRegForm({ ...regForm, lastName: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-full bg-white border border-black/[0.08] text-[#122215] placeholder:text-[#8a998e] focus:outline-none focus:border-[#122215]"
+                    className="w-full px-3.5 py-2.5 rounded-full bg-[#efead5] border border-[#CDD3B5] text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:border-[#596B32]"
                     placeholder="e.g. Perera"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[#3b4e40] font-medium mb-1">Email Address *</label>
+                <label className="block text-[#34451D] font-medium mb-1">Email Address *</label>
                 <input
                   type="email"
                   required
                   value={regForm.email}
                   onChange={(e) => setRegForm({ ...regForm, email: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-full bg-white border border-black/[0.08] text-[#122215] placeholder:text-[#8a998e] focus:outline-none focus:border-[#122215]"
+                  className="w-full px-3.5 py-2.5 rounded-full bg-[#efead5] border border-[#CDD3B5] text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:border-[#596B32]"
                   placeholder="e.g. kasun.perera@gmail.com"
                 />
               </div>
 
               <div>
-                <label className="block text-[#3b4e40] font-medium mb-1">
+                <label className="block text-[#34451D] font-medium mb-1">
                   Password <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
@@ -534,13 +534,13 @@ function LoginForm() {
                     required
                     value={regForm.password}
                     onChange={(e) => setRegForm({ ...regForm, password: e.target.value })}
-                    className="w-full pl-3.5 pr-10 py-2.5 rounded-full bg-white border border-black/[0.08] text-[#122215] font-mono text-xs placeholder:text-[#8a998e] focus:outline-none focus:border-[#122215]"
+                    className="w-full pl-3.5 pr-10 py-2.5 rounded-full bg-[#efead5] border border-[#CDD3B5] text-[#20231B] font-mono text-xs placeholder:text-[#85887A] focus:outline-none focus:border-[#596B32]"
                     placeholder="Create secure password"
                   />
                   <button
                     type="button"
                     onClick={() => setShowRegPassword(!showRegPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#738477] hover:text-[#122215]"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#85887A] hover:text-[#20231B]"
                   >
                     {showRegPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                   </button>
@@ -550,55 +550,55 @@ function LoginForm() {
                 {regForm.password.length > 0 && (
                   <div className="mt-2 space-y-1">
                     <div className="flex items-center justify-between text-[10px]">
-                      <span className="text-[#556358]">Password Security:</span>
+                      <span className="text-[#85887A]">Password Security:</span>
                       <span className={`font-semibold ${
                         passwordStrengthScore <= 1 ? 'text-red-600' :
-                        passwordStrengthScore <= 3 ? 'text-amber-600' : 'text-emerald-700'
+                        passwordStrengthScore <= 3 ? 'text-amber-600' : 'text-[#596B32]'
                       }`}>
                         {passwordStrengthScore <= 1 ? 'Weak' :
                          passwordStrengthScore <= 3 ? 'Medium' : 'Strong'}
                       </span>
                     </div>
-                    <div className="h-1.5 w-full bg-black/5 rounded-full overflow-hidden flex gap-1">
+                    <div className="h-1.5 w-full bg-[#CDD3B5]/50 rounded-full overflow-hidden flex gap-1">
                       <div className={`h-full flex-1 rounded-full transition-all ${
-                        passwordStrengthScore >= 1 ? (passwordStrengthScore <= 1 ? 'bg-red-500' : passwordStrengthScore <= 3 ? 'bg-amber-500' : 'bg-emerald-500') : 'bg-transparent'
+                        passwordStrengthScore >= 1 ? (passwordStrengthScore <= 1 ? 'bg-red-500' : passwordStrengthScore <= 3 ? 'bg-amber-500' : 'bg-[#7F9148]') : 'bg-transparent'
                       }`} />
                       <div className={`h-full flex-1 rounded-full transition-all ${
-                        passwordStrengthScore >= 2 ? (passwordStrengthScore <= 3 ? 'bg-amber-500' : 'bg-emerald-500') : 'bg-transparent'
+                        passwordStrengthScore >= 2 ? (passwordStrengthScore <= 3 ? 'bg-amber-500' : 'bg-[#7F9148]') : 'bg-transparent'
                       }`} />
                       <div className={`h-full flex-1 rounded-full transition-all ${
-                        passwordStrengthScore >= 3 ? (passwordStrengthScore <= 3 ? 'bg-amber-500' : 'bg-emerald-500') : 'bg-transparent'
+                        passwordStrengthScore >= 3 ? (passwordStrengthScore <= 3 ? 'bg-amber-500' : 'bg-[#7F9148]') : 'bg-transparent'
                       }`} />
                       <div className={`h-full flex-1 rounded-full transition-all ${
-                        passwordStrengthScore >= 4 ? 'bg-emerald-500' : 'bg-transparent'
+                        passwordStrengthScore >= 4 ? 'bg-[#596B32]' : 'bg-transparent'
                       }`} />
                     </div>
                   </div>
                 )}
 
                 {/* Live Password Rules Checklist */}
-                <div className="mt-2 p-2.5 rounded-xl bg-black/[0.03] border border-black/[0.05] grid grid-cols-2 gap-1 text-[10px]">
-                  <div className={`flex items-center gap-1.5 ${hasMinLength ? 'text-emerald-700 font-medium' : 'text-stone-500'}`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${hasMinLength ? 'bg-emerald-500' : 'bg-stone-300'}`} />
+                <div className="mt-2 p-2.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] grid grid-cols-2 gap-1 text-[10px]">
+                  <div className={`flex items-center gap-1.5 ${hasMinLength ? 'text-[#34451D] font-medium' : 'text-[#85887A]'}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${hasMinLength ? 'bg-[#596B32]' : 'bg-[#CDD3B5]'}`} />
                     <span>8+ characters</span>
                   </div>
-                  <div className={`flex items-center gap-1.5 ${hasUppercase ? 'text-emerald-700 font-medium' : 'text-stone-500'}`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${hasUppercase ? 'bg-emerald-500' : 'bg-stone-300'}`} />
+                  <div className={`flex items-center gap-1.5 ${hasUppercase ? 'text-[#34451D] font-medium' : 'text-[#85887A]'}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${hasUppercase ? 'bg-[#596B32]' : 'bg-[#CDD3B5]'}`} />
                     <span>1 uppercase (A-Z)</span>
                   </div>
-                  <div className={`flex items-center gap-1.5 ${hasNumber ? 'text-emerald-700 font-medium' : 'text-stone-500'}`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${hasNumber ? 'bg-emerald-500' : 'bg-stone-300'}`} />
+                  <div className={`flex items-center gap-1.5 ${hasNumber ? 'text-[#34451D] font-medium' : 'text-[#85887A]'}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${hasNumber ? 'bg-[#596B32]' : 'bg-[#CDD3B5]'}`} />
                     <span>1 number (0-9)</span>
                   </div>
-                  <div className={`flex items-center gap-1.5 ${hasSpecial ? 'text-emerald-700 font-medium' : 'text-stone-500'}`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${hasSpecial ? 'bg-emerald-500' : 'bg-stone-300'}`} />
+                  <div className={`flex items-center gap-1.5 ${hasSpecial ? 'text-[#34451D] font-medium' : 'text-[#85887A]'}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${hasSpecial ? 'bg-[#596B32]' : 'bg-[#CDD3B5]'}`} />
                     <span>1 special symbol</span>
                   </div>
                 </div>
               </div>
 
               <div>
-                <label className="block text-[#3b4e40] font-medium mb-1">
+                <label className="block text-[#34451D] font-medium mb-1">
                   Confirm Password <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
@@ -607,23 +607,23 @@ function LoginForm() {
                     required
                     value={regForm.confirmPassword}
                     onChange={(e) => setRegForm({ ...regForm, confirmPassword: e.target.value })}
-                    className={`w-full pl-3.5 pr-10 py-2.5 rounded-full bg-white border text-[#122215] font-mono text-xs placeholder:text-[#8a998e] focus:outline-none ${
+                    className={`w-full pl-3.5 pr-10 py-2.5 rounded-full bg-[#efead5] border text-[#20231B] font-mono text-xs placeholder:text-[#85887A] focus:outline-none ${
                       regForm.confirmPassword.length > 0
-                        ? (passwordsMatch ? 'border-emerald-500 focus:border-emerald-600' : 'border-red-400 focus:border-red-500')
-                        : 'border-black/[0.08] focus:border-[#122215]'
+                        ? (passwordsMatch ? 'border-[#596B32] focus:border-[#34451D]' : 'border-red-400 focus:border-red-500')
+                        : 'border-[#CDD3B5] focus:border-[#596B32]'
                     }`}
                     placeholder="Re-enter password to match"
                   />
                   <button
                     type="button"
                     onClick={() => setShowRegConfirmPassword(!showRegConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#738477] hover:text-[#122215]"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#85887A] hover:text-[#20231B]"
                   >
                     {showRegConfirmPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                   </button>
                 </div>
                 {regForm.confirmPassword.length > 0 && (
-                  <p className={`text-[10px] mt-1 font-medium ${passwordsMatch ? 'text-emerald-700' : 'text-red-600'}`}>
+                  <p className={`text-[10px] mt-1 font-medium ${passwordsMatch ? 'text-[#596B32]' : 'text-red-600'}`}>
                     {passwordsMatch ? '✓ Passwords match perfectly' : '✕ Passwords do not match'}
                   </p>
                 )}
@@ -631,13 +631,13 @@ function LoginForm() {
 
               <div className="grid grid-cols-2 gap-2.5">
                 <div>
-                  <label className="block text-[#3b4e40] font-medium mb-1">Phone Number</label>
+                  <label className="block text-[#34451D] font-medium mb-1">Phone Number</label>
                   <input
                     type="text"
                     value={regForm.phone}
                     onChange={(e) => setRegForm({ ...regForm, phone: e.target.value })}
-                    className={`w-full px-3.5 py-2.5 rounded-full bg-white border text-[#122215] text-xs placeholder:text-[#8a998e] focus:outline-none ${
-                      regForm.phone.trim() && !isPhoneValid ? 'border-red-400' : 'border-black/[0.08] focus:border-[#122215]'
+                    className={`w-full px-3.5 py-2.5 rounded-full bg-[#efead5] border text-[#20231B] text-xs placeholder:text-[#85887A] focus:outline-none ${
+                      regForm.phone.trim() && !isPhoneValid ? 'border-red-400' : 'border-[#CDD3B5] focus:border-[#596B32]'
                     }`}
                     placeholder="077 123 4567"
                   />
@@ -646,24 +646,24 @@ function LoginForm() {
                   )}
                 </div>
                 <div>
-                  <label className="block text-[#3b4e40] font-medium mb-1">City</label>
+                  <label className="block text-[#34451D] font-medium mb-1">City</label>
                   <input
                     type="text"
                     value={regForm.city}
                     onChange={(e) => setRegForm({ ...regForm, city: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-full bg-white border border-black/[0.08] text-[#122215] text-xs placeholder:text-[#8a998e] focus:outline-none focus:border-[#122215]"
+                    className="w-full px-3.5 py-2.5 rounded-full bg-[#efead5] border border-[#CDD3B5] text-[#20231B] text-xs placeholder:text-[#85887A] focus:outline-none focus:border-[#596B32]"
                     placeholder="Colombo"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[#3b4e40] font-medium mb-1">Delivery Address Line</label>
+                <label className="block text-[#34451D] font-medium mb-1">Delivery Address Line</label>
                 <input
                   type="text"
                   value={regForm.addressLine1}
                   onChange={(e) => setRegForm({ ...regForm, addressLine1: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-full bg-white border border-black/[0.08] text-[#122215] text-xs placeholder:text-[#8a998e] focus:outline-none focus:border-[#122215]"
+                  className="w-full px-3.5 py-2.5 rounded-full bg-[#efead5] border border-[#CDD3B5] text-[#20231B] text-xs placeholder:text-[#85887A] focus:outline-none focus:border-[#596B32]"
                   placeholder="No 25, Main Street, Colombo 03"
                 />
               </div>
@@ -671,7 +671,7 @@ function LoginForm() {
               <button
                 type="submit"
                 disabled={regLoading}
-                className="w-full py-3.5 rounded-full bg-[#122215] hover:bg-black text-white font-medium text-xs shadow-md active:scale-95 transition-all mt-4 flex items-center justify-center gap-2 disabled:opacity-50"
+                className="w-full py-3.5 rounded-full bg-[#34451D] hover:bg-[#20231B] text-[#efead5] font-medium text-xs shadow-md active:scale-95 transition-all mt-4 flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 {regLoading ? 'Creating Account...' : 'Complete Registration & Sign In'}
               </button>
@@ -686,8 +686,8 @@ function LoginForm() {
 // ── Loading fallback for Suspense ─────────────────────────────────────────
 function LoginSkeleton() {
   return (
-    <div className="min-h-screen bg-[#c8d8c6] flex items-center justify-center">
-      <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#122215] border-t-transparent" />
+    <div className="min-h-screen bg-[#efead5] flex items-center justify-center">
+      <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#34451D] border-t-transparent" />
     </div>
   );
 }

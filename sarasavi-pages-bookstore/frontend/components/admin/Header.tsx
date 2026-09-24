@@ -17,19 +17,19 @@ export default function Header() {
   };
 
   return (
-    <header className="h-16 px-6 bg-white/95 backdrop-blur-xl border-b border-slate-200/90 flex items-center justify-between sticky top-0 z-30 text-slate-900 shadow-xs">
+    <header className="h-16 px-6 bg-[#efead5]/95 backdrop-blur-xl border-b border-[#CDD3B5] flex items-center justify-between sticky top-0 z-30 text-[#20231B] shadow-xs font-sans">
       {/* Search / Context Bar */}
       <div className="flex items-center gap-3">
         <div className="relative hidden md:block">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-[#85887A] absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search system resources..."
-            className="pl-9 pr-4 py-1.5 rounded-full bg-slate-50 border border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-emerald-600 focus:bg-white w-64 transition-all shadow-xs font-medium"
+            className="pl-9 pr-4 py-1.5 rounded-full bg-[#efead5] border border-[#CDD3B5] text-xs text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:border-[#596B32] focus:bg-[#efead5] w-64 transition-all shadow-xs font-medium"
           />
         </div>
-        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 text-[11px] font-sans font-semibold">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
+        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-[#E4E7D2] text-[#34451D] border border-[#CDD3B5] text-[11px] font-mono font-medium">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#596B32] animate-pulse" />
           <span>API: Connected (Port 8080)</span>
         </div>
       </div>
@@ -39,32 +39,32 @@ export default function Header() {
         {/* Switch to Main Website Storefront */}
         <Link
           href="/"
-          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-slate-50 hover:bg-slate-100 border border-slate-200 hover:border-slate-300 text-slate-800 text-xs font-semibold shadow-xs transition-all"
+          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#efead5] hover:bg-[#E4E7D2] border border-[#CDD3B5] text-[#20231B] text-xs font-medium shadow-xs transition-all"
           title="Switch to Customer Storefront (Main Site)"
         >
-          <Globe className="w-3.5 h-3.5 text-emerald-700" />
+          <Globe className="w-3.5 h-3.5 text-[#596B32]" />
           <span className="hidden sm:inline">View Main Site</span>
         </Link>
 
         <div className="flex items-center gap-3">
           <div className="text-right hidden sm:block">
-            <p className="text-xs font-bold text-slate-900">{user.fullName}</p>
-            <p className="text-xs font-sans font-bold text-emerald-800">
+            <p className="text-xs font-semibold text-[#20231B]">{user.fullName}</p>
+            <p className="text-xs font-mono font-semibold text-[#596B32]">
               {roleMeta.label}
             </p>
           </div>
 
-          <div className="h-9 w-9 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-bold text-xs font-sans shadow-xs">
+          <div className="h-9 w-9 rounded-2xl bg-[#34451D] text-[#efead5] flex items-center justify-center font-semibold text-xs font-display shadow-xs">
             {user.username.slice(0, 2).toUpperCase()}
           </div>
         </div>
 
-        <div className="h-5 w-px bg-slate-200" />
+        <div className="h-5 w-px bg-[#CDD3B5]" />
 
         <button
           onClick={logout}
           title="Sign Out"
-          className="p-2 rounded-xl text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-all"
+          className="p-2 rounded-xl text-[#85887A] hover:text-red-700 hover:bg-red-50 border border-transparent hover:border-red-200 transition-all"
         >
           <LogOut className="w-4 h-4" />
         </button>

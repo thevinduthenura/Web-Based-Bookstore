@@ -10,6 +10,19 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        healium: {
+          deepForest: '#34451D', // Main dark backgrounds, text
+          olive:      '#596B32', // Primary brand color
+          moss:       '#7F9148', // Cards, accents, gradients
+          sage:       '#AAB58A', // Secondary backgrounds
+          lightSage:  '#CDD3B5', // Soft sections / highlights
+          paleGreen:  '#E4E7D2', // Background accents
+          cream:      '#efead5', // Main page background (#efead5 instead of pure white)
+          warmWhite:  '#efead5', // Light colors set to #efead5
+          charcoal:   '#20231B', // Primary typography
+          mutedGray:  '#85887A', // Secondary text
+          lime:       '#B7D85A', // Buttons, indicators, highlights
+        },
         brand: {
           50:  '#fef7ee',
           100: '#fdecd3',
@@ -24,43 +37,43 @@ module.exports = {
           950: '#411405',
         },
         surface: {
-          DEFAULT: '#0f1117',  // deep dark background
-          card:    '#1a1d27',  // card/panel surface
-          border:  '#2a2d3a',  // subtle borders
-          muted:   '#3a3d4a',  // muted elements
+          DEFAULT: '#20231B',  // charcoal
+          card:    '#34451D',  // deep forest
+          border:  '#596B32',  // olive border
+          muted:   '#85887A',  // muted gray
         },
         editorial: {
-          bg: '#fbfbf9',
-          card: '#ffffff',
-          border: '#e8e8e2',
-          ink: '#0d0f12',
-          muted: '#666b75',
-          faint: '#989ea9',
-          obsidian: '#0d110e',
-          obsidianLight: '#161d18',
-          moss: '#1d3326',
-          mossLight: '#2a4a37',
+          bg: '#efead5',
+          card: '#efead5',
+          border: '#CDD3B5',
+          ink: '#20231B',
+          muted: '#85887A',
+          faint: '#AAB58A',
+          obsidian: '#20231B',
+          obsidianLight: '#34451D',
+          moss: '#596B32',
+          mossLight: '#7F9148',
         },
         forest: {
-          50:  '#edfaf2',
-          100: '#d2f5e2',
-          200: '#a8eac7',
-          300: '#6dd8a7',
-          400: '#33be82',
-          500: '#10a165',  // primary forest green
-          600: '#068052',
-          700: '#066641',
-          800: '#075133',
-          900: '#064429',
-          950: '#022317',
-          deep: '#0a1a10',
-          mid:  '#122a1b',
-          leaf: '#2d6a45',
+          50:  '#efead5',
+          100: '#E4E7D2',
+          200: '#CDD3B5',
+          300: '#AAB58A',
+          400: '#7F9148',
+          500: '#596B32',  // primary olive
+          600: '#475628',
+          700: '#34451D',  // deep forest
+          800: '#283616',
+          900: '#20231B',  // charcoal
+          950: '#141811',
+          deep: '#34451D',
+          mid:  '#596B32',
+          leaf: '#7F9148',
         },
         ink: {
-          DEFAULT: '#f8f9fb',  // primary text
-          muted:   '#9ba3b5',  // secondary text
-          faint:   '#5c6275',  // very muted text
+          DEFAULT: '#20231B',  // primary text
+          muted:   '#85887A',  // secondary text
+          faint:   '#AAB58A',  // very muted text
         },
       },
       borderRadius: {
@@ -69,9 +82,10 @@ module.exports = {
         '5xl': '40px',
       },
       fontFamily: {
-        sans:    ['var(--font-inter)', 'Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
-        display: ['var(--font-inter)', 'Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
-        serif:   ['Georgia', 'Times New Roman', 'serif'],
+        sans:    ['var(--font-manrope)', 'Manrope', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        display: ['var(--font-sora)', 'Sora', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        reina:   ['Reina Neue', 'Georgia', 'serif'],
+        serif:   ['Reina Neue', 'Georgia', 'serif'],
         mono:    ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'monospace'],
       },
       boxShadow: {

@@ -94,31 +94,31 @@ export default function CartManager() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-sans">
       {/* Interactive Cart & Catalog Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Books Storefront to Add Items */}
-        <div className="lg:col-span-2 glass-card p-6 rounded-2xl space-y-4">
-          <div className="flex items-center justify-between border-b border-surface-border/50 pb-3">
+        <div className="lg:col-span-2 bg-[#efead5] p-6 rounded-2xl border border-[#CDD3B5] space-y-4 shadow-sm">
+          <div className="flex items-center justify-between border-b border-[#CDD3B5]/60 pb-3">
             <div className="flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-brand-400" />
-              <h3 className="text-base font-bold text-white">Bookstore Catalog (Live Cart Demo)</h3>
+              <BookOpen className="w-5 h-5 text-[#596B32]" />
+              <h3 className="text-base font-medium font-display text-[#20231B]">Bookstore Catalog (Live Cart Demo)</h3>
             </div>
-            <span className="text-xs text-ink-muted">Available Stock Ready for Dispatch</span>
+            <span className="text-xs text-[#85887A]">Available Stock Ready for Dispatch</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {books.slice(0, 4).map((book) => (
-              <div key={book.id} className="p-3.5 rounded-xl bg-surface/50 border border-surface-border/70 flex gap-3 items-center">
-                <img src={book.coverImage} alt={book.title} className="w-14 h-18 object-cover rounded-lg shadow" />
+              <div key={book.id} className="p-3.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] flex gap-3 items-center shadow-sm">
+                <img src={book.coverImage} alt={book.title} className="w-14 h-18 object-cover rounded-lg shadow-sm" />
                 <div className="flex-1 min-w-0">
-                  <h4 className="text-xs font-bold text-white truncate">{book.title}</h4>
-                  <p className="text-[11px] text-ink-muted truncate">{book.author}</p>
-                  <p className="text-xs font-mono font-bold text-amber-400 mt-1">LKR {book.price.toLocaleString()}</p>
+                  <h4 className="text-xs font-semibold text-[#20231B] truncate">{book.title}</h4>
+                  <p className="text-[11px] text-[#85887A] truncate">{book.author}</p>
+                  <p className="text-xs font-mono font-bold text-[#34451D] mt-1">LKR {book.price.toLocaleString()}</p>
                 </div>
                 <button
                   onClick={() => handleAddToCart(book.id)}
-                  className="px-2.5 py-1.5 rounded-lg bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 border border-amber-500/30 text-xs font-medium transition-all"
+                  className="px-2.5 py-1.5 rounded-lg bg-[#E4E7D2] text-[#34451D] hover:bg-[#CDD3B5] border border-[#CDD3B5] text-xs font-medium transition-all shadow-sm"
                 >
                   + Add
                 </button>
@@ -128,14 +128,14 @@ export default function CartManager() {
         </div>
 
         {/* Live Cart Sidebar */}
-        <div className="glass-card p-6 rounded-2xl space-y-5 flex flex-col justify-between">
+        <div className="bg-[#efead5] p-6 rounded-2xl border border-[#CDD3B5] space-y-5 flex flex-col justify-between shadow-sm">
           <div>
-            <div className="flex items-center justify-between border-b border-surface-border/50 pb-3">
+            <div className="flex items-center justify-between border-b border-[#CDD3B5]/60 pb-3">
               <div className="flex items-center gap-2">
-                <ShoppingCart className="w-5 h-5 text-amber-400" />
-                <h3 className="text-base font-bold text-white">Shopping Cart</h3>
+                <ShoppingCart className="w-5 h-5 text-[#596B32]" />
+                <h3 className="text-base font-medium font-display text-[#20231B]">Shopping Cart</h3>
               </div>
-              <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-surface text-amber-400 border border-surface-border">
+              <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-[#E4E7D2] text-[#34451D] border border-[#CDD3B5]">
                 {cart.totalItems} items
               </span>
             </div>
@@ -143,33 +143,33 @@ export default function CartManager() {
             {/* Cart Items List */}
             <div className="mt-4 space-y-3 max-h-60 overflow-y-auto pr-1">
               {cart.items.length === 0 ? (
-                <div className="text-center py-8 text-ink-muted text-xs">
+                <div className="text-center py-8 text-[#85887A] text-xs">
                   Cart is currently empty. Click "+ Add" on any book.
                 </div>
               ) : (
                 cart.items.map((item) => (
-                  <div key={item.bookId} className="p-2.5 rounded-xl bg-surface/40 border border-surface-border/50 flex items-center justify-between gap-2 text-xs">
+                  <div key={item.bookId} className="p-2.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] flex items-center justify-between gap-2 text-xs shadow-sm">
                     <div className="min-w-0 flex-1">
-                      <p className="font-semibold text-white truncate">{item.title}</p>
-                      <p className="text-[10px] text-ink-muted font-mono">LKR {item.price.toLocaleString()} x {item.quantity}</p>
+                      <p className="font-semibold text-[#20231B] truncate">{item.title}</p>
+                      <p className="text-[10px] text-[#85887A] font-mono">LKR {item.price.toLocaleString()} x {item.quantity}</p>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <button
                         onClick={() => handleUpdateQty(item.bookId, item.quantity - 1)}
-                        className="h-6 w-6 rounded bg-surface text-ink hover:text-white flex items-center justify-center border border-surface-border"
+                        className="h-6 w-6 rounded bg-[#efead5] text-[#20231B] hover:bg-[#E4E7D2] flex items-center justify-center border border-[#CDD3B5]"
                       >
                         <Minus className="w-3 h-3" />
                       </button>
-                      <span className="font-mono text-xs w-4 text-center text-white">{item.quantity}</span>
+                      <span className="font-mono text-xs w-4 text-center text-[#20231B]">{item.quantity}</span>
                       <button
                         onClick={() => handleUpdateQty(item.bookId, item.quantity + 1)}
-                        className="h-6 w-6 rounded bg-surface text-ink hover:text-white flex items-center justify-center border border-surface-border"
+                        className="h-6 w-6 rounded bg-[#efead5] text-[#20231B] hover:bg-[#E4E7D2] flex items-center justify-center border border-[#CDD3B5]"
                       >
                         <Plus className="w-3 h-3" />
                       </button>
                       <button
                         onClick={() => handleRemove(item.bookId)}
-                        className="h-6 w-6 rounded text-red-400/80 hover:text-red-400 flex items-center justify-center ml-1"
+                        className="h-6 w-6 rounded text-rose-600 hover:text-rose-700 flex items-center justify-center ml-1"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -181,9 +181,9 @@ export default function CartManager() {
 
             {/* Coupon Code Section */}
             {cart.items.length > 0 && (
-              <div className="mt-5 pt-4 border-t border-surface-border/50 space-y-2">
-                <div className="flex items-center gap-1.5 text-xs text-ink-muted">
-                  <Tag className="w-3.5 h-3.5 text-amber-400" />
+              <div className="mt-5 pt-4 border-t border-[#CDD3B5]/60 space-y-2">
+                <div className="flex items-center gap-1.5 text-xs text-[#85887A]">
+                  <Tag className="w-3.5 h-3.5 text-[#596B32]" />
                   <span>Promo Code (e.g. PAGE10, WELCOME20, SLIITBOOK)</span>
                 </div>
                 <div className="flex gap-2">
@@ -192,24 +192,24 @@ export default function CartManager() {
                     value={couponCode}
                     onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                     placeholder="Coupon Code"
-                    className="flex-1 bg-surface border border-surface-border rounded-xl px-3 py-1.5 text-xs text-white uppercase focus:outline-none focus:border-amber-500/50"
+                    className="flex-1 bg-[#efead5] border border-[#CDD3B5] rounded-xl px-3 py-1.5 text-xs text-[#20231B] uppercase focus:outline-none focus:border-[#596B32]"
                   />
                   <button
                     onClick={handleApplyCoupon}
                     disabled={loading}
-                    className="px-3 py-1.5 rounded-xl bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 border border-amber-500/30 text-xs font-semibold"
+                    className="px-3 py-1.5 rounded-xl bg-[#34451D] text-[#efead5] hover:bg-[#596B32] text-xs font-medium shadow-sm"
                   >
                     Apply
                   </button>
                 </div>
                 {promoResult && (
-                  <div className="flex items-center gap-1.5 text-[11px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                  <div className="flex items-center gap-1.5 text-[11px] text-[#34451D] bg-[#E4E7D2] border border-[#CDD3B5] rounded-lg p-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-[#596B32]" />
                     <span>Coupon {promoResult.promotion.code} applied! Saved LKR {promoResult.discountAmount.toLocaleString()}</span>
                   </div>
                 )}
                 {promoError && (
-                  <div className="flex items-center gap-1.5 text-[11px] text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg p-2">
+                  <div className="flex items-center gap-1.5 text-[11px] text-rose-700 bg-rose-50 border border-rose-200 rounded-lg p-2">
                     <XCircle className="w-3.5 h-3.5 shrink-0" />
                     <span>{promoError}</span>
                   </div>
@@ -219,21 +219,21 @@ export default function CartManager() {
           </div>
 
           {/* Cart Total & Action */}
-          <div className="pt-4 border-t border-surface-border/50 space-y-3">
+          <div className="pt-4 border-t border-[#CDD3B5]/60 space-y-3">
             <div className="space-y-1 text-xs">
-              <div className="flex justify-between text-ink-muted">
+              <div className="flex justify-between text-[#85887A]">
                 <span>Subtotal:</span>
-                <span className="font-mono text-white">LKR {cart.totalAmount.toLocaleString()}</span>
+                <span className="font-mono text-[#20231B]">LKR {cart.totalAmount.toLocaleString()}</span>
               </div>
               {promoResult && (
-                <div className="flex justify-between text-emerald-400">
+                <div className="flex justify-between text-[#596B32]">
                   <span>Discount:</span>
                   <span className="font-mono">- LKR {promoResult.discountAmount.toLocaleString()}</span>
                 </div>
               )}
-              <div className="flex justify-between text-sm font-bold text-white pt-1 border-t border-surface-border/40">
+              <div className="flex justify-between text-sm font-semibold text-[#20231B] pt-1 border-t border-[#CDD3B5]/40">
                 <span>Total:</span>
-                <span className="font-mono text-amber-400">
+                <span className="font-mono text-[#34451D] font-bold">
                   LKR {(promoResult ? promoResult.finalTotal : cart.totalAmount).toLocaleString()}
                 </span>
               </div>
@@ -243,15 +243,15 @@ export default function CartManager() {
               <div className="flex gap-2">
                 <button
                   onClick={handleClear}
-                  className="px-3 py-2 rounded-xl bg-surface border border-surface-border text-ink-muted hover:text-white text-xs"
+                  className="px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#85887A] hover:text-[#20231B] text-xs"
                 >
                   Clear
                 </button>
                 <button
                   onClick={() => alert(`Simulating Order Checkout! Total: LKR ${(promoResult ? promoResult.finalTotal : cart.totalAmount).toLocaleString()}`)}
-                  className="flex-1 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black text-xs font-bold shadow-lg shadow-amber-500/20 flex items-center justify-center gap-1.5 transition-all"
+                  className="flex-1 py-2 rounded-xl bg-[#34451D] hover:bg-[#596B32] text-[#efead5] text-xs font-medium shadow-sm flex items-center justify-center gap-1.5 transition-all"
                 >
-                  <Sparkles className="w-3.5 h-3.5" />
+                  <Sparkles className="w-3.5 h-3.5 text-[#B7D85A]" />
                   Dispatch Order
                 </button>
               </div>

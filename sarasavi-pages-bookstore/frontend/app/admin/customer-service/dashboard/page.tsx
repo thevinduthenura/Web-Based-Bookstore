@@ -128,12 +128,12 @@ export default function CustomerServiceDashboardPage() {
 
   if (!isAuthorized) {
     return (
-      <div className="glass-card rounded-2xl p-8 max-w-lg mx-auto text-center space-y-4">
-        <div className="h-12 w-12 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 flex items-center justify-center mx-auto">
+      <div className="bg-[#efead5] border border-[#CDD3B5] rounded-2xl p-8 max-w-lg mx-auto text-center space-y-4 shadow-sm">
+        <div className="h-12 w-12 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 flex items-center justify-center mx-auto">
           <Lock className="w-6 h-6" />
         </div>
-        <h2 className="text-lg font-bold text-white">Access Restricted</h2>
-        <p className="text-xs text-ink-muted leading-relaxed">
+        <h2 className="text-lg font-light font-display text-[#20231B]">Access Restricted</h2>
+        <p className="text-xs text-[#85887A] leading-relaxed">
           You do not have administrative permissions to access Module 3 (Customer Service).
           This panel is exclusively reserved for the Support Administrator (Zeen A.C.) or Super Admin.
         </p>
@@ -247,31 +247,31 @@ export default function CustomerServiceDashboardPage() {
   });
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-6 pb-12 font-sans">
       {/* Top Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-400 text-xs font-semibold mb-2">
-            <Headphones className="w-3.5 h-3.5" />
-            Module 3: Customer Service & Complaints
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E4E7D2] border border-[#CDD3B5] text-[#34451D] text-xs font-semibold mb-2">
+            <Headphones className="w-3.5 h-3.5 text-[#596B32]" />
+            Module 3: Customer Service &amp; Complaints
           </div>
-          <h1 className="text-2xl font-bold text-white">Customer Support Helpdesk</h1>
-          <p className="text-xs text-ink-muted mt-1">
-            Assigned Owner: <span className="text-sky-400 font-semibold">Zeen A.C. (IT25103342)</span> | Role: <span className="font-mono text-white">CUSTOMER_SERVICE_ADMIN</span>
+          <h1 className="text-2xl font-light font-display text-[#20231B]">Customer Support Helpdesk</h1>
+          <p className="text-xs text-[#85887A] mt-1">
+            Assigned Owner: <span className="text-[#34451D] font-semibold">Zeen A.C. (IT25103342)</span> | Role: <span className="font-mono text-[#20231B]">CUSTOMER_SERVICE_ADMIN</span>
           </p>
         </div>
 
         <div className="flex items-center gap-2.5">
           <button
             onClick={() => setIsCreateModalOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold shadow-lg shadow-sky-900/30 transition-all"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#34451D] hover:bg-[#596B32] text-[#efead5] text-xs font-medium shadow-sm transition-all"
           >
             <Plus className="w-4 h-4" />
-            <span>+ Log New Ticket</span>
+            <span>Log New Ticket</span>
           </button>
           <button
             onClick={fetchTickets}
-            className="p-2.5 rounded-xl bg-surface-card border border-surface-border text-ink-muted hover:text-white transition-all"
+            className="p-2.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#85887A] hover:text-[#20231B] transition-all shadow-sm"
             title="Refresh from API"
           >
             <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
@@ -280,22 +280,22 @@ export default function CustomerServiceDashboardPage() {
       </div>
 
       {/* Operations Legend */}
-      <div className="glass-card p-3.5 rounded-xl border border-sky-500/20 bg-sky-950/10 flex flex-wrap items-center justify-between gap-3 text-xs">
-        <div className="flex items-center gap-2 font-semibold text-sky-400">
-          <Layers className="w-4 h-4" />
+      <div className="p-3.5 rounded-xl border border-[#CDD3B5] bg-[#efead5] flex flex-wrap items-center justify-between gap-3 text-xs shadow-sm">
+        <div className="flex items-center gap-2 font-medium text-[#34451D]">
+          <Layers className="w-4 h-4 text-[#596B32]" />
           <span>Support Operations:</span>
         </div>
         <div className="flex flex-wrap items-center gap-2 font-mono text-[11px]">
-          <span className="px-2.5 py-1 rounded-md bg-sky-500/20 text-sky-300 border border-sky-500/30">
+          <span className="px-2.5 py-1 rounded-md bg-[#E4E7D2] text-[#34451D] border border-[#CDD3B5]">
             Create Ticket
           </span>
-          <span className="px-2.5 py-1 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+          <span className="px-2.5 py-1 rounded-md bg-[#efead5] text-[#596B32] border border-[#CDD3B5]">
             Live Ticket Feed
           </span>
-          <span className="px-2.5 py-1 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/30">
-            Resolve & Notes
+          <span className="px-2.5 py-1 rounded-md bg-[#E4E7D2] text-[#7F9148] border border-[#CDD3B5]">
+            Resolve &amp; Notes
           </span>
-          <span className="px-2.5 py-1 rounded-md bg-red-500/20 text-red-300 border border-red-500/30">
+          <span className="px-2.5 py-1 rounded-md bg-rose-50 text-rose-700 border border-rose-200">
             Delete / Close
           </span>
         </div>
@@ -304,7 +304,7 @@ export default function CustomerServiceDashboardPage() {
       {/* Notification Toast */}
       {notification && (
         <div className={`p-3.5 rounded-xl flex items-center justify-between text-xs border ${
-          notification.type === 'success' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-red-500/10 border-red-500/20 text-red-400'
+          notification.type === 'success' ? 'bg-[#E4E7D2] border-[#CDD3B5] text-[#34451D]' : 'bg-rose-50 border-rose-200 text-rose-700'
         }`}>
           <span>{notification.message}</span>
           <button onClick={() => setNotification(null)} className="hover:opacity-80">
@@ -315,78 +315,78 @@ export default function CustomerServiceDashboardPage() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="glass-card p-5 rounded-2xl">
+        <div className="bg-[#efead5] border border-[#CDD3B5] p-5 rounded-2xl shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-ink-muted">Total Tickets</span>
-            <div className="h-8 w-8 rounded-lg bg-sky-500/10 text-sky-400 flex items-center justify-center">
+            <span className="text-xs font-medium text-[#85887A]">Total Tickets</span>
+            <div className="h-8 w-8 rounded-lg bg-[#E4E7D2] text-[#34451D] flex items-center justify-center">
               <MessageSquare className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-bold text-white font-display">{totalCount}</span>
+            <span className="text-2xl font-light text-[#20231B] font-display">{totalCount}</span>
           </div>
-          <p className="text-[11px] text-ink-faint mt-1">All Recorded Issues</p>
+          <p className="text-[11px] text-[#85887A] mt-1">All Recorded Issues</p>
         </div>
 
-        <div className="glass-card p-5 rounded-2xl">
+        <div className="bg-[#efead5] border border-[#CDD3B5] p-5 rounded-2xl shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-ink-muted">Open Inquiries</span>
-            <div className="h-8 w-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center">
+            <span className="text-xs font-medium text-[#85887A]">Open Inquiries</span>
+            <div className="h-8 w-8 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center border border-amber-200">
               <Clock className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-bold text-amber-400 font-display">{openCount} Pending</span>
+            <span className="text-2xl font-light text-amber-800 font-display">{openCount} Pending</span>
           </div>
-          <p className="text-[11px] text-amber-400/80 mt-1">Awaiting officer review</p>
+          <p className="text-[11px] text-amber-700 mt-1">Awaiting officer review</p>
         </div>
 
-        <div className="glass-card p-5 rounded-2xl">
+        <div className="bg-[#efead5] border border-[#CDD3B5] p-5 rounded-2xl shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-ink-muted">In Progress</span>
-            <div className="h-8 w-8 rounded-lg bg-brand-500/10 text-brand-400 flex items-center justify-center">
+            <span className="text-xs font-medium text-[#85887A]">In Progress</span>
+            <div className="h-8 w-8 rounded-lg bg-[#E4E7D2] text-[#596B32] flex items-center justify-center">
               <Sparkles className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-bold text-white font-display">{inProgressCount} Active</span>
+            <span className="text-2xl font-light text-[#20231B] font-display">{inProgressCount} Active</span>
           </div>
-          <p className="text-[11px] text-ink-faint mt-1">Courier & inventory checks</p>
+          <p className="text-[11px] text-[#85887A] mt-1">Courier &amp; inventory checks</p>
         </div>
 
-        <div className="glass-card p-5 rounded-2xl">
+        <div className="bg-[#efead5] border border-[#CDD3B5] p-5 rounded-2xl shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-ink-muted">Resolved Inquiries</span>
-            <div className="h-8 w-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+            <span className="text-xs font-medium text-[#85887A]">Resolved Inquiries</span>
+            <div className="h-8 w-8 rounded-lg bg-[#E4E7D2] text-[#34451D] flex items-center justify-center">
               <CheckCircle className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-bold text-emerald-400 font-display">{resolvedCount} Completed</span>
+            <span className="text-2xl font-light text-[#34451D] font-display">{resolvedCount} Completed</span>
           </div>
-          <p className="text-[11px] text-emerald-400/80 mt-1">Full resolution recorded</p>
+          <p className="text-[11px] text-[#596B32] mt-1">Full resolution recorded</p>
         </div>
       </div>
 
       {/* Filter and Search Bar [R] */}
-      <div className="glass-card p-4 rounded-2xl flex flex-col md:flex-row gap-3 items-center justify-between">
+      <div className="bg-[#efead5] border border-[#CDD3B5] p-4 rounded-2xl flex flex-col md:flex-row gap-3 items-center justify-between shadow-sm">
         <div className="relative w-full md:w-80">
-          <Search className="w-4 h-4 text-ink-faint absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-[#85887A] absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="[R] Search tickets by subject, description, name..."
-            className="w-full pl-9 pr-4 py-2 rounded-xl bg-surface border border-surface-border text-xs text-white placeholder:text-ink-faint focus:outline-none focus:border-sky-500 transition-all"
+            placeholder="Search tickets by subject, description, name..."
+            className="w-full pl-9 pr-4 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-xs text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:border-[#596B32] transition-all"
           />
         </div>
 
         <div className="flex items-center gap-2 w-full md:w-auto">
-          <Filter className="w-4 h-4 text-ink-faint hidden sm:block" />
+          <Filter className="w-4 h-4 text-[#85887A] hidden sm:block" />
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-full md:w-auto px-3 py-2 rounded-xl bg-surface border border-surface-border text-xs text-white focus:outline-none focus:border-sky-500 font-mono transition-all"
+            className="w-full md:w-auto px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-xs text-[#20231B] focus:outline-none focus:border-[#596B32] font-mono transition-all"
           >
             <option value="ALL">All Statuses ({tickets.length})</option>
             <option value="OPEN">Open Only</option>
@@ -399,29 +399,29 @@ export default function CustomerServiceDashboardPage() {
       {/* Tickets List [R, U, D] */}
       <div className="space-y-3">
         {filteredTickets.length === 0 ? (
-          <div className="glass-card p-8 rounded-2xl text-center text-ink-muted text-xs">
+          <div className="bg-[#efead5] border border-[#CDD3B5] p-8 rounded-2xl text-center text-[#85887A] text-xs shadow-sm">
             No support tickets match your search filters.
           </div>
         ) : (
           filteredTickets.map((ticket) => (
             <div
               key={ticket.id}
-              className="glass-card p-5 rounded-2xl border border-surface-border hover:border-surface-border/80 transition-all space-y-3"
+              className="bg-[#efead5] p-5 rounded-2xl border border-[#CDD3B5] hover:border-[#7F9148] transition-all space-y-3 shadow-sm"
             >
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-surface-border/60 pb-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#CDD3B5]/60 pb-3">
                 <div className="flex items-center gap-3">
-                  <span className="font-mono font-bold text-xs text-sky-400">#{ticket.id}</span>
+                  <span className="font-mono font-bold text-xs text-[#34451D]">#{ticket.id}</span>
                   <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${
                     ticket.status === 'OPEN'
-                      ? 'bg-amber-500/10 border-amber-500/20 text-amber-400'
+                      ? 'bg-amber-50 border-amber-200 text-amber-800'
                       : ticket.status === 'IN_PROGRESS'
-                      ? 'bg-sky-500/10 border-sky-500/20 text-sky-400'
-                      : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                      ? 'bg-[#efead5] border-[#CDD3B5] text-[#596B32]'
+                      : 'bg-[#E4E7D2] border-[#CDD3B5] text-[#34451D]'
                   }`}>
                     {ticket.status}
                   </span>
                   {ticket.priority && (
-                    <span className="px-2 py-0.5 rounded-md bg-surface text-ink-muted font-mono text-[10px]">
+                    <span className="px-2 py-0.5 rounded-md bg-[#efead5] border border-[#CDD3B5] text-[#85887A] font-mono text-[10px]">
                       {ticket.priority} PRIORITY
                     </span>
                   )}
@@ -431,16 +431,16 @@ export default function CustomerServiceDashboardPage() {
                   {/* Resolve / Update Button */}
                   <button
                     onClick={() => handleOpenUpdate(ticket)}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-surface border border-surface-border hover:border-sky-500/50 text-sky-400 text-xs font-medium transition-all"
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] hover:bg-[#E4E7D2] text-[#34451D] text-xs font-medium transition-all shadow-sm"
                   >
-                    <Edit3 className="w-3.5 h-3.5" />
+                    <Edit3 className="w-3.5 h-3.5 text-[#596B32]" />
                     <span>Update / Resolve</span>
                   </button>
 
                   {/* Delete Button */}
                   <button
                     onClick={() => handleDeleteTicket(ticket.id)}
-                    className="p-1.5 rounded-xl bg-surface border border-surface-border hover:bg-red-500/10 text-red-400 transition-all"
+                    className="p-1.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] hover:bg-rose-50 text-rose-600 transition-all shadow-sm"
                     title="Delete Ticket"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -449,29 +449,29 @@ export default function CustomerServiceDashboardPage() {
               </div>
 
               <div>
-                <h3 className="text-sm font-bold text-white">{ticket.subject}</h3>
-                <p className="text-xs text-ink-muted mt-1 leading-relaxed">{ticket.description}</p>
+                <h3 className="text-sm font-medium text-[#20231B]">{ticket.subject}</h3>
+                <p className="text-xs text-[#85887A] mt-1 leading-relaxed">{ticket.description}</p>
               </div>
 
               {ticket.resolutionDetails && (
-                <div className="p-3 rounded-xl bg-surface/50 border border-emerald-500/20 text-xs space-y-1">
-                  <div className="flex items-center justify-between text-emerald-400 font-semibold text-[11px]">
+                <div className="p-3 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-xs space-y-1">
+                  <div className="flex items-center justify-between text-[#34451D] font-medium text-[11px]">
                     <span>Resolution Details:</span>
-                    <span className="font-mono text-[10px] text-ink-muted">Resolved by: {ticket.resolvedBy || 'Officer'}</span>
+                    <span className="font-mono text-[10px] text-[#85887A]">Resolved by: {ticket.resolvedBy || 'Officer'}</span>
                   </div>
-                  <p className="text-ink-light text-xs">{ticket.resolutionDetails}</p>
+                  <p className="text-[#20231B] text-xs">{ticket.resolutionDetails}</p>
                 </div>
               )}
 
-              <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-[11px] text-ink-faint border-t border-surface-border/40">
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-[11px] text-[#85887A] border-t border-[#CDD3B5]/40">
                 <div className="flex items-center gap-3">
                   <span className="flex items-center gap-1">
-                    <User className="w-3 h-3 text-sky-400" />
+                    <User className="w-3 h-3 text-[#596B32]" />
                     {ticket.customerName || 'Customer'}
                   </span>
                   {ticket.contactNumber && (
                     <span className="flex items-center gap-1 font-mono">
-                      <Phone className="w-3 h-3 text-sky-400" />
+                      <Phone className="w-3 h-3 text-[#596B32]" />
                       {ticket.contactNumber}
                     </span>
                   )}
@@ -485,65 +485,65 @@ export default function CustomerServiceDashboardPage() {
 
       {/* [C] CREATE TICKET MODAL */}
       {isCreateModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="glass-card rounded-2xl w-full max-w-md p-6 border border-surface-border space-y-4">
-            <div className="flex items-center justify-between border-b border-surface-border pb-3">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <Headphones className="w-5 h-5 text-sky-400" />
+        <div className="fixed inset-0 z-50 bg-[#20231B]/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#efead5] rounded-2xl w-full max-w-md p-6 border border-[#CDD3B5] space-y-4 shadow-xl">
+            <div className="flex items-center justify-between border-b border-[#CDD3B5] pb-3">
+              <h3 className="text-base font-medium font-display text-[#20231B] flex items-center gap-2">
+                <Headphones className="w-5 h-5 text-[#596B32]" />
                 <span>Log New Support Ticket</span>
               </h3>
-              <button onClick={() => setIsCreateModalOpen(false)} className="text-ink-muted hover:text-white">
+              <button onClick={() => setIsCreateModalOpen(false)} className="text-[#85887A] hover:text-[#20231B]">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleCreateTicket} className="space-y-3 text-xs">
               <div>
-                <label className="block text-ink-muted mb-1 font-medium">Issue / Subject</label>
+                <label className="block text-[#85887A] mb-1 font-medium">Issue / Subject</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. Delayed package delivery, damaged book page"
                   value={newTicket.subject}
                   onChange={(e) => setNewTicket({ ...newTicket, subject: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-surface border border-surface-border text-white focus:outline-none focus:border-sky-500"
+                  className="w-full px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32]"
                 />
               </div>
 
               <div>
-                <label className="block text-ink-muted mb-1 font-medium">Customer Contact Phone</label>
+                <label className="block text-[#85887A] mb-1 font-medium">Customer Contact Phone</label>
                 <input
                   type="text"
                   required
                   value={newTicket.contactNumber}
                   onChange={(e) => setNewTicket({ ...newTicket, contactNumber: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-surface border border-surface-border text-white focus:outline-none focus:border-sky-500 font-mono"
+                  className="w-full px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32] font-mono"
                 />
               </div>
 
               <div>
-                <label className="block text-ink-muted mb-1 font-medium">Detailed Complaint Description</label>
+                <label className="block text-[#85887A] mb-1 font-medium">Detailed Complaint Description</label>
                 <textarea
                   required
                   rows={4}
                   placeholder="Provide full customer background, order IDs or damaged items..."
                   value={newTicket.description}
                   onChange={(e) => setNewTicket({ ...newTicket, description: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-surface border border-surface-border text-white focus:outline-none focus:border-sky-500"
+                  className="w-full px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32]"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-surface-border">
+              <div className="flex justify-end gap-2 pt-3 border-t border-[#CDD3B5]">
                 <button
                   type="button"
                   onClick={() => setIsCreateModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-surface border border-surface-border text-ink-muted hover:text-white"
+                  className="px-4 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#85887A] hover:text-[#20231B]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold shadow-glow"
+                  className="px-4 py-2 rounded-xl bg-[#34451D] hover:bg-[#596B32] text-[#efead5] font-medium shadow-sm"
                 >
                   Submit Ticket
                 </button>
@@ -555,30 +555,30 @@ export default function CustomerServiceDashboardPage() {
 
       {/* [U] UPDATE TICKET MODAL */}
       {isUpdateModalOpen && activeTicket && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="glass-card rounded-2xl w-full max-w-md p-6 border border-surface-border space-y-4">
-            <div className="flex items-center justify-between border-b border-surface-border pb-3">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <Edit3 className="w-5 h-5 text-sky-400" />
+        <div className="fixed inset-0 z-50 bg-[#20231B]/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#efead5] rounded-2xl w-full max-w-md p-6 border border-[#CDD3B5] space-y-4 shadow-xl">
+            <div className="flex items-center justify-between border-b border-[#CDD3B5] pb-3">
+              <h3 className="text-base font-medium font-display text-[#20231B] flex items-center gap-2">
+                <Edit3 className="w-5 h-5 text-[#596B32]" />
                 <span>Resolve Ticket #{activeTicket.id}</span>
               </h3>
-              <button onClick={() => setIsUpdateModalOpen(false)} className="text-ink-muted hover:text-white">
+              <button onClick={() => setIsUpdateModalOpen(false)} className="text-[#85887A] hover:text-[#20231B]">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleSaveUpdate} className="space-y-3 text-xs">
               <div>
-                <span className="text-ink-muted text-[11px]">Subject:</span>
-                <p className="text-white font-semibold">{activeTicket.subject}</p>
+                <span className="text-[#85887A] text-[11px]">Subject:</span>
+                <p className="text-[#20231B] font-medium">{activeTicket.subject}</p>
               </div>
 
               <div>
-                <label className="block text-ink-muted mb-1 font-medium">Ticket Lifecycle Status</label>
+                <label className="block text-[#85887A] mb-1 font-medium">Ticket Lifecycle Status</label>
                 <select
                   value={updateStatus}
                   onChange={(e) => setUpdateStatus(e.target.value as any)}
-                  className="w-full px-3 py-2 rounded-xl bg-surface border border-surface-border text-white focus:outline-none focus:border-sky-500 font-mono"
+                  className="w-full px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32] font-mono"
                 >
                   <option value="OPEN">OPEN (Under Investigation)</option>
                   <option value="IN_PROGRESS">IN_PROGRESS (Contacting Logistics / Warehouse)</option>
@@ -587,28 +587,28 @@ export default function CustomerServiceDashboardPage() {
               </div>
 
               <div>
-                <label className="block text-ink-muted mb-1 font-medium">Officer Resolution Notes</label>
+                <label className="block text-[#85887A] mb-1 font-medium">Officer Resolution Notes</label>
                 <textarea
                   required
                   rows={4}
                   placeholder="Explain actions taken to resolve the complaint or courier tracking updates..."
                   value={resolutionDetails}
                   onChange={(e) => setResolutionDetails(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-surface border border-surface-border text-white focus:outline-none focus:border-sky-500"
+                  className="w-full px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32]"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-surface-border">
+              <div className="flex justify-end gap-2 pt-3 border-t border-[#CDD3B5]">
                 <button
                   type="button"
                   onClick={() => setIsUpdateModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-surface border border-surface-border text-ink-muted hover:text-white"
+                  className="px-4 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#85887A] hover:text-[#20231B]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold"
+                  className="px-4 py-2 rounded-xl bg-[#34451D] hover:bg-[#596B32] text-[#efead5] font-medium shadow-sm"
                 >
                   Save Changes
                 </button>

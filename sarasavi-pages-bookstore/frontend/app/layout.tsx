@@ -1,13 +1,21 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Sora, Manrope } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/hooks/useAuth';
 
 // ── Next.js Font Optimization ─────────────────────────────────────────────
-// Loaded via next/font: zero layout shift, auto-subsetting, self-hosted at runtime
-const inter = Inter({
+// Sora (Display / Headings) & Manrope (Clean Modern UI / Body)
+const sora = Sora({
   subsets: ['latin'],
-  variable: '--font-inter',
+  variable: '--font-sora',
+  weight: ['300', '400', '500', '600'],
+  display: 'swap',
+});
+
+const manrope = Manrope({
+  subsets: ['latin'],
+  variable: '--font-manrope',
+  weight: ['300', '400', '500', '600'],
   display: 'swap',
 });
 
@@ -52,8 +60,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={inter.variable}>
-      <body className="bg-[#f7f9f7] text-[#0d0f12] antialiased selection:bg-emerald-950 selection:text-white font-sans">
+    <html lang="en" className={`${sora.variable} ${manrope.variable}`}>
+      <body className="bg-[#efead5] text-[#20231B] antialiased selection:bg-[#596B32] selection:text-[#efead5] font-sans">
         <AuthProvider>
           {children}
         </AuthProvider>

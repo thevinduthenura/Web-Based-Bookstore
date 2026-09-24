@@ -100,12 +100,12 @@ export default function AccountsDashboardPage() {
 
   if (!isAuthorized) {
     return (
-      <div className="glass-card rounded-2xl p-8 max-w-lg mx-auto text-center space-y-4">
-        <div className="h-12 w-12 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 flex items-center justify-center mx-auto">
+      <div className="bg-[#efead5] border border-[#CDD3B5] rounded-2xl p-8 max-w-lg mx-auto text-center space-y-4 shadow-sm">
+        <div className="h-12 w-12 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 flex items-center justify-center mx-auto">
           <Lock className="w-6 h-6" />
         </div>
-        <h2 className="text-lg font-bold text-white">Access Restricted</h2>
-        <p className="text-xs text-ink-muted leading-relaxed">
+        <h2 className="text-lg font-light font-display text-[#20231B]">Access Restricted</h2>
+        <p className="text-xs text-[#85887A] leading-relaxed">
           You do not have administrative permissions to access Module 5 (User Accounts).
           This panel is exclusively reserved for the Accounts Administrator (Gayathmi P.G.R.) or Super Admin.
         </p>
@@ -241,31 +241,31 @@ export default function AccountsDashboardPage() {
   });
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-6 pb-12 font-sans">
       {/* Top Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pink-500/10 border border-pink-500/20 text-pink-400 text-xs font-semibold mb-2">
-            <UserCheck className="w-3.5 h-3.5" />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E4E7D2] border border-[#CDD3B5] text-[#34451D] text-xs font-semibold mb-2">
+            <UserCheck className="w-3.5 h-3.5 text-[#596B32]" />
             Module 5: User Accounts Administration
           </div>
-          <h1 className="text-2xl font-bold text-slate-900">Customer Profiles & KYC Security</h1>
-          <p className="text-xs text-ink-muted mt-1">
-            Assigned Owner: <span className="text-pink-600 font-semibold">Gayathmi P.G.R. (IT25103013)</span> | Role: <span className="font-mono text-slate-900 font-bold">ACCOUNT_ADMIN</span>
+          <h1 className="text-2xl font-light font-display text-[#20231B]">Customer Profiles &amp; KYC Security</h1>
+          <p className="text-xs text-[#85887A] mt-1">
+            Assigned Owner: <span className="text-[#34451D] font-semibold">Gayathmi P.G.R. (IT25103013)</span> | Role: <span className="font-mono text-[#20231B] font-bold">ACCOUNT_ADMIN</span>
           </p>
         </div>
 
         <div className="flex items-center gap-2.5">
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-pink-600 hover:bg-pink-700 text-white text-xs font-semibold shadow-md transition-all active:scale-95"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#34451D] hover:bg-[#596B32] text-[#efead5] text-xs font-medium shadow-sm transition-all"
           >
             <UserPlus className="w-4 h-4" />
-            <span>+ Register New Customer</span>
+            <span>Register New Customer</span>
           </button>
           <button
             onClick={fetchCustomers}
-            className="p-2.5 rounded-xl bg-surface-card border border-surface-border text-ink-muted hover:text-white transition-all"
+            className="p-2.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#85887A] hover:text-[#20231B] transition-all shadow-sm"
             title="Refresh from API"
           >
             <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
@@ -274,22 +274,22 @@ export default function AccountsDashboardPage() {
       </div>
 
       {/* CRUD Capability Legend */}
-      <div className="glass-card p-3.5 rounded-xl border border-pink-500/20 bg-pink-50/60 flex flex-wrap items-center justify-between gap-3 text-xs">
-        <div className="flex items-center gap-2 font-semibold text-pink-700">
-          <Layers className="w-4 h-4" />
+      <div className="p-3.5 rounded-xl border border-[#CDD3B5] bg-[#efead5] flex flex-wrap items-center justify-between gap-3 text-xs shadow-sm">
+        <div className="flex items-center gap-2 font-medium text-[#34451D]">
+          <Layers className="w-4 h-4 text-[#596B32]" />
           <span>Member 5 Capabilities:</span>
         </div>
-        <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium">
-          <span className="px-2.5 py-1 rounded-md bg-pink-100 text-pink-800 border border-pink-200">
+        <div className="flex flex-wrap items-center gap-2 font-mono text-[11px]">
+          <span className="px-2.5 py-1 rounded-md bg-[#E4E7D2] text-[#34451D] border border-[#CDD3B5]">
             Register Account
           </span>
-          <span className="px-2.5 py-1 rounded-md bg-sky-100 text-sky-800 border border-sky-200">
-            Search & Profiles
+          <span className="px-2.5 py-1 rounded-md bg-[#efead5] text-[#596B32] border border-[#CDD3B5]">
+            Search &amp; Profiles
           </span>
-          <span className="px-2.5 py-1 rounded-md bg-amber-100 text-amber-800 border border-amber-200">
-            Edit & KYC Status
+          <span className="px-2.5 py-1 rounded-md bg-[#E4E7D2] text-[#7F9148] border border-[#CDD3B5]">
+            Edit &amp; KYC Status
           </span>
-          <span className="px-2.5 py-1 rounded-md bg-rose-100 text-rose-800 border border-rose-200">
+          <span className="px-2.5 py-1 rounded-md bg-rose-50 text-rose-700 border border-rose-200">
             Delete Account
           </span>
         </div>
@@ -298,7 +298,7 @@ export default function AccountsDashboardPage() {
       {/* Notification Toast */}
       {notification && (
         <div className={`p-3.5 rounded-xl flex items-center justify-between text-xs border ${
-          notification.type === 'success' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-red-500/10 border-red-500/20 text-red-400'
+          notification.type === 'success' ? 'bg-[#E4E7D2] border-[#CDD3B5] text-[#34451D]' : 'bg-rose-50 border-rose-200 text-rose-700'
         }`}>
           <span>{notification.message}</span>
           <button onClick={() => setNotification(null)} className="hover:opacity-80">
@@ -309,82 +309,82 @@ export default function AccountsDashboardPage() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="glass-card p-5 rounded-2xl">
+        <div className="bg-[#efead5] border border-[#CDD3B5] p-5 rounded-2xl shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-700">Registered Customers</span>
-            <div className="h-8 w-8 rounded-lg bg-pink-500/10 text-pink-600 flex items-center justify-center">
+            <span className="text-xs font-medium text-[#85887A]">Registered Customers</span>
+            <div className="h-8 w-8 rounded-lg bg-[#E4E7D2] text-[#34451D] flex items-center justify-center">
               <Users className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-bold text-slate-900">{totalUsers}</span>
+            <span className="text-2xl font-light text-[#20231B] font-display">{totalUsers}</span>
           </div>
-          <p className="text-[11px] text-pink-700 font-medium mt-1">Verified Member Directory</p>
+          <p className="text-[11px] text-[#596B32] font-mono mt-1">Verified Member Directory</p>
         </div>
 
-        <div className="glass-card p-5 rounded-2xl">
+        <div className="bg-[#efead5] border border-[#CDD3B5] p-5 rounded-2xl shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-700">KYC Verified Ratio</span>
-            <div className="h-8 w-8 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+            <span className="text-xs font-medium text-[#85887A]">KYC Verified Ratio</span>
+            <div className="h-8 w-8 rounded-lg bg-[#E4E7D2] text-[#596B32] flex items-center justify-center">
               <ShieldCheck className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-bold text-slate-900">
+            <span className="text-2xl font-light text-[#20231B] font-display">
               {totalUsers > 0 ? Math.round((verifiedCount / totalUsers) * 100) : 0}%
             </span>
           </div>
-          <p className="text-[11px] text-emerald-700 font-medium mt-1">{verifiedCount} of {totalUsers} KYC Cleared</p>
+          <p className="text-[11px] text-[#596B32] mt-1">{verifiedCount} of {totalUsers} KYC Cleared</p>
         </div>
 
-        <div className="glass-card p-5 rounded-2xl">
+        <div className="bg-[#efead5] border border-[#CDD3B5] p-5 rounded-2xl shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-700">Gold / VIP Tier</span>
-            <div className="h-8 w-8 rounded-lg bg-amber-500/10 text-amber-600 flex items-center justify-center">
+            <span className="text-xs font-medium text-[#85887A]">Gold / VIP Tier</span>
+            <div className="h-8 w-8 rounded-lg bg-[#E4E7D2] text-[#7F9148] flex items-center justify-center">
               <Award className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-bold text-slate-900">{goldCount} Members</span>
+            <span className="text-2xl font-light text-[#20231B] font-display">{goldCount} Members</span>
           </div>
-          <p className="text-[11px] text-amber-700 font-medium mt-1">Eligible for Exclusive Discounts</p>
+          <p className="text-[11px] text-[#7F9148] mt-1">Eligible for Exclusive Discounts</p>
         </div>
 
-        <div className="glass-card p-5 rounded-2xl">
+        <div className="bg-[#efead5] border border-[#CDD3B5] p-5 rounded-2xl shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-700">Suspended Accounts</span>
-            <div className="h-8 w-8 rounded-lg bg-red-500/10 text-red-600 flex items-center justify-center">
+            <span className="text-xs font-medium text-[#85887A]">Suspended Accounts</span>
+            <div className="h-8 w-8 rounded-lg bg-rose-50 text-rose-700 flex items-center justify-center border border-rose-200">
               <XCircle className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-bold text-slate-900">
+            <span className="text-2xl font-light text-[#20231B] font-display">
               {customers.filter(c => c.status === 'SUSPENDED').length}
             </span>
           </div>
-          <p className="text-[11px] text-slate-500 mt-1">Security hold accounts</p>
+          <p className="text-[11px] text-[#85887A] mt-1">Security hold accounts</p>
         </div>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="glass-card p-4 rounded-2xl flex flex-col md:flex-row gap-3 items-center justify-between">
+      <div className="bg-[#efead5] border border-[#CDD3B5] p-4 rounded-2xl flex flex-col md:flex-row gap-3 items-center justify-between shadow-sm">
         <div className="relative w-full md:w-80">
-          <Search className="w-4 h-4 text-ink-faint absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-[#85887A] absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search by Name, Email, or Customer ID..."
-            className="w-full pl-9 pr-4 py-2 rounded-xl bg-surface border border-surface-border text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-pink-500 transition-all"
+            className="w-full pl-9 pr-4 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-xs text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:border-[#596B32] transition-all"
           />
         </div>
 
         <div className="flex items-center gap-2 w-full md:w-auto">
-          <Filter className="w-4 h-4 text-ink-faint hidden sm:block" />
+          <Filter className="w-4 h-4 text-[#85887A] hidden sm:block" />
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-full md:w-auto px-3 py-2 rounded-xl bg-surface border border-surface-border text-xs text-slate-900 focus:outline-none focus:border-pink-500 font-medium transition-all"
+            className="w-full md:w-auto px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-xs text-[#20231B] focus:outline-none focus:border-[#596B32] font-mono transition-all"
           >
             <option value="ALL">All Statuses ({customers.length})</option>
             <option value="ACTIVE">Active Only</option>
@@ -395,11 +395,11 @@ export default function AccountsDashboardPage() {
       </div>
 
       {/* Customer Directory Table */}
-      <div className="glass-card rounded-2xl overflow-hidden border border-surface-border">
+      <div className="bg-[#efead5] rounded-2xl overflow-hidden border border-[#CDD3B5] shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-surface-border bg-slate-50 text-[11px] font-bold uppercase tracking-wider text-slate-700">
+              <tr className="border-b border-[#CDD3B5] bg-[#E4E7D2]/60 text-[11px] font-mono uppercase tracking-wider text-[#34451D]">
                 <th className="py-3 px-4">Customer Details</th>
                 <th className="py-3 px-4">Contact / City</th>
                 <th className="py-3 px-4">Loyalty Tier</th>
@@ -408,33 +408,33 @@ export default function AccountsDashboardPage() {
                 <th className="py-3 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-surface-border/50 text-xs">
+            <tbody className="divide-y divide-[#CDD3B5]/50 text-xs">
               {filteredCustomers.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-ink-muted">
+                  <td colSpan={6} className="py-8 text-center text-[#85887A]">
                     No customer accounts match the current filter.
                   </td>
                 </tr>
               ) : (
                 filteredCustomers.map((cust) => (
-                  <tr key={cust.customerId} className="hover:bg-surface-card/40 transition-colors">
+                  <tr key={cust.customerId} className="hover:bg-[#E4E7D2]/20 transition-colors">
                     <td className="py-3.5 px-4">
-                      <div className="font-semibold text-white">{cust.firstName} {cust.lastName}</div>
-                      <div className="text-[11px] text-ink-muted flex items-center gap-1 mt-0.5">
-                        <Mail className="w-3 h-3 text-pink-400" />
+                      <div className="font-semibold text-[#20231B]">{cust.firstName} {cust.lastName}</div>
+                      <div className="text-[11px] text-[#85887A] flex items-center gap-1 mt-0.5">
+                        <Mail className="w-3 h-3 text-[#596B32]" />
                         <span>{cust.email}</span>
                         <span className="opacity-40">|</span>
-                        <span className="font-mono text-[10px] text-pink-400">{cust.customerId}</span>
+                        <span className="font-mono text-[10px] text-[#34451D] font-bold">{cust.customerId}</span>
                       </div>
                     </td>
                     <td className="py-3.5 px-4">
-                      <div className="text-white font-mono text-[11px] flex items-center gap-1">
-                        <Phone className="w-3 h-3 text-pink-400" />
+                      <div className="text-[#20231B] font-mono text-[11px] flex items-center gap-1">
+                        <Phone className="w-3 h-3 text-[#596B32]" />
                         {cust.phone || 'N/A'}
                       </div>
                       {cust.city && (
-                        <div className="text-[10px] text-ink-muted flex items-center gap-1 mt-0.5">
-                          <MapPin className="w-2.5 h-2.5 text-ink-faint" />
+                        <div className="text-[10px] text-[#85887A] flex items-center gap-1 mt-0.5">
+                          <MapPin className="w-2.5 h-2.5 text-[#596B32]" />
                           {cust.city}
                         </div>
                       )}
@@ -442,10 +442,10 @@ export default function AccountsDashboardPage() {
                     <td className="py-3.5 px-4">
                       <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
                         cust.loyaltyTier === 'GOLD' || cust.loyaltyTier === 'PLATINUM'
-                          ? 'bg-amber-500/10 border-amber-500/20 text-amber-400'
+                          ? 'bg-[#E4E7D2] border-[#CDD3B5] text-[#34451D]'
                           : cust.loyaltyTier === 'SILVER'
-                          ? 'bg-slate-400/10 border-slate-400/20 text-slate-300'
-                          : 'bg-orange-500/10 border-orange-500/20 text-orange-400'
+                          ? 'bg-[#efead5] border-[#CDD3B5] text-[#596B32]'
+                          : 'bg-[#efead5] border-[#CDD3B5] text-[#7F9148]'
                       }`}>
                         <Award className="w-3 h-3" />
                         {cust.loyaltyTier} ({cust.loyaltyPoints} pts)
@@ -457,12 +457,12 @@ export default function AccountsDashboardPage() {
                         onClick={() => handleToggleKyc(cust.customerId, cust.kycVerified)}
                         className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold border transition-all ${
                           cust.kycVerified
-                            ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20'
-                            : 'bg-surface border-surface-border text-ink-muted hover:border-emerald-500/50 hover:text-white'
+                            ? 'bg-[#E4E7D2] border-[#CDD3B5] text-[#34451D] hover:bg-[#CDD3B5]'
+                            : 'bg-[#efead5] border-[#CDD3B5] text-[#85887A] hover:text-[#20231B]'
                         }`}
                         title="Click to toggle KYC verified status"
                       >
-                        {cust.kycVerified ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
+                        {cust.kycVerified ? <Check className="w-3 h-3 text-[#34451D]" /> : <X className="w-3 h-3" />}
                         <span>{cust.kycVerified ? 'Verified' : 'Unverified'}</span>
                       </button>
                     </td>
@@ -472,12 +472,12 @@ export default function AccountsDashboardPage() {
                         onClick={() => handleToggleStatus(cust.customerId, cust.status)}
                         className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold border transition-all ${
                           cust.status === 'ACTIVE'
-                            ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 hover:bg-red-500/10 hover:text-red-400'
-                            : 'bg-red-500/10 border-red-500/20 text-red-400 hover:bg-emerald-500/10 hover:text-emerald-400'
+                            ? 'bg-[#E4E7D2] border-[#CDD3B5] text-[#34451D] hover:bg-rose-50 hover:text-rose-700'
+                            : 'bg-rose-50 border-rose-200 text-rose-700 hover:bg-[#E4E7D2] hover:text-[#34451D]'
                         }`}
                         title="Click to toggle Active / Suspended"
                       >
-                        <span className={`w-1.5 h-1.5 rounded-full ${cust.status === 'ACTIVE' ? 'bg-emerald-400' : 'bg-red-400'}`} />
+                        <span className={`w-1.5 h-1.5 rounded-full ${cust.status === 'ACTIVE' ? 'bg-[#596B32]' : 'bg-rose-500'}`} />
                         <span>{cust.status}</span>
                       </button>
                     </td>
@@ -486,8 +486,8 @@ export default function AccountsDashboardPage() {
                         {/* [U] Edit Profile */}
                         <button
                           onClick={() => handleOpenEdit(cust)}
-                          className="p-1.5 rounded-xl bg-surface border border-surface-border text-ink-muted hover:text-white transition-all"
-                          title="[U] Edit Profile Details"
+                          className="p-1.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#596B32] hover:bg-[#E4E7D2] transition-all shadow-sm"
+                          title="Edit Profile Details"
                         >
                           <Edit3 className="w-3.5 h-3.5" />
                         </button>
@@ -495,8 +495,8 @@ export default function AccountsDashboardPage() {
                         {/* [D] Delete Customer */}
                         <button
                           onClick={() => handleDeleteCustomer(cust.customerId, `${cust.firstName} ${cust.lastName}`)}
-                          className="p-1.5 rounded-xl bg-surface border border-surface-border text-red-400 hover:bg-red-500/10 transition-all"
-                          title="[D] Delete Customer Account"
+                          className="p-1.5 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-rose-600 hover:bg-rose-50 transition-all shadow-sm"
+                          title="Delete Customer Account"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -512,14 +512,14 @@ export default function AccountsDashboardPage() {
 
       {/* [C] REGISTER CUSTOMER MODAL */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="glass-card rounded-2xl w-full max-w-lg p-6 border border-surface-border space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-surface-border pb-3">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <UserPlus className="w-5 h-5 text-pink-400" />
-                <span>[C] Register Customer Profile</span>
+        <div className="fixed inset-0 z-50 bg-[#20231B]/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#efead5] rounded-2xl w-full max-w-lg p-6 border border-[#CDD3B5] space-y-4 max-h-[90vh] overflow-y-auto shadow-xl">
+            <div className="flex items-center justify-between border-b border-[#CDD3B5] pb-3">
+              <h3 className="text-base font-medium font-display text-[#20231B] flex items-center gap-2">
+                <UserPlus className="w-5 h-5 text-[#596B32]" />
+                <span>Register Customer Profile</span>
               </h3>
-              <button onClick={() => setIsAddModalOpen(false)} className="text-ink-muted hover:text-white">
+              <button onClick={() => setIsAddModalOpen(false)} className="text-[#85887A] hover:text-[#20231B]">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -527,84 +527,84 @@ export default function AccountsDashboardPage() {
             <form onSubmit={handleRegisterCustomer} className="space-y-3 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-ink-muted mb-1 font-medium">First Name</label>
+                  <label className="block text-[#85887A] mb-1 font-medium">First Name</label>
                   <input
                     type="text"
                     required
                     placeholder="e.g. Ruwan"
                     value={newCustomer.firstName}
                     onChange={(e) => setNewCustomer({ ...newCustomer, firstName: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-surface border border-surface-border text-white focus:outline-none focus:border-pink-500"
+                    className="w-full px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32]"
                   />
                 </div>
                 <div>
-                  <label className="block text-ink-muted mb-1 font-medium">Last Name</label>
+                  <label className="block text-[#85887A] mb-1 font-medium">Last Name</label>
                   <input
                     type="text"
                     required
                     placeholder="e.g. Jayasinghe"
                     value={newCustomer.lastName}
                     onChange={(e) => setNewCustomer({ ...newCustomer, lastName: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-surface border border-surface-border text-white focus:outline-none focus:border-pink-500"
+                    className="w-full px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-ink-muted mb-1 font-medium">Email Address</label>
+                <label className="block text-[#85887A] mb-1 font-medium">Email Address</label>
                 <input
                   type="email"
                   required
                   placeholder="ruwan.j@example.com"
                   value={newCustomer.email}
                   onChange={(e) => setNewCustomer({ ...newCustomer, email: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-surface border border-surface-border text-white focus:outline-none focus:border-pink-500"
+                  className="w-full px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-ink-muted mb-1 font-medium">Phone Number</label>
+                  <label className="block text-[#85887A] mb-1 font-medium">Phone Number</label>
                   <input
                     type="text"
                     required
                     value={newCustomer.phone}
                     onChange={(e) => setNewCustomer({ ...newCustomer, phone: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-surface border border-surface-border text-white focus:outline-none focus:border-pink-500 font-mono"
+                    className="w-full px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32] font-mono"
                   />
                 </div>
                 <div>
-                  <label className="block text-ink-muted mb-1 font-medium">City</label>
+                  <label className="block text-[#85887A] mb-1 font-medium">City</label>
                   <input
                     type="text"
                     value={newCustomer.city}
                     onChange={(e) => setNewCustomer({ ...newCustomer, city: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-surface border border-surface-border text-white focus:outline-none focus:border-pink-500"
+                    className="w-full px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-ink-muted mb-1 font-medium">Address Line</label>
+                <label className="block text-[#85887A] mb-1 font-medium">Address Line</label>
                 <input
                   type="text"
                   value={newCustomer.addressLine1}
                   onChange={(e) => setNewCustomer({ ...newCustomer, addressLine1: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-surface border border-surface-border text-white focus:outline-none focus:border-pink-500"
+                  className="w-full px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32]"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-surface-border">
+              <div className="flex justify-end gap-2 pt-3 border-t border-[#CDD3B5]">
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-surface border border-surface-border text-ink-muted hover:text-white"
+                  className="px-4 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#85887A] hover:text-[#20231B]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-pink-600 hover:bg-pink-500 text-white font-semibold shadow-glow"
+                  className="px-4 py-2 rounded-xl bg-[#34451D] hover:bg-[#596B32] text-[#efead5] font-medium shadow-sm"
                 >
                   Create Customer
                 </button>
@@ -616,14 +616,14 @@ export default function AccountsDashboardPage() {
 
       {/* [U] EDIT CUSTOMER MODAL */}
       {isEditModalOpen && activeCustomer && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="glass-card rounded-2xl w-full max-w-md p-6 border border-surface-border space-y-4">
-            <div className="flex items-center justify-between border-b border-surface-border pb-3">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <Edit3 className="w-5 h-5 text-pink-400" />
-                <span>[U] Edit Profile: {activeCustomer.customerId}</span>
+        <div className="fixed inset-0 z-50 bg-[#20231B]/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#efead5] rounded-2xl w-full max-w-md p-6 border border-[#CDD3B5] space-y-4 shadow-xl">
+            <div className="flex items-center justify-between border-b border-[#CDD3B5] pb-3">
+              <h3 className="text-base font-medium font-display text-[#20231B] flex items-center gap-2">
+                <Edit3 className="w-5 h-5 text-[#596B32]" />
+                <span>Edit Profile: {activeCustomer.customerId}</span>
               </h3>
-              <button onClick={() => setIsEditModalOpen(false)} className="text-ink-muted hover:text-white">
+              <button onClick={() => setIsEditModalOpen(false)} className="text-[#85887A] hover:text-[#20231B]">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -631,58 +631,58 @@ export default function AccountsDashboardPage() {
             <form onSubmit={handleSaveEdit} className="space-y-3 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-ink-muted mb-1 font-medium">First Name</label>
+                  <label className="block text-[#85887A] mb-1 font-medium">First Name</label>
                   <input
                     type="text"
                     required
                     value={activeCustomer.firstName}
                     onChange={(e) => setActiveCustomer({ ...activeCustomer, firstName: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-surface border border-surface-border text-white focus:outline-none focus:border-pink-500"
+                    className="w-full px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32]"
                   />
                 </div>
                 <div>
-                  <label className="block text-ink-muted mb-1 font-medium">Last Name</label>
+                  <label className="block text-[#85887A] mb-1 font-medium">Last Name</label>
                   <input
                     type="text"
                     required
                     value={activeCustomer.lastName}
                     onChange={(e) => setActiveCustomer({ ...activeCustomer, lastName: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-surface border border-surface-border text-white focus:outline-none focus:border-pink-500"
+                    className="w-full px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-ink-muted mb-1 font-medium">Phone</label>
+                <label className="block text-[#85887A] mb-1 font-medium">Phone</label>
                 <input
                   type="text"
                   value={activeCustomer.phone || ''}
                   onChange={(e) => setActiveCustomer({ ...activeCustomer, phone: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-surface border border-surface-border text-white focus:outline-none focus:border-pink-500 font-mono"
+                  className="w-full px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32] font-mono"
                 />
               </div>
 
               <div>
-                <label className="block text-ink-muted mb-1 font-medium">City</label>
+                <label className="block text-[#85887A] mb-1 font-medium">City</label>
                 <input
                   type="text"
                   value={activeCustomer.city || ''}
                   onChange={(e) => setActiveCustomer({ ...activeCustomer, city: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-surface border border-surface-border text-white focus:outline-none focus:border-pink-500"
+                  className="w-full px-3 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#20231B] focus:outline-none focus:border-[#596B32]"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-surface-border">
+              <div className="flex justify-end gap-2 pt-3 border-t border-[#CDD3B5]">
                 <button
                   type="button"
                   onClick={() => setIsEditModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-surface border border-surface-border text-ink-muted hover:text-white"
+                  className="px-4 py-2 rounded-xl bg-[#efead5] border border-[#CDD3B5] text-[#85887A] hover:text-[#20231B]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-pink-600 hover:bg-pink-500 text-white font-semibold"
+                  className="px-4 py-2 rounded-xl bg-[#34451D] hover:bg-[#596B32] text-[#efead5] font-medium shadow-sm"
                 >
                   Save Profile
                 </button>
