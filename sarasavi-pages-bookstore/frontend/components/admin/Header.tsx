@@ -2,10 +2,14 @@
 
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
-import { ShieldCheck, LogOut, Bell, Search, ExternalLink, Globe } from 'lucide-react';
+import { ShieldCheck, LogOut, Bell, Search, ExternalLink, Globe, Menu } from 'lucide-react';
 import { ROLE_META } from '@/types/admin';
 
-export default function Header() {
+interface HeaderProps {
+  onToggleMobileSidebar?: () => void;
+}
+
+export default function Header({ onToggleMobileSidebar }: HeaderProps = {}) {
   const { user, logout } = useAuth();
 
   if (!user) return null;
@@ -17,9 +21,18 @@ export default function Header() {
   };
 
   return (
-    <header className="h-16 px-6 bg-[#efead5]/95 backdrop-blur-xl border-b border-[#CDD3B5] flex items-center justify-between sticky top-0 z-30 text-[#20231B] shadow-xs font-sans">
-      {/* Search / Context Bar */}
-      <div className="flex items-center gap-3">
+    <header className="h-16 px-4 sm:px-6 bg-[#efead5]/95 backdrop-blur-xl border-b border-[#CDD3B5] flex items-center justify-between sticky top-0 z-30 text-[#20231B] shadow-xs font-sans">
+      {/* Mobile Hamburger & Search / Context Bar */}
+      <div className="flex items-center gap-2 sm:gap-3">
+        {/* Mobile Hamburger Button */}
+        <button
+          onClick={onToggleMobileSidebar}
+          className="p-2 -ml-1 rounded-xl text-[#34451D] hover:bg-[#E4E7D2] border border-transparent hover:border-[#CDD3B5] lg:hidden transition-all active:scale-95"
+          aria-label="Open Admin Menu"
+        >
+          <Menu className="w-5 h-5 text-[#34451D]" />
+        </button>
+
         <div className="relative hidden md:block">
           <Search className="w-4 h-4 text-[#85887A] absolute left-3 top-1/2 -translate-y-1/2" />
           <input
@@ -28,9 +41,10 @@ export default function Header() {
             className="pl-9 pr-4 py-1.5 rounded-full bg-[#efead5] border border-[#CDD3B5] text-xs text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:border-[#596B32] focus:bg-[#efead5] w-64 transition-all shadow-xs font-medium"
           />
         </div>
-        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-[#E4E7D2] text-[#34451D] border border-[#CDD3B5] text-[11px] font-mono font-medium">
+        <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 rounded-full bg-[#E4E7D2] text-[#34451D] border border-[#CDD3B5] text-[10px] sm:text-[11px] font-mono font-medium">
           <span className="w-1.5 h-1.5 rounded-full bg-[#596B32] animate-pulse" />
-          <span>API: Connected (Port 8080)</span>
+          <span className="hidden sm:inline">API: Connected (Port 8080)</span>
+          <span className="sm:hidden">Port 8080</span>
         </div>
       </div>
 

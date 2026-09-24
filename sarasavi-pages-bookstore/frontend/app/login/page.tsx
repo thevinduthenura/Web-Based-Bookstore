@@ -351,7 +351,7 @@ function LoginForm() {
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md px-4">
         {/* Unified Light iOS Glass Login Card */}
-        <div className="bg-[#efead5] p-8 sm:p-10 rounded-[32px] sm:rounded-[40px] border border-[#CDD3B5] shadow-[0_12px_40px_rgba(52,69,29,0.08)] relative">
+        <div className="bg-[#efead5] p-5 sm:p-10 rounded-3xl sm:rounded-[40px] border border-[#CDD3B5] shadow-[0_12px_40px_rgba(52,69,29,0.08)] relative">
           
           {/* Logo & Clean Organic Emblem */}
           <div className="text-center space-y-2.5 mb-8">

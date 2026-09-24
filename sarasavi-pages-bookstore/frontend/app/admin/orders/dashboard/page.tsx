@@ -337,7 +337,7 @@ export default function OrdersDashboardPage() {
       {/* Orders Management Table [R, U, D] */}
       <div className="bg-[#efead5] rounded-2xl overflow-hidden border border-[#CDD3B5] shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left border-collapse min-w-[780px]">
             <thead>
               <tr className="border-b border-[#CDD3B5] bg-[#E4E7D2]/60 text-[11px] font-mono uppercase tracking-wider text-[#34451D]">
                 <th className="py-3 px-4">Order Ref / Date</th>

@@ -367,7 +367,7 @@ export default function AdminDashboardPage() {
           </div>
         ) : (
           <div className="overflow-x-auto rounded-xl border border-[#CDD3B5]">
-            <table className="w-full text-left text-xs">
+            <table className="w-full text-left text-xs min-w-[600px]">
               <thead>
                 <tr className="border-b border-[#CDD3B5] text-[#596B32] font-semibold uppercase tracking-wider text-[11px] bg-[#efead5]/60">
                   <th className="py-3 px-3">Timestamp</th>

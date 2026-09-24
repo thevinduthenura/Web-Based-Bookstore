@@ -16,7 +16,8 @@ import {
   LogOut,
   ShieldAlert,
   ChevronRight,
-  Globe
+  Globe,
+  X
 } from 'lucide-react';
 import type { StaffRole } from '@/types/admin';
 
@@ -88,7 +89,12 @@ const NAV_ITEMS: NavItem[] = [
   },
 ];
 
-export default function Sidebar() {
+interface SidebarProps {
+  isMobileOpen?: boolean;
+  onClose?: () => void;
+}
+
+export default function Sidebar({ isMobileOpen = false, onClose }: SidebarProps = {}) {
   const pathname = usePathname();
   const { user, logout } = useAuth();
 
@@ -97,25 +103,54 @@ export default function Sidebar() {
   // Filter navigation items accessible to the current logged-in role
   const visibleNav = NAV_ITEMS.filter((item) => item.allowedRoles.includes(user.role));
 
+  const handleLinkClick = () => {
+    if (onClose) onClose();
+  };
+
   return (
-    <aside className="w-64 flex-shrink-0 bg-[#efead5] border-r border-[#CDD3B5] flex flex-col justify-between h-screen sticky top-0 text-[#20231B] shadow-sm z-20 font-sans">
-      {/* Brand Header */}
-      <div>
-        <div className="p-5 border-b border-[#CDD3B5] flex items-center gap-3">
-          <div className="h-10 w-10 rounded-2xl bg-[#34451D] flex items-center justify-center text-[#efead5] flex-shrink-0 shadow-sm">
-            <div className="flex gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#B7D85A]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#7F9148]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#efead5]" />
+    <>
+      {/* Mobile Backdrop Overlay */}
+      {isMobileOpen && (
+        <div 
+          className="fixed inset-0 bg-[#20231B]/50 backdrop-blur-xs z-40 lg:hidden transition-opacity duration-300"
+          onClick={onClose}
+          aria-hidden="true"
+        />
+      )}
+
+      <aside className={`
+        fixed inset-y-0 left-0 z-50 w-72 bg-[#efead5] border-r border-[#CDD3B5] flex flex-col justify-between h-full shadow-2xl transition-transform duration-300 ease-in-out font-sans
+        lg:static lg:w-64 lg:h-screen lg:sticky lg:top-0 lg:shadow-sm lg:translate-x-0
+        ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+      `}>
+        {/* Brand Header */}
+        <div>
+          <div className="p-4 sm:p-5 border-b border-[#CDD3B5] flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-2xl bg-[#34451D] flex items-center justify-center text-[#efead5] flex-shrink-0 shadow-sm">
+                <div className="flex gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#B7D85A]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#7F9148]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#efead5]" />
+                </div>
+              </div>
+              <div>
+                <span className="text-base text-[#20231B] tracking-tight block font-display font-light leading-none">
+                  sarasavi <span className="text-[#596B32] font-normal">pages</span>
+                </span>
+                <span className="text-[11px] text-[#85887A] font-medium mt-1 block">Admin Control Hub</span>
+              </div>
             </div>
+
+            {/* Mobile Close Button */}
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-xl text-[#85887A] hover:text-[#20231B] hover:bg-[#E4E7D2] lg:hidden"
+              aria-label="Close menu"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
-          <div>
-            <span className="text-base text-[#20231B] tracking-tight block font-display font-light leading-none">
-              sarasavi <span className="text-[#596B32] font-normal">pages</span>
-            </span>
-            <span className="text-[11px] text-[#85887A] font-medium mt-1 block">Admin Control Hub</span>
-          </div>
-        </div>
 
         {/* User Role Banner */}
         <div className="px-4 py-3 mx-3 my-3 rounded-2xl bg-[#efead5] border border-[#CDD3B5] shadow-xs">
@@ -149,6 +184,7 @@ export default function Sidebar() {
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={handleLinkClick}
                 className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition-all group ${
                   isActive
                     ? 'bg-[#34451D] text-[#efead5] shadow-sm font-semibold'
@@ -181,6 +217,7 @@ export default function Sidebar() {
       <div className="p-3 border-t border-[#CDD3B5] space-y-1">
         <Link
           href="/"
+          onClick={handleLinkClick}
           className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-[#20231B] hover:text-[#34451D] hover:bg-[#efead5] transition-all"
         >
           <div className="flex items-center gap-2.5">
@@ -202,5 +239,6 @@ export default function Sidebar() {
         </button>
       </div>
     </aside>
+    </>
   );
 }

@@ -423,7 +423,7 @@ export default function InventoryDashboardPage() {
       {/* Inventory Table [R, U, D] */}
       <div className="bg-[#efead5] rounded-2xl overflow-hidden border border-[#CDD3B5] shadow-xs">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="w-full text-left text-xs min-w-[720px]">
             <thead className="bg-[#efead5]/60 border-b border-[#CDD3B5] text-[#596B32] uppercase tracking-wider text-[11px] font-semibold">
               <tr>
                 <th className="py-3.5 px-4">Book Details</th>

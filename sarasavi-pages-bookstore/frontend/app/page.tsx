@@ -23,6 +23,7 @@ import {
   Clock, 
   Send,
   X,
+  Menu,
   Plus,
   Minus,
   Trash2,
@@ -206,6 +207,7 @@ export default function StorefrontPage() {
   const [isEditBookModalOpen, setIsEditBookModalOpen] = useState(false);
   const [editingBook, setEditingBook] = useState<Book | null>(null);
   const [deleteConfirmBook, setDeleteConfirmBook] = useState<Book | null>(null);
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
 
   // Form state for creating a new book
   const [newBookForm, setNewBookForm] = useState({
@@ -679,22 +681,23 @@ export default function StorefrontPage() {
       )}
 
       {/* ── HEALIUM AUTHENTIC FLOATING PILL NAVIGATION ───────── */}
-      <header className={`sticky top-4 z-40 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pointer-events-none ${activeNavTab === 'home' ? '-mb-20' : 'mb-8'}`}>
-        <div className="pointer-events-auto bg-[#efead5]/90 backdrop-blur-xl border border-[#CDD3B5] shadow-[0_8px_32px_rgba(32,35,27,0.08)] rounded-full h-16 px-6 flex items-center justify-between gap-4 transition-all">
+      <header className={`sticky top-3 sm:top-4 z-40 max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pointer-events-none ${activeNavTab === 'home' ? '-mb-20' : 'mb-8'}`}>
+        <div className="pointer-events-auto bg-[#efead5]/90 backdrop-blur-xl border border-[#CDD3B5] shadow-[0_8px_32px_rgba(32,35,27,0.08)] rounded-full h-14 sm:h-16 px-4 sm:px-6 flex items-center justify-between gap-2 sm:gap-4 transition-all">
           {/* Left: Healium Organic Emblem + Wordmark */}
           <button 
             onClick={() => {
               setActiveNavTab('home');
+              setIsMobileNavOpen(false);
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }} 
-            className="flex items-center gap-2.5 group text-left shrink-0"
+            className="flex items-center gap-2 sm:gap-2.5 group text-left shrink-0"
           >
             <div className="flex items-center -space-x-1">
-              <div className="w-3.5 h-3.5 rounded-full bg-[#34451D] group-hover:scale-110 transition-transform" />
-              <div className="w-2.5 h-2.5 rounded-full bg-[#B7D85A] group-hover:scale-110 transition-transform" />
-              <div className="w-3.5 h-3.5 rounded-full bg-[#596B32] group-hover:scale-110 transition-transform" />
+              <div className="w-3 sm:w-3.5 h-3 sm:h-3.5 rounded-full bg-[#34451D] group-hover:scale-110 transition-transform" />
+              <div className="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full bg-[#B7D85A] group-hover:scale-110 transition-transform" />
+              <div className="w-3 sm:w-3.5 h-3 sm:h-3.5 rounded-full bg-[#596B32] group-hover:scale-110 transition-transform" />
             </div>
-            <span className="font-display font-light text-lg tracking-tight text-[#20231B]">
+            <span className="font-display font-light text-base sm:text-lg tracking-tight text-[#20231B]">
               sarasavi<span className="font-normal text-[#596B32]">pages</span>
             </span>
           </button>
@@ -733,8 +736,8 @@ export default function StorefrontPage() {
             })}
           </nav>
 
-          {/* Right: Currency, Bag, and Black Pill Login */}
-          <div className="flex items-center gap-2.5">
+          {/* Right: Currency, Bag, Login & Mobile Menu Toggle */}
+          <div className="flex items-center gap-1.5 sm:gap-2.5">
             <div className="hidden sm:flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-light text-[#596B32] hover:bg-[#E4E7D2]/60 cursor-pointer">
               <Globe className="w-3.5 h-3.5 text-[#596B32] shrink-0" />
               <span>LKR</span>
@@ -743,8 +746,11 @@ export default function StorefrontPage() {
 
             {/* Shopping Bag Button */}
             <button
-              onClick={() => setIsCartOpen(true)}
-              className="relative px-3.5 py-1.5 rounded-full bg-[#efead5] border border-[#CDD3B5] text-[#20231B] hover:bg-[#E4E7D2] shadow-xs text-xs font-normal flex items-center gap-1.5 transition-all"
+              onClick={() => {
+                setIsCartOpen(true);
+                setIsMobileNavOpen(false);
+              }}
+              className="relative px-2.5 sm:px-3.5 py-1.5 rounded-full bg-[#efead5] border border-[#CDD3B5] text-[#20231B] hover:bg-[#E4E7D2] shadow-xs text-xs font-normal flex items-center gap-1.5 transition-all"
               title="Shopping Bag"
             >
               <ShoppingCart className="w-3.5 h-3.5 text-[#596B32]" />
@@ -760,7 +766,8 @@ export default function StorefrontPage() {
             {loggedInCustomer ? (
               <Link
                 href="/account"
-                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#34451D] text-[#efead5] text-xs font-normal shadow-xs hover:bg-[#20231B] transition-all"
+                onClick={() => setIsMobileNavOpen(false)}
+                className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-1.5 rounded-full bg-[#34451D] text-[#efead5] text-xs font-normal shadow-xs hover:bg-[#20231B] transition-all"
               >
                 <div className="w-4 h-4 rounded-full bg-white/20 flex items-center justify-center text-white">
                   <User className="w-2.5 h-2.5" />
@@ -770,13 +777,73 @@ export default function StorefrontPage() {
             ) : (
               <Link
                 href="/login"
-                className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full bg-[#34451D] hover:bg-[#20231B] text-[#efead5] text-xs font-normal shadow-xs transition-all active:scale-95"
+                onClick={() => setIsMobileNavOpen(false)}
+                className="inline-flex items-center gap-1.5 px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-full bg-[#34451D] hover:bg-[#20231B] text-[#efead5] text-xs font-normal shadow-xs transition-all active:scale-95"
               >
                 <span>Login</span>
               </Link>
             )}
+
+            {/* Mobile Hamburger Toggle Button */}
+            <button
+              onClick={() => setIsMobileNavOpen(!isMobileNavOpen)}
+              className="p-1.5 sm:p-2 rounded-full bg-[#efead5] border border-[#CDD3B5] text-[#34451D] hover:bg-[#E4E7D2] md:hidden transition-all active:scale-95 ml-0.5"
+              aria-label="Toggle navigation menu"
+            >
+              {isMobileNavOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+            </button>
           </div>
         </div>
+
+        {/* Mobile Navigation Dropdown Sheet */}
+        {isMobileNavOpen && (
+          <div className="pointer-events-auto mt-2 bg-[#efead5] border border-[#CDD3B5] rounded-3xl p-4 shadow-xl md:hidden space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { id: 'home', label: '• Home' },
+                { id: 'books', label: 'Books Archive' },
+                { id: 'writers', label: 'Authors / People' },
+                { id: 'membership', label: 'Membership' },
+                { id: 'rentals', label: 'Leaderboard' },
+                { id: 'about', label: 'About Sarasavi' },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => {
+                    setIsMobileNavOpen(false);
+                    if (tab.id === 'membership') {
+                      setIsTicketModalOpen(true);
+                    } else {
+                      setActiveNavTab(tab.id as NavTab);
+                    }
+                    window.scrollTo({ top: tab.id === 'books' ? 500 : 0, behavior: 'smooth' });
+                  }}
+                  className={`py-2 px-3 text-xs rounded-xl text-left transition-all ${
+                    activeNavTab === tab.id
+                      ? 'bg-[#34451D] text-[#efead5] font-semibold shadow-xs'
+                      : 'text-[#20231B] hover:bg-[#E4E7D2]'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {canManageBooks && (
+              <div className="pt-2 border-t border-[#CDD3B5]/60 flex items-center justify-between text-xs">
+                <Link
+                  href="/admin/dashboard"
+                  onClick={() => setIsMobileNavOpen(false)}
+                  className="text-[#596B32] font-semibold hover:underline flex items-center gap-1.5"
+                >
+                  <Shield className="w-3.5 h-3.5" />
+                  <span>Admin Control Hub</span>
+                </Link>
+                <span className="text-[10px] font-mono text-[#85887A]">{activeStaff?.role}</span>
+              </div>
+            )}
+          </div>
+        )}
       </header>
 
       {/* ── MAIN VIEWPORT / CONTENT ROUTING ────────────────────── */}
@@ -1405,11 +1472,11 @@ export default function StorefrontPage() {
             )}
 
             {/* Books Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
               {filteredBooks.map((book) => (
                 <div
                   key={book.id}
-                  className={`bg-[#efead5] rounded-2xl p-4 border transition-all flex flex-col justify-between group relative ${
+                  className={`bg-[#efead5] rounded-xl sm:rounded-2xl p-2.5 sm:p-4 border transition-all flex flex-col justify-between group relative ${
                     book.hidden
                       ? 'border-amber-400/80 bg-amber-500/[0.03] shadow-sm'
                       : 'border-[#CDD3B5] hover:shadow-lg hover:border-[#7F9148]'
@@ -1418,57 +1485,57 @@ export default function StorefrontPage() {
                   <div>
                     {/* Admin Action Header (Exclusively shown to authorized catalog admins) */}
                     {canManageBooks && (
-                      <div className="flex items-center justify-between gap-1 pb-2.5 mb-2.5 border-b border-[#CDD3B5]">
+                      <div className="flex items-center justify-between gap-1 pb-2 sm:pb-2.5 mb-2 sm:mb-2.5 border-b border-[#CDD3B5]">
                         <div>
                           {book.hidden ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-900 text-[10px] font-semibold font-mono border border-amber-300/60">
-                              <EyeOff className="w-3 h-3" />
+                            <span className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-900 text-[9px] sm:text-[10px] font-semibold font-mono border border-amber-300/60">
+                              <EyeOff className="w-2.5 sm:w-3 h-2.5 sm:h-3" />
                               <span>HIDDEN</span>
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#7F9148]/20 text-[#34451D] text-[10px] font-semibold font-mono border border-[#7F9148]/40">
-                              <Eye className="w-3 h-3" />
+                            <span className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-md bg-[#7F9148]/20 text-[#34451D] text-[9px] sm:text-[10px] font-semibold font-mono border border-[#7F9148]/40">
+                              <Eye className="w-2.5 sm:w-3 h-2.5 sm:h-3" />
                               <span>LIVE</span>
                             </span>
                           )}
                         </div>
 
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-0.5 sm:gap-1">
                           {/* Edit button */}
                           <button
                             onClick={() => handleOpenEditBook(book)}
-                            className="p-1.5 rounded-lg hover:bg-[#efead5] text-[#34451D] hover:text-[#20231B] transition-colors"
+                            className="p-1 sm:p-1.5 rounded-lg hover:bg-[#efead5] text-[#34451D] hover:text-[#20231B] transition-colors"
                             title="Edit book details"
                           >
-                            <Edit3 className="w-3.5 h-3.5" />
+                            <Edit3 className="w-3 sm:w-3.5 h-3 sm:h-3.5" />
                           </button>
 
                           {/* Hide / Unhide button */}
                           <button
                             onClick={() => handleToggleHideBook(book)}
-                            className={`p-1.5 rounded-lg transition-colors ${
+                            className={`p-1 sm:p-1.5 rounded-lg transition-colors ${
                               book.hidden
                                 ? 'hover:bg-[#E4E7D2] text-[#596B32]'
                                 : 'hover:bg-amber-100 text-amber-700'
                             }`}
                             title={book.hidden ? 'Unhide (Make visible to customers)' : 'Hide (Hide from customers)'}
                           >
-                            {book.hidden ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                            {book.hidden ? <Eye className="w-3 sm:w-3.5 h-3 sm:h-3.5" /> : <EyeOff className="w-3 sm:w-3.5 h-3 sm:h-3.5" />}
                           </button>
 
                           {/* Delete button */}
                           <button
                             onClick={() => handleDeleteBook(book)}
-                            className="p-1.5 rounded-lg hover:bg-red-100 text-red-600 hover:text-red-700 transition-colors"
+                            className="p-1 sm:p-1.5 rounded-lg hover:bg-red-100 text-red-600 hover:text-red-700 transition-colors"
                             title="Delete book from catalog"
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
+                            <Trash2 className="w-3 sm:w-3.5 h-3 sm:h-3.5" />
                           </button>
                         </div>
                       </div>
                     )}
 
-                    <div className="aspect-[3/4] w-full rounded-xl bg-[#efead5] overflow-hidden mb-3 relative">
+                    <div className="aspect-[3/4] w-full rounded-lg sm:rounded-xl bg-[#efead5] overflow-hidden mb-2.5 sm:mb-3 relative">
                       {book.coverImage ? (
                         <img 
                           src={book.coverImage} 
@@ -1479,15 +1546,15 @@ export default function StorefrontPage() {
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-[#85887A]">
-                          <BookOpen className="w-10 h-10 stroke-1" />
+                          <BookOpen className="w-8 sm:w-10 h-8 sm:h-10 stroke-1" />
                         </div>
                       )}
-                      <span className="absolute top-2 left-2 px-2.5 py-0.5 rounded-full bg-[#efead5]/90 backdrop-blur-md text-[10px] font-mono text-[#34451D] font-semibold shadow-sm border border-[#CDD3B5]/50">
+                      <span className="absolute top-1.5 sm:top-2 left-1.5 sm:left-2 px-2 py-0.5 rounded-full bg-[#efead5]/90 backdrop-blur-md text-[9px] sm:text-[10px] font-mono text-[#34451D] font-semibold shadow-sm border border-[#CDD3B5]/50">
                         {book.category}
                       </span>
                       {book.hidden && (
-                        <span className="absolute bottom-2 left-2 right-2 px-2 py-1 rounded-lg bg-[#20231B]/90 backdrop-blur-md text-[#B7D85A] text-[10px] font-mono text-center font-medium shadow-md">
-                          Hidden from customer view
+                        <span className="absolute bottom-1.5 sm:bottom-2 left-1.5 sm:left-2 right-1.5 sm:right-2 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md sm:rounded-lg bg-[#20231B]/90 backdrop-blur-md text-[#B7D85A] text-[9px] sm:text-[10px] font-mono text-center font-medium shadow-md">
+                          Hidden
                         </span>
                       )}
                     </div>
@@ -1495,17 +1562,17 @@ export default function StorefrontPage() {
                     <h3 className="text-xs sm:text-sm font-semibold text-[#20231B] line-clamp-1 group-hover:text-[#596B32] transition-colors">
                       {book.title}
                     </h3>
-                    <p className="text-xs text-[#85887A] truncate mt-0.5">{book.author}</p>
+                    <p className="text-[11px] sm:text-xs text-[#85887A] truncate mt-0.5">{book.author}</p>
                     {book.description && (
-                      <p className="text-[11px] text-[#85887A] line-clamp-2 mt-2 leading-relaxed">
+                      <p className="text-[10px] sm:text-[11px] text-[#85887A] line-clamp-2 mt-1.5 sm:mt-2 leading-relaxed">
                         {book.description}
                       </p>
                     )}
                   </div>
 
-                  <div className="pt-4 border-t border-[#CDD3B5] flex items-center justify-between mt-4">
+                  <div className="pt-2.5 sm:pt-4 border-t border-[#CDD3B5] flex flex-col xs:flex-row items-start xs:items-center justify-between gap-1.5 sm:gap-2 mt-2.5 sm:mt-4">
                     <div>
-                      <span className="text-[10px] text-[#85887A] block font-mono">Retail Value</span>
+                      <span className="text-[9px] sm:text-[10px] text-[#85887A] block font-mono">Retail Value</span>
                       <span className="font-mono text-xs sm:text-sm font-semibold text-[#20231B]">
                         LKR {book.price.toFixed(2)}
                       </span>
@@ -1513,7 +1580,7 @@ export default function StorefrontPage() {
 
                     <button
                       onClick={() => addToCart(book)}
-                      className={`px-3.5 py-1.5 rounded-full text-xs font-medium shadow-sm transition-all active:scale-95 ${
+                      className={`w-full xs:w-auto px-2.5 sm:px-3.5 py-1.5 rounded-full text-[11px] sm:text-xs font-medium shadow-sm transition-all active:scale-95 text-center ${
                         book.hidden
                           ? 'bg-[#CDD3B5] text-[#20231B] hover:bg-[#AAB58A]'
                           : 'bg-[#34451D] hover:bg-[#20231B] text-[#efead5]'
@@ -1752,7 +1819,7 @@ export default function StorefrontPage() {
             className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
             onClick={() => setIsTicketModalOpen(false)}
           />
-          <div className="relative w-full max-w-lg bg-[#efead5] rounded-3xl p-6 sm:p-8 shadow-2xl border border-[#CDD3B5] z-10 space-y-6">
+          <div className="relative w-full max-w-lg bg-[#efead5] rounded-3xl p-5 sm:p-8 shadow-2xl border border-[#CDD3B5] z-10 space-y-5 sm:space-y-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-4 border-b border-[#CDD3B5]">
               <div>
                 <span className="text-[10px] font-mono uppercase text-[#596B32] font-semibold tracking-wider">[ MODULE M3 · CUSTOMER CARE ]</span>
@@ -1863,7 +1930,7 @@ export default function StorefrontPage() {
           />
 
           {/* Drawer Content */}
-          <div className="relative w-full max-w-md bg-[#efead5] border-l border-[#CDD3B5] h-full shadow-2xl flex flex-col p-6 z-10 overflow-y-auto">
+          <div className="relative w-full max-w-md bg-[#efead5] border-l border-[#CDD3B5] h-full shadow-2xl flex flex-col p-4 sm:p-6 z-10 overflow-y-auto">
             <div className="flex items-center justify-between pb-4 border-b border-[#CDD3B5]">
               <div className="flex items-center gap-2">
                 <ShoppingCart className="w-5 h-5 text-[#34451D]" />
