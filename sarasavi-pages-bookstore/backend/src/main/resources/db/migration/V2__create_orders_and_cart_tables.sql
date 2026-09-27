@@ -84,6 +84,26 @@ IF NOT EXISTS (SELECT 1 FROM books WHERE id = 'b5')
     INSERT INTO books (id, title, author, category, price, cover_image, stock_quantity, isbn, description, rating)
     VALUES ('b5', 'Clean Code', 'Robert C. Martin', 'Technology', 4500.00, 'https://images.unsplash.com/photo-1532012164546-f432f2e3777a', 15, '978-013-2350-88-4', 'A handbook of agile software craftsmanship.', 4.9);
 
+IF NOT EXISTS (SELECT 1 FROM books WHERE id = 's1')
+    INSERT INTO books (id, title, author, category, price, cover_image, stock_quantity, isbn, description, rating)
+    VALUES ('s1', 'Pilot G2 Premium Gel Pen Set (12pcs)', 'Pilot Japan', 'Office Stationery', 650.00, 'https://images.unsplash.com/photo-1585336261026-70e28e169b2d', 180, 'STN-PILOT-01', 'Smooth writing 0.7mm retractable gel rollerball pens with comfortable rubber grip.', 4.8);
+
+IF NOT EXISTS (SELECT 1 FROM books WHERE id = 's2')
+    INSERT INTO books (id, title, author, category, price, cover_image, stock_quantity, isbn, description, rating)
+    VALUES ('s2', 'Nataraj A4 Ruled Exercise Notebook (200 pgs)', 'Nataraj / Hindustan', 'Office Stationery', 280.00, 'https://images.unsplash.com/photo-1531346878377-a5be20888e57', 150, 'STN-NATARAJ-02', 'Premium 70gsm white ruled paper with sturdy binding.', 4.6);
+
+IF NOT EXISTS (SELECT 1 FROM books WHERE id = 's3')
+    INSERT INTO books (id, title, author, category, price, cover_image, stock_quantity, isbn, description, rating)
+    VALUES ('s3', 'Camlin Artist Watercolour Paint Set (24 Cakes)', 'Camlin Kokuyo', 'Art Supplies', 1350.00, 'https://images.unsplash.com/photo-1513364776144-60967b0f800f', 60, 'STN-CAMLIN-03', 'Richly pigmented 24 watercolour cakes with brush.', 4.8);
+
+IF NOT EXISTS (SELECT 1 FROM books WHERE id = 's4')
+    INSERT INTO books (id, title, author, category, price, cover_image, stock_quantity, isbn, description, rating)
+    VALUES ('s4', 'Tipp-Ex Rapid Correction Fluid & Micro Tape Duo', 'BIC / Tipp-Ex', 'Office Stationery', 220.00, 'https://images.unsplash.com/photo-1585336261026-70e28e169b2d', 300, 'STN-TIPPEX-04', 'Quick drying correction fluid and precision tape.', 4.5);
+
+IF NOT EXISTS (SELECT 1 FROM books WHERE id = 's5')
+    INSERT INTO books (id, title, author, category, price, cover_image, stock_quantity, isbn, description, rating)
+    VALUES ('s5', 'Apsara Matt Drawing Pencil Set (10 Grades, HB-8B)', 'Apsara Art', 'Art Supplies', 580.00, 'https://images.unsplash.com/photo-1580569214296-5cf2ebe74b1d', 100, 'STN-APSARA-05', 'Fine art sketch pencils made from seasoned cedar wood.', 4.9);
+
 -- Seed Initial Promotion Vouchers
 IF NOT EXISTS (SELECT 1 FROM promotions WHERE id = 'p1')
     INSERT INTO promotions (id, code, discount_percentage, max_discount, min_spend, valid_until, active)
