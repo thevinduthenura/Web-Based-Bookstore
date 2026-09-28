@@ -21,19 +21,36 @@ public class InventoryServiceImpl implements InventoryService {
 
     private final InventoryRepository inventoryRepository;
     private final StockAdjustmentLogRepository logRepository;
+    private final java.util.Optional<com.sarasavipages.members.sync.repository.InventoryMirrorRepository> inventoryMirrorRepository;
 
     @Override
     @Transactional(readOnly = true)
     public List<InventoryResponse> getAllInventory(String category, String query) {
-        List<InventoryItem> items;
-        if (query != null && !query.isBlank()) {
-            items = inventoryRepository.findByTitleContainingIgnoreCaseOrAuthorContainingIgnoreCase(query.trim(), query.trim());
-        } else if (category != null && !category.isBlank()) {
-            items = inventoryRepository.findByCategoryIgnoreCase(category.trim());
-        } else {
-            items = inventoryRepository.findAll();
+        try {
+            List<InventoryItem> items;
+            if (query != null && !query.isBlank()) {
+                items = inventoryRepository.findByTitleContainingIgnoreCaseOrAuthorContainingIgnoreCase(query.trim(), query.trim());
+            } else if (category != null && !category.isBlank()) {
+                items = inventoryRepository.findByCategoryIgnoreCase(category.trim());
+            } else {
+                items = inventoryRepository.findAll();
+            }
+            if (!items.isEmpty()) {
+                return items.stream().map(InventoryResponse::fromEntity).collect(Collectors.toList());
+            }
+        } catch (Exception ex) {}
+
+        // Fallback to MongoDB mirror
+        if (inventoryMirrorRepository.isPresent()) {
+            var mirrors = inventoryMirrorRepository.get().findAll();
+            if (!mirrors.isEmpty()) {
+                return mirrors.stream()
+                        .map(InventoryResponse::fromMirror)
+                        .collect(Collectors.toList());
+            }
         }
-        return items.stream().map(InventoryResponse::fromEntity).collect(Collectors.toList());
+
+        return List.of();
     }
 
     @Override
@@ -68,6 +85,12 @@ public class InventoryServiceImpl implements InventoryService {
                 .build();
 
         InventoryItem saved = inventoryRepository.save(item);
+
+        inventoryMirrorRepository.ifPresent(repo -> {
+            try {
+                repo.save(toInventoryMirror(saved));
+            } catch (Exception ignored) {}
+        });
 
         // Record initial inventory log
         StockAdjustmentLog log = StockAdjustmentLog.builder()
@@ -169,6 +192,11 @@ public class InventoryServiceImpl implements InventoryService {
         item.setSupplier(req.getSupplier());
 
         InventoryItem updated = inventoryRepository.save(item);
+        inventoryMirrorRepository.ifPresent(repo -> {
+            try {
+                repo.save(toInventoryMirror(updated));
+            } catch (Exception ignored) {}
+        });
         return InventoryResponse.fromEntity(updated);
     }
 
@@ -178,6 +206,34 @@ public class InventoryServiceImpl implements InventoryService {
         if (!inventoryRepository.existsById(id)) {
             throw new IllegalArgumentException("Inventory item not found with ID: " + id);
         }
+        var itemOpt = inventoryRepository.findById(id);
         inventoryRepository.deleteById(id);
+        itemOpt.ifPresent(item -> {
+            inventoryMirrorRepository.ifPresent(repo -> {
+                try {
+                    repo.deleteById(String.valueOf(item.getId()));
+                } catch (Exception ignored) {}
+            });
+        });
+    }
+
+    public static com.sarasavipages.members.sync.document.InventoryMirror toInventoryMirror(InventoryItem item) {
+        return com.sarasavipages.members.sync.document.InventoryMirror.builder()
+                .id(String.valueOf(item.getId()))
+                .bookId(item.getBookId())
+                .isbn(item.getIsbn())
+                .title(item.getTitle())
+                .author(item.getAuthor())
+                .category(item.getCategory())
+                .location(item.getLocation())
+                .stockQuantity(item.getStockQuantity())
+                .safetyStockLevel(item.getSafetyStockLevel())
+                .reorderQuantity(item.getReorderQuantity())
+                .unitCost(item.getUnitCost())
+                .sellingPrice(item.getSellingPrice())
+                .supplier(item.getSupplier())
+                .status(item.getStatus() != null ? item.getStatus().name() : "IN_STOCK")
+                .syncedAt(LocalDateTime.now())
+                .build();
     }
 }
