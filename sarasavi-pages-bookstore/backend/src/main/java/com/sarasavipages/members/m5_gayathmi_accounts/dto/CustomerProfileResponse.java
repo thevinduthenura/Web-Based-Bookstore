@@ -52,4 +52,37 @@ public class CustomerProfileResponse {
                 .updatedAt(profile.getUpdatedAt())
                 .build();
     }
+
+    public static CustomerProfileResponse fromMirror(com.sarasavipages.members.sync.document.CustomerMirror mirror) {
+        AccountStatus st;
+        try {
+            st = AccountStatus.valueOf(mirror.getStatus());
+        } catch (Exception e) {
+            st = AccountStatus.ACTIVE;
+        }
+
+        LoyaltyTier lt;
+        try {
+            lt = LoyaltyTier.valueOf(mirror.getLoyaltyTier());
+        } catch (Exception e) {
+            lt = LoyaltyTier.BRONZE;
+        }
+
+        return CustomerProfileResponse.builder()
+                .customerId(mirror.getId())
+                .email(mirror.getEmail())
+                .firstName(mirror.getFirstName())
+                .lastName(mirror.getLastName())
+                .phone(mirror.getPhone())
+                .addressLine1(mirror.getAddressLine1())
+                .city(mirror.getCity())
+                .postalCode(mirror.getPostalCode())
+                .country(mirror.getCountry())
+                .status(st)
+                .loyaltyTier(lt)
+                .loyaltyPoints(mirror.getLoyaltyPoints())
+                .kycVerified(mirror.isKycVerified())
+                .createdAt(mirror.getCreatedAt())
+                .build();
+    }
 }

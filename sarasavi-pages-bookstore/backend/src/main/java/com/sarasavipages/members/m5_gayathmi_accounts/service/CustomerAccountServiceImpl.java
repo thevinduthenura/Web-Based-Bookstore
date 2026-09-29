@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 public class CustomerAccountServiceImpl implements CustomerAccountService {
 
     private final CustomerProfileRepository profileRepository;
+    private final java.util.Optional<com.sarasavipages.members.sync.repository.CustomerMirrorRepository> customerMirrorRepository;
 
     @Override
     @Transactional
@@ -47,6 +48,13 @@ public class CustomerAccountServiceImpl implements CustomerAccountService {
                 .build();
 
         CustomerProfile saved = profileRepository.save(profile);
+
+        customerMirrorRepository.ifPresent(repo -> {
+            try {
+                repo.save(toCustomerMirror(saved));
+            } catch (Exception ignored) {}
+        });
+
         return CustomerProfileResponse.fromEntity(saved);
     }
 
@@ -81,6 +89,11 @@ public class CustomerAccountServiceImpl implements CustomerAccountService {
         if (req.getCountry() != null) profile.setCountry(req.getCountry().trim());
 
         CustomerProfile updated = profileRepository.save(profile);
+        customerMirrorRepository.ifPresent(repo -> {
+            try {
+                repo.save(toCustomerMirror(updated));
+            } catch (Exception ignored) {}
+        });
         return CustomerProfileResponse.fromEntity(updated);
     }
 
@@ -91,6 +104,11 @@ public class CustomerAccountServiceImpl implements CustomerAccountService {
                 .orElseThrow(() -> new IllegalArgumentException("Customer profile not found for ID: " + customerId));
         profile.setStatus(status);
         CustomerProfile updated = profileRepository.save(profile);
+        customerMirrorRepository.ifPresent(repo -> {
+            try {
+                repo.save(toCustomerMirror(updated));
+            } catch (Exception ignored) {}
+        });
         return CustomerProfileResponse.fromEntity(updated);
     }
 
@@ -101,22 +119,43 @@ public class CustomerAccountServiceImpl implements CustomerAccountService {
                 .orElseThrow(() -> new IllegalArgumentException("Customer profile not found for ID: " + customerId));
         profile.setKycVerified(verified);
         CustomerProfile updated = profileRepository.save(profile);
+        customerMirrorRepository.ifPresent(repo -> {
+            try {
+                repo.save(toCustomerMirror(updated));
+            } catch (Exception ignored) {}
+        });
         return CustomerProfileResponse.fromEntity(updated);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<CustomerProfileResponse> getAllCustomers(AccountStatus status, String query) {
-        List<CustomerProfile> list;
-        if (query != null && !query.isBlank()) {
-            list = profileRepository.findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
-                    query.trim(), query.trim(), query.trim());
-        } else if (status != null) {
-            list = profileRepository.findByStatus(status);
-        } else {
-            list = profileRepository.findAll();
+        try {
+            List<CustomerProfile> list;
+            if (query != null && !query.isBlank()) {
+                list = profileRepository.findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
+                        query.trim(), query.trim(), query.trim());
+            } else if (status != null) {
+                list = profileRepository.findByStatus(status);
+            } else {
+                list = profileRepository.findAll();
+            }
+            if (!list.isEmpty()) {
+                return list.stream().map(CustomerProfileResponse::fromEntity).collect(Collectors.toList());
+            }
+        } catch (Exception ex) {}
+
+        // Fallback to MongoDB mirror
+        if (customerMirrorRepository.isPresent()) {
+            var mirrors = customerMirrorRepository.get().findAll();
+            if (!mirrors.isEmpty()) {
+                return mirrors.stream()
+                        .map(CustomerProfileResponse::fromMirror)
+                        .collect(Collectors.toList());
+            }
         }
-        return list.stream().map(CustomerProfileResponse::fromEntity).collect(Collectors.toList());
+
+        return List.of();
     }
 
     @Override
@@ -125,5 +164,30 @@ public class CustomerAccountServiceImpl implements CustomerAccountService {
         CustomerProfile profile = profileRepository.findByCustomerId(customerId)
                 .orElseThrow(() -> new IllegalArgumentException("Customer profile not found for ID: " + customerId));
         profileRepository.delete(profile);
+        customerMirrorRepository.ifPresent(repo -> {
+            try {
+                repo.deleteById(customerId);
+            } catch (Exception ignored) {}
+        });
+    }
+
+    public static com.sarasavipages.members.sync.document.CustomerMirror toCustomerMirror(CustomerProfile profile) {
+        return com.sarasavipages.members.sync.document.CustomerMirror.builder()
+                .id(profile.getCustomerId())
+                .email(profile.getEmail())
+                .firstName(profile.getFirstName())
+                .lastName(profile.getLastName())
+                .phone(profile.getPhone())
+                .addressLine1(profile.getAddressLine1())
+                .city(profile.getCity())
+                .postalCode(profile.getPostalCode())
+                .country(profile.getCountry())
+                .status(profile.getStatus() != null ? profile.getStatus().name() : "ACTIVE")
+                .loyaltyTier(profile.getLoyaltyTier() != null ? profile.getLoyaltyTier().name() : "BRONZE")
+                .loyaltyPoints(profile.getLoyaltyPoints())
+                .kycVerified(profile.isKycVerified())
+                .createdAt(profile.getCreatedAt())
+                .syncedAt(java.time.LocalDateTime.now())
+                .build();
     }
 }
