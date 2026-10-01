@@ -29,8 +29,8 @@ dnf update -y --refresh
 echo -e "\n${YELLOW}[2/6] Installing essential utilities (git, curl, wget, tar, unzip)...${NC}"
 dnf install -y git curl wget tar unzip
 
-echo -e "\n${YELLOW}[3/6] Installing OpenJDK 17 (Java Development Kit)...${NC}"
-dnf install -y java-17-openjdk-devel
+echo -e "\n${YELLOW}[3/6] Installing OpenJDK 21 (Java Development Kit)...${NC}"
+dnf install -y java-21-openjdk-devel
 
 echo -e "\n${YELLOW}[4/6] Installing Node.js 20 (LTS) & npm...${NC}"
 curl -fsSL https://rpm.nodesource.com/setup_20.x | bash -

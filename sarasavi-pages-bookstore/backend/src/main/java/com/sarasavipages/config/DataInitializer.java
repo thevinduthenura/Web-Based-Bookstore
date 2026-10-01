@@ -1,5 +1,8 @@
 package com.sarasavipages.config;
 
+import com.sarasavipages.members.m1_gunathilaka_adminstaff.entity.Staff;
+import com.sarasavipages.members.m1_gunathilaka_adminstaff.entity.StaffRole;
+import com.sarasavipages.members.m1_gunathilaka_adminstaff.repository.StaffRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -26,6 +29,7 @@ public class DataInitializer implements CommandLineRunner {
 
     private final JdbcTemplate jdbcTemplate;
     private final PasswordEncoder passwordEncoder;
+    private final StaffRepository staffRepository;
 
     @Override
     public void run(String... args) {
@@ -39,40 +43,56 @@ public class DataInitializer implements CommandLineRunner {
 
     private void seedStaffAndAudit() {
         try {
-            Integer count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM staff", Integer.class);
-            if (count != null && count > 0) {
-                return;
-            }
-
-            log.info("Seeding initial staff accounts for all 6 members...");
+            log.info("Verifying and ensuring staff accounts for all 6 members and admin...");
             LocalDateTime now = LocalDateTime.now();
 
             String[][] staffData = {
-                {"GunathilakaT1540", "1540", "Gunathilaka H.D.T.T.", "gunathilaka@sarasavipages.lk", "IT25101540", "SUPER_ADMIN"},
-                {"AnafS2345",        "2345", "Anaf M.K.A.S.",         "anaf@sarasavipages.lk",        "IT25102345", "PAYMENT_ADMIN"},
-                {"ZeenC3342",        "3342", "Zeen A.C.",             "zeen@sarasavipages.lk",        "IT25103342", "CUSTOMER_SERVICE_ADMIN"},
-                {"DissanayakeD1062", "1062", "Dissanayake S.A.S.D.", "dissanayake@sarasavipages.lk", "IT25101062", "INVENTORY_ADMIN"},
-                {"GayathmiR3013",    "3013", "Gayathmi P.G.R.",       "gayathmi@sarasavipages.lk",    "IT25103013", "ACCOUNT_ADMIN"},
-                {"DiyesL0263",       "0263", "Diyes C.L.",            "diyes@sarasavipages.lk",       "IT25100263", "ORDER_ADMIN"}
+                {"admin",            "admin",    "System Administrator",      "admin@sarasavipages.lk",       "IT25100000", "SUPER_ADMIN"},
+                {"GunathilakaT1540", "1540",     "Gunathilaka H.D.T.T.",     "gunathilaka@sarasavipages.lk", "IT25101540", "SUPER_ADMIN"},
+                {"AnafS2345",        "2345",     "Anaf M.K.A.S.",             "anaf@sarasavipages.lk",        "IT25102345", "PAYMENT_ADMIN"},
+                {"ZeenC3342",        "3342",     "Zeen A.C.",                 "zeen@sarasavipages.lk",        "IT25103342", "CUSTOMER_SERVICE_ADMIN"},
+                {"DissanayakeD1062", "1062",     "Dissanayake S.A.S.D.",     "dissanayake@sarasavipages.lk", "IT25101062", "INVENTORY_ADMIN"},
+                {"GayathmiR3013",    "3013",     "Gayathmi P.G.R.",           "gayathmi@sarasavipages.lk",    "IT25103013", "ACCOUNT_ADMIN"},
+                {"DiyesL0263",       "0263",     "Diyes C.L.",                "diyes@sarasavipages.lk",       "IT25100263", "ORDER_ADMIN"}
             };
 
             for (String[] s : staffData) {
-                String encodedPw = passwordEncoder.encode(s[1]);
-                jdbcTemplate.update(
-                    "INSERT INTO staff (username, password, full_name, email, it_number, role, active, created_at) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, 1, ?)",
-                    s[0], encodedPw, s[2], s[3], s[4], s[5], now
-                );
+                var existingOpt = staffRepository.findByUsername(s[0]);
+                if (existingOpt.isEmpty()) {
+                    Staff staff = Staff.builder()
+                            .username(s[0])
+                            .password(passwordEncoder.encode(s[1]))
+                            .fullName(s[2])
+                            .email(s[3])
+                            .itNumber(s[4])
+                            .role(StaffRole.valueOf(s[5]))
+                            .active(true)
+                            .createdAt(now)
+                            .build();
+                    staffRepository.save(staff);
 
-                jdbcTemplate.update(
-                    "INSERT INTO audit_log (performed_by, action, target_username, description, timestamp) " +
-                    "VALUES ('SYSTEM', 'STAFF_CREATED', ?, ?, ?)",
-                    s[0], "System: Seeded account for " + s[2], now
-                );
+                    try {
+                        jdbcTemplate.update(
+                            "INSERT INTO audit_log (performed_by, action, target_username, description, timestamp) " +
+                            "VALUES ('SYSTEM', 'STAFF_CREATED', ?, ?, ?)",
+                            s[0], "System: Seeded account for " + s[2], now
+                        );
+                    } catch (Exception auditEx) {
+                        log.debug("Audit log insert skipped: {}", auditEx.getMessage());
+                    }
+                    log.info("Seeded staff account: {}", s[0]);
+                } else {
+                    Staff existing = existingOpt.get();
+                    if (!passwordEncoder.matches(s[1], existing.getPassword())) {
+                        existing.setPassword(passwordEncoder.encode(s[1]));
+                        staffRepository.save(existing);
+                        log.info("Repaired BCrypt password hash for staff account: {}", s[0]);
+                    }
+                }
             }
-            log.info("Staff seeding completed successfully.");
+            log.info("Staff verification complete. All {} accounts active with verified BCrypt credentials.", staffData.length);
         } catch (Exception e) {
-            log.warn("Could not seed staff: {}", e.getMessage());
+            log.warn("Could not verify staff accounts: {}", e.getMessage());
         }
     }
 
@@ -80,6 +100,7 @@ public class DataInitializer implements CommandLineRunner {
         try {
             Integer count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM books", Integer.class);
             if (count != null && count > 0) {
+                seedStationeryIfMissing();
                 return;
             }
 
@@ -105,12 +126,39 @@ public class DataInitializer implements CommandLineRunner {
                 "VALUES (5, 'Introduction to Algorithms', 'Thomas H. Cormen', 'Academic', 7800.00, '/images/intro_algorithms.jpg', 8, '978-026-203-384-8', 'Comprehensive textbook covering modern algorithms.', 4.9)"
             );
 
+            seedStationeryIfMissing();
+
             LocalDateTime futureDate = LocalDateTime.now().plusMonths(6);
             jdbcTemplate.update("INSERT INTO promotions (id, code, discount_percentage, max_discount, min_spend, valid_until, active) VALUES (1, 'WELCOME10', 10, 500.00, 1000.00, ?, 1)", futureDate);
             jdbcTemplate.update("INSERT INTO promotions (id, code, discount_percentage, max_discount, min_spend, valid_until, active) VALUES (2, 'SARASAVI20', 20, 1500.00, 3000.00, ?, 1)", futureDate);
             jdbcTemplate.update("INSERT INTO promotions (id, code, discount_percentage, max_discount, min_spend, valid_until, active) VALUES (3, 'STUDENT15', 15, 750.00, 1500.00, ?, 1)", futureDate);
         } catch (Exception e) {
             log.warn("Could not seed books/promotions: {}", e.getMessage());
+        }
+    }
+
+    private void seedStationeryIfMissing() {
+        try {
+            String[][] stationerySeeds = {
+                {"s1", "Pilot G2 Premium Gel Pen Set (12pcs)", "Pilot Japan", "Office Stationery", "650.00", "https://images.unsplash.com/photo-1585336261026-70e28e169b2d", "180", "STN-PILOT-01", "Smooth writing 0.7mm retractable gel rollerball pens with comfortable rubber grip.", "4.8"},
+                {"s2", "Nataraj A4 Ruled Exercise Notebook (200 pgs)", "Nataraj / Hindustan", "Office Stationery", "280.00", "https://images.unsplash.com/photo-1531346878377-a5be20888e57", "150", "STN-NATARAJ-02", "Premium 70gsm white ruled paper with sturdy binding.", "4.6"},
+                {"s3", "Camlin Artist Watercolour Paint Set (24 Cakes)", "Camlin Kokuyo", "Art Supplies", "1350.00", "https://images.unsplash.com/photo-1513364776144-60967b0f800f", "60", "STN-CAMLIN-03", "Richly pigmented 24 watercolour cakes with brush.", "4.8"},
+                {"s4", "Tipp-Ex Rapid Correction Fluid & Micro Tape Duo", "BIC / Tipp-Ex", "Office Stationery", "220.00", "https://images.unsplash.com/photo-1585336261026-70e28e169b2d", "300", "STN-TIPPEX-04", "Quick drying correction fluid and precision tape.", "4.5"},
+                {"s5", "Apsara Matt Drawing Pencil Set (10 Grades, HB-8B)", "Apsara Art", "Art Supplies", "580.00", "https://images.unsplash.com/photo-1580569214296-5cf2ebe74b1d", "100", "STN-APSARA-05", "Fine art sketch pencils made from seasoned cedar wood.", "4.9"}
+            };
+            for (String[] stn : stationerySeeds) {
+                Integer exists = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM books WHERE id = ?", Integer.class, stn[0]);
+                if (exists == null || exists == 0) {
+                    jdbcTemplate.update(
+                        "INSERT INTO books (id, title, author, category, price, cover_image, stock_quantity, isbn, description, rating) " +
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                        stn[0], stn[1], stn[2], stn[3], Double.parseDouble(stn[4]), stn[5], Integer.parseInt(stn[6]), stn[7], stn[8], Double.parseDouble(stn[9])
+                    );
+                    log.info("Seeded stationery item: {}", stn[1]);
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Could not seed stationery items: {}", e.getMessage());
         }
     }
 

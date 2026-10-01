@@ -49,20 +49,33 @@ IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'idx_audit_log_target' AND
 -- Username pattern: {LastName}{FirstInitial}{Last4DigitsOfIT}
 -- Password: BCrypt hash of last 4 digits of IT number
 --
--- BCrypt hashes (cost=10) pre-generated:
---   1540  → $2a$10$wGKI1TKQB/.r.NlS9gSTluJrGRfHPYioFHsqbhNXP6eoXq.9oPcpC
---   2345  → $2a$10$Dxt0oRMqp3Sl3l6h3ARXAOHyF2hzWXSrpFJAK1XGwxT4YzJXPFhHe
---   3342  → $2a$10$cRMUm3q.KljHbh7qb3q39O9e0OtMXWy1f4lV7mOfHWG2p.hE8o5B2
---   1062  → $2a$10$3.zW6KSEKXKhwf7N5G3ADO0d7BUH2D0RXqpS4HT5IuV0Eg3oKcVMq
---   3013  → $2a$10$dXnhJWlJxBjbW1kBlWvH4OnETFarVAV8zM2W88OJFJJkLLhZsGe.W
---   0263  → $2a$10$XB3xVe7pzNdoMz28yAz3kO8ZhXE2rGSxF.Js5CGRhsSmYbdcV.lG2
+-- BCrypt hashes (cost=10) verified:
+--   admin → $2a$10$wqbqVvIy8B6ipFijfdHj2e6T9r0xHtj388GyodSAlESZhlazRvQ3u
+--   1540  → $2a$10$mM3mT8.jQ3mBHIzoSla0A.rOcIepfT9SyJzTECfKot3VqvgTt7SRO
+--   2345  → $2a$10$cxwN5yLSybHuACZixkSU4eKQwKc8cGrsU6gdNz/EOGDJBNwMrnl8u
+--   3342  → $2a$10$Pty7Gw9231qd25CRMZIjzOYOItWGgfUR3JYxdsVd9HUfGb5SkozKS
+--   1062  → $2a$10$zJSbllDTsljBD9r9pt1LKu2UUM1qXlujRZeAhQ048Pj9qwDQqEZd.
+--   3013  → $2a$10$30ARi4BOe3ZQ4.zgoNRqzuCIOSxO28Xc6OBnYJ2TOxdq6oPgb9bVq
+--   0263  → $2a$10$JH/ec6F5M2kcOkwvsiYyH.k9Cj9d/c1XvzEqvyFEyX3wcR92XVHty
 -- ============================================================
+
+-- 0. System Administrator – admin (quick access)
+IF NOT EXISTS (SELECT 1 FROM staff WHERE username = 'admin')
+    INSERT INTO staff (username, password, full_name, email, it_number, role, active, created_at)
+    VALUES ('admin',
+            '$2a$10$wqbqVvIy8B6ipFijfdHj2e6T9r0xHtj388GyodSAlESZhlazRvQ3u',
+            'System Administrator',
+            'admin@sarasavipages.lk',
+            'IT25100000',
+            'SUPER_ADMIN',
+            1,
+            GETDATE());
 
 -- 1. Super Admin – Gunathilaka (full access)
 IF NOT EXISTS (SELECT 1 FROM staff WHERE username = 'GunathilakaT1540')
     INSERT INTO staff (username, password, full_name, email, it_number, role, active, created_at)
     VALUES ('GunathilakaT1540',
-            '$2a$10$wGKI1TKQB/.r.NlS9gSTluJrGRfHPYioFHsqbhNXP6eoXq.9oPcpC',
+            '$2a$10$mM3mT8.jQ3mBHIzoSla0A.rOcIepfT9SyJzTECfKot3VqvgTt7SRO',
             'Gunathilaka H.D.T.T.',
             'gunathilaka@sarasavipages.lk',
             'IT25101540',
@@ -74,7 +87,7 @@ IF NOT EXISTS (SELECT 1 FROM staff WHERE username = 'GunathilakaT1540')
 IF NOT EXISTS (SELECT 1 FROM staff WHERE username = 'AnafS2345')
     INSERT INTO staff (username, password, full_name, email, it_number, role, active, created_at)
     VALUES ('AnafS2345',
-            '$2a$10$Dxt0oRMqp3Sl3l6h3ARXAOHyF2hzWXSrpFJAK1XGwxT4YzJXPFhHe',
+            '$2a$10$cxwN5yLSybHuACZixkSU4eKQwKc8cGrsU6gdNz/EOGDJBNwMrnl8u',
             'Anaf M.K.A.S.',
             'anaf@sarasavipages.lk',
             'IT25102345',
@@ -86,7 +99,7 @@ IF NOT EXISTS (SELECT 1 FROM staff WHERE username = 'AnafS2345')
 IF NOT EXISTS (SELECT 1 FROM staff WHERE username = 'ZeenC3342')
     INSERT INTO staff (username, password, full_name, email, it_number, role, active, created_at)
     VALUES ('ZeenC3342',
-            '$2a$10$cRMUm3q.KljHbh7qb3q39O9e0OtMXWy1f4lV7mOfHWG2p.hE8o5B2',
+            '$2a$10$Pty7Gw9231qd25CRMZIjzOYOItWGgfUR3JYxdsVd9HUfGb5SkozKS',
             'Zeen A.C.',
             'zeen@sarasavipages.lk',
             'IT25103342',
@@ -98,7 +111,7 @@ IF NOT EXISTS (SELECT 1 FROM staff WHERE username = 'ZeenC3342')
 IF NOT EXISTS (SELECT 1 FROM staff WHERE username = 'DissanayakeD1062')
     INSERT INTO staff (username, password, full_name, email, it_number, role, active, created_at)
     VALUES ('DissanayakeD1062',
-            '$2a$10$3.zW6KSEKXKhwf7N5G3ADO0d7BUH2D0RXqpS4HT5IuV0Eg3oKcVMq',
+            '$2a$10$zJSbllDTsljBD9r9pt1LKu2UUM1qXlujRZeAhQ048Pj9qwDQqEZd.',
             'Dissanayake S.A.S.D.',
             'dissanayake@sarasavipages.lk',
             'IT25101062',
@@ -110,7 +123,7 @@ IF NOT EXISTS (SELECT 1 FROM staff WHERE username = 'DissanayakeD1062')
 IF NOT EXISTS (SELECT 1 FROM staff WHERE username = 'GayathmiR3013')
     INSERT INTO staff (username, password, full_name, email, it_number, role, active, created_at)
     VALUES ('GayathmiR3013',
-            '$2a$10$dXnhJWlJxBjbW1kBlWvH4OnETFarVAV8zM2W88OJFJJkLLhZsGe.W',
+            '$2a$10$30ARi4BOe3ZQ4.zgoNRqzuCIOSxO28Xc6OBnYJ2TOxdq6oPgb9bVq',
             'Gayathmi P.G.R.',
             'gayathmi@sarasavipages.lk',
             'IT25103013',
@@ -122,7 +135,7 @@ IF NOT EXISTS (SELECT 1 FROM staff WHERE username = 'GayathmiR3013')
 IF NOT EXISTS (SELECT 1 FROM staff WHERE username = 'DiyesL0263')
     INSERT INTO staff (username, password, full_name, email, it_number, role, active, created_at)
     VALUES ('DiyesL0263',
-            '$2a$10$XB3xVe7pzNdoMz28yAz3kO8ZhXE2rGSxF.Js5CGRhsSmYbdcV.lG2',
+            '$2a$10$JH/ec6F5M2kcOkwvsiYyH.k9Cj9d/c1XvzEqvyFEyX3wcR92XVHty',
             'Diyes C.L.',
             'diyes@sarasavipages.lk',
             'IT25100263',
@@ -133,6 +146,7 @@ IF NOT EXISTS (SELECT 1 FROM staff WHERE username = 'DiyesL0263')
 -- Initial audit log entry for seeding
 INSERT INTO audit_log (performed_by, action, target_username, description, timestamp)
 VALUES
+    ('SYSTEM', 'STAFF_CREATED', 'admin',            'System: Administrator account seeded', GETDATE()),
     ('SYSTEM', 'STAFF_CREATED', 'GunathilakaT1540', 'System: Super Admin account seeded', GETDATE()),
     ('SYSTEM', 'STAFF_CREATED', 'AnafS2345',        'System: Payment Admin account seeded', GETDATE()),
     ('SYSTEM', 'STAFF_CREATED', 'ZeenC3342',        'System: Customer Service Admin account seeded', GETDATE()),

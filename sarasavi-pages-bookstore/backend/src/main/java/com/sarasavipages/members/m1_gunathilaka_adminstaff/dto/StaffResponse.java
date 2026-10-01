@@ -40,4 +40,26 @@ public class StaffResponse {
         dto.setLastLoginAt(staff.getLastLoginAt());
         return dto;
     }
+
+    public static StaffResponse fromMirror(com.sarasavipages.members.sync.document.StaffMirror mirror) {
+        StaffResponse dto = new StaffResponse();
+        try {
+            dto.setId(Long.parseLong(mirror.getId()));
+        } catch (Exception e) {
+            dto.setId((long) Math.abs(mirror.getUsername().hashCode()));
+        }
+        dto.setUsername(mirror.getUsername());
+        dto.setFullName(mirror.getFullName());
+        dto.setEmail(mirror.getEmail());
+        dto.setItNumber(mirror.getItNumber());
+        try {
+            dto.setRole(StaffRole.valueOf(mirror.getRole()));
+        } catch (Exception e) {
+            dto.setRole(StaffRole.INVENTORY_ADMIN);
+        }
+        dto.setActive(mirror.isActive());
+        dto.setCreatedAt(mirror.getCreatedAt());
+        dto.setUpdatedAt(mirror.getUpdatedAt());
+        return dto;
+    }
 }
