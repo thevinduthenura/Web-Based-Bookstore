@@ -1,9 +1,12 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Cookies from 'js-cookie';
+import { printOrderInvoice } from '@/lib/invoice-pdf';
+import { formatAndLimitPhone } from '@/lib/input-utils';
 import { 
   BookOpen, 
   Search, 
@@ -24,24 +27,35 @@ import {
   ChevronRight, 
   ChevronLeft,
   Eye,
-  Award
+  Award,
+  ExternalLink,
+  CreditCard,
+  Building2,
+  Banknote,
+  Landmark
 } from 'lucide-react';
+import FlipbookReader from '@/components/FlipbookReader';
 import { ordersApi } from '@/lib/orders-api';
 import apiClient from '@/lib/api-client';
 import type { Book } from '@/types/orders';
 
 const CATEGORIES = [
   'All',
+  'Stationery',
+  'Office Stationery',
+  'Art Supplies',
+  'Sinhala Books',
+  'Academic Books',
+  'Fiction',
+  'Non-Fiction',
+  'Technology',
   'Classic Fiction',
-  'Historical Fiction',
-  'Computer Science',
-  'Literature',
-  'Poetry',
-  'Philosophy',
-  'Science'
+  'Historical Fiction'
 ];
 
-export default function CatalogPage() {
+function CatalogContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -56,13 +70,15 @@ export default function CatalogPage() {
 
   // Selected book for details modal
   const [previewBook, setPreviewBook] = useState<Book | null>(null);
+  // Selected book for 3D flipbook reader
+  const [activeFlipbookBook, setActiveFlipbookBook] = useState<Book | null>(null);
 
   // Cart state
   const [cart, setCart] = useState<{ book: Book; quantity: number }[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [cartToast, setCartToast] = useState<string | null>(null);
 
-  // Synchronize cart with localStorage & open drawer if URL has cart param
+  // Synchronize cart with localStorage & handle URL query parameters dynamically
   useEffect(() => {
     try {
       const stored = localStorage.getItem('sp_cart');
@@ -73,14 +89,19 @@ export default function CatalogPage() {
         }
       }
     } catch {}
-
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get('cart') === 'open' || params.get('openBag') === 'true') {
-        setIsCartOpen(true);
-      }
-    }
   }, []);
+
+  useEffect(() => {
+    const catParam = searchParams.get('category');
+    if (catParam) {
+      setSelectedCategory(catParam);
+    } else {
+      setSelectedCategory('All');
+    }
+    if (searchParams.get('cart') === 'open' || searchParams.get('openBag') === 'true') {
+      setIsCartOpen(true);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     try {
@@ -131,7 +152,15 @@ export default function CatalogPage() {
             try { storedBooks = JSON.parse(raw); } catch (e) {}
           }
         }
-        const initialList = storedBooks.length > 0 ? storedBooks : data;
+        // Merge storedBooks overrides with full data catalog so neither books nor stationery are ever lost
+        const baseList = data.map(b => {
+          const custom = storedBooks.find(s => String(s.id) === String(b.id));
+          return custom ? { ...b, ...custom } : b;
+        });
+        const dataIds = new Set(data.map(b => String(b.id)));
+        const customCreated = storedBooks.filter(s => !dataIds.has(String(s.id)));
+        const initialList = [...baseList, ...customCreated];
+
         const hiddenIds: string[] = typeof window !== 'undefined'
           ? JSON.parse(localStorage.getItem('sp_hidden_books') || '[]')
           : [];
@@ -160,7 +189,7 @@ export default function CatalogPage() {
     }
   }, []);
 
-  // Filtered and sorted books
+  // Filtered and sorted books & stationery items
   const filteredBooks = useMemo(() => {
     return books
       .filter((book) => {
@@ -168,9 +197,28 @@ export default function CatalogPage() {
           book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
           book.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
           (book.isbn && book.isbn.includes(searchQuery));
-        const matchesCategory = 
-          selectedCategory === 'All' || 
-          book.category.toLowerCase() === selectedCategory.toLowerCase();
+
+        const catLower = (book.category || '').toLowerCase();
+        const selLower = selectedCategory.toLowerCase();
+        let matchesCategory = false;
+
+        if (selectedCategory === 'All') {
+          matchesCategory = true;
+        } else if (selLower === 'stationery') {
+          // Broad match for any stationery, writing instrument, or art supply
+          matchesCategory = 
+            catLower.includes('stationery') || 
+            catLower.includes('supplies') || 
+            catLower.includes('office') || 
+            catLower.includes('art');
+        } else if (selLower === 'office stationery') {
+          matchesCategory = catLower === 'office stationery' || catLower === 'stationery';
+        } else if (selLower === 'art supplies') {
+          matchesCategory = catLower === 'art supplies';
+        } else {
+          matchesCategory = catLower === selLower;
+        }
+
         const matchesPrice = book.price <= maxPrice;
         const matchesStock = !inStockOnly || book.stockQuantity > 0;
         return matchesSearch && matchesCategory && matchesPrice && matchesStock;
@@ -308,42 +356,27 @@ export default function CatalogPage() {
 
   const handleDownloadInvoice = (inv: typeof orderInvoice) => {
     if (!inv) return;
-    const lines = [
-      '================================================================',
-      '           SARASAVI PAGES (PVT) LTD - OFFICIAL TAX INVOICE',
-      '================================================================',
-      `Invoice No  : ${inv.invoiceNo}`,
-      `Order ID    : ${inv.orderId}`,
-      `Date & Time : ${inv.date}`,
-      `Customer    : ${inv.customer}`,
-      `Email       : ${inv.email}`,
-      '----------------------------------------------------------------',
-      'PURCHASED TITLES:',
-      ...inv.items.map((i: any) => `  ${i.title.padEnd(35)} x${i.qty}  LKR ${(i.price * i.qty).toFixed(2)}`),
-      '----------------------------------------------------------------',
-      `Subtotal    : LKR ${inv.subtotal.toFixed(2)}`,
-      inv.discount > 0 ? `Discount    : - LKR ${inv.discount.toFixed(2)}` : '',
-      `TOTAL PAID  : LKR ${inv.total.toFixed(2)}`,
-      `Payment     : ${inv.paymentMethod}`,
-      '================================================================',
-      'Thank you for ordering with Sarasavi Pages!',
-      'Authentic editions · Express islandwide courier delivery',
-      '================================================================',
-    ].filter(Boolean).join('\n');
-
-    const blob = new Blob([lines], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${inv.invoiceNo}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
+    printOrderInvoice({
+      invoiceNo: inv.invoiceNo,
+      orderId: inv.orderId,
+      date: inv.date,
+      customer: inv.customer,
+      email: inv.email,
+      items: inv.items.map((i: any) => ({ title: i.title, qty: i.qty, price: i.price })),
+      subtotal: inv.subtotal,
+      discount: inv.discount,
+      total: inv.total,
+      paymentMethod: inv.paymentMethod,
+    });
   };
 
   return (
     <div className="min-h-screen bg-[#F8F9F5] text-[#20231B] antialiased selection:bg-[#34451D] selection:text-white font-sans py-4">
       {/* ── Cohesive Floating Pill Header ──────────────────────────── */}
-      <Navbar activeTab="catalog" onOpenBag={() => setIsCartOpen(true)} />
+      <Navbar 
+        activeTab={selectedCategory.toLowerCase().includes('stationery') || selectedCategory.toLowerCase().includes('supplies') ? 'stationery' : 'catalog'} 
+        onOpenBag={() => setIsCartOpen(true)} 
+      />
 
       {/* ── Main Catalog Content ────────────────────────────────────── */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-6">
@@ -352,19 +385,25 @@ export default function CatalogPage() {
           <div className="absolute top-0 right-0 w-96 h-96 bg-[#B7D85A]/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
           <div className="max-w-2xl space-y-2 relative z-10">
             <span className="text-[11px] font-mono uppercase tracking-widest text-[#B7D85A] font-semibold">
-              Curated Bookstore Catalog
+              {selectedCategory.toLowerCase().includes('stationery') || selectedCategory.toLowerCase().includes('supplies')
+                ? 'Office & Art Supplies'
+                : 'Curated Bookstore Catalog'}
             </span>
             <h1 className="font-display font-light text-3xl sm:text-4xl text-[#F7F5EC] tracking-tight">
-              Explore Our Curated Titles
+              {selectedCategory.toLowerCase().includes('stationery') || selectedCategory.toLowerCase().includes('supplies')
+                ? 'Premium Stationery & Art Supplies'
+                : 'Explore Our Curated Titles'}
             </h1>
             <p className="text-xs sm:text-sm text-[#E2E7D8] leading-relaxed font-light">
-              Browse Sri Lanka's finest collection of modern fiction, historical literature, academic texts, and translated classics.
+              {selectedCategory.toLowerCase().includes('stationery') || selectedCategory.toLowerCase().includes('supplies')
+                ? 'High-quality office stationery, student lecture notebooks, precision art supplies, and writing instruments.'
+                : "Browse Sri Lanka's finest collection of modern fiction, historical literature, academic texts, and translated classics."}
             </p>
             {userMembership && (
               <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#B7D85A] text-[#1C2610] text-xs font-mono font-semibold shadow-xs">
                 <Award className="w-3.5 h-3.5" />
                 <span>
-                  {userMembership === 'PREMIUM' ? '👑 Scholar Premium Active (20% OFF applied)' : '⭐ Reader Basic Active (10% OFF applied)'}
+                  {userMembership === 'PREMIUM' ? 'Scholar Premium Active (20% OFF applied)' : 'Reader Basic Active (10% OFF applied)'}
                 </span>
               </div>
             )}
@@ -381,7 +420,7 @@ export default function CatalogPage() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by title, author, or ISBN..."
+                placeholder="Search by title, author, brand, or ISBN..."
                 className="w-full pl-10 pr-4 py-2.5 rounded-full bg-[#F8F9F5] border border-[#E2E7D8] text-xs text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:border-[#34451D] focus:bg-white transition-all shadow-xs"
               />
               {searchQuery && (
@@ -414,11 +453,18 @@ export default function CatalogPage() {
           {/* Category Chips */}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs scrollbar-none">
             {CATEGORIES.map((cat) => {
-              const active = selectedCategory === cat;
+              const active = selectedCategory.toLowerCase() === cat.toLowerCase();
               return (
                 <button
                   key={cat}
-                  onClick={() => setSelectedCategory(cat)}
+                  onClick={() => {
+                    setSelectedCategory(cat);
+                    if (cat === 'All') {
+                      router.push('/catalog', { scroll: false });
+                    } else {
+                      router.push(`/catalog?category=${encodeURIComponent(cat)}`, { scroll: false });
+                    }
+                  }}
                   className={`px-4 py-1.5 rounded-full whitespace-nowrap transition-all duration-200 text-xs ${
                     active
                       ? 'bg-[#34451D] text-white font-medium shadow-xs'
@@ -453,7 +499,11 @@ export default function CatalogPage() {
             <h3 className="font-display font-light text-lg text-[#20231B]">No books match your criteria</h3>
             <p className="text-xs text-[#85887A]">Try clearing your search query or choosing another category.</p>
             <button
-              onClick={() => { setSearchQuery(''); setSelectedCategory('All'); }}
+              onClick={() => {
+                setSearchQuery('');
+                setSelectedCategory('All');
+                router.push('/catalog', { scroll: false });
+              }}
               className="px-4 py-2 rounded-full bg-[#34451D] text-white text-xs font-medium hover:bg-[#20231B] transition-all"
             >
               Reset Filters
@@ -471,35 +521,82 @@ export default function CatalogPage() {
                   className="group relative bg-white rounded-3xl border border-[#E2E7D8] p-4 flex flex-col justify-between shadow-xs hover:shadow-md hover:border-[#596B32] hover:-translate-y-1 transition-all duration-300"
                 >
                   <div className="space-y-3">
-                    {/* Cover Image Container */}
+                    {/* Cover Image Container with Same Tab Link */}
                     <div className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden bg-[#F8F9F5] border border-[#E2E7D8] shadow-xs">
-                      <img
-                        src={book.coverImage || 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=600'}
-                        alt={book.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                      <span className="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full bg-white/95 backdrop-blur-xs text-[#34451D] text-[10px] font-mono font-medium border border-[#E2E7D8] shadow-xs">
+                      <Link
+                        href={`/catalog/${book.id}`}
+                        className="block w-full h-full"
+                        title={`View ${book.title} details`}
+                      >
+                        <img
+                          src={book.coverImage || 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=600'}
+                          alt={book.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                      </Link>
+
+                      <span className="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full bg-white/95 backdrop-blur-xs text-[#34451D] text-[10px] font-mono font-medium border border-[#E2E7D8] shadow-xs pointer-events-none">
                         {book.category}
                       </span>
-                      {/* Quick view button */}
-                      <button
-                        onClick={() => setPreviewBook(book)}
-                        className="absolute bottom-2.5 right-2.5 p-2 rounded-full bg-white/95 backdrop-blur-xs text-[#34451D] hover:bg-[#34451D] hover:text-white opacity-0 group-hover:opacity-100 transition-all shadow-md"
-                        title="Quick View"
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                      </button>
+
+                      {/* 3D Flipbook Reader Button for Books / In-Stock Badge for Stationery */}
+                      {!((book.category || '').toLowerCase().includes('stationery') || (book.category || '').toLowerCase().includes('supplies')) ? (
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setActiveFlipbookBook(book);
+                          }}
+                          className="absolute bottom-2.5 left-2.5 px-2.5 py-1 rounded-full bg-[#1A261C]/90 hover:bg-[#34451D] text-[#B7D85A] border border-[#B7D85A]/40 text-[10px] font-mono font-medium shadow-md flex items-center gap-1 transition-all hover:scale-105 z-10"
+                          title="Read Online 3D Flipbook"
+                        >
+                          <Sparkles className="w-3 h-3 text-[#B7D85A]" />
+                          <span>Flipbook</span>
+                        </button>
+                      ) : (
+                        <span className="absolute bottom-2.5 left-2.5 px-2.5 py-0.5 rounded-full bg-[#1A261C]/85 text-[#B7D85A] border border-[#3E5629] text-[10px] font-mono font-medium shadow-md flex items-center gap-1 pointer-events-none">
+                          <span>In Stock: {book.stockQuantity}</span>
+                        </span>
+                      )}
+
+                      {/* Quick view button & details indicator */}
+                      <div className="absolute bottom-2.5 right-2.5 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all z-10">
+                        <Link
+                          href={`/catalog/${book.id}`}
+                          className="p-1.5 rounded-full bg-white/95 backdrop-blur-xs text-[#34451D] hover:bg-[#34451D] hover:text-white shadow-md transition-colors"
+                          title="View Book Details"
+                        >
+                          <BookOpen className="w-3.5 h-3.5" />
+                        </Link>
+                        <button
+                          onClick={() => setPreviewBook(book)}
+                          className="p-1.5 rounded-full bg-white/95 backdrop-blur-xs text-[#34451D] hover:bg-[#34451D] hover:text-white shadow-md transition-colors"
+                          title="Quick Preview Modal"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
 
-                    {/* Book Metadata */}
+                    {/* Book Metadata with Same Tab Link */}
                     <div>
                       <div className="flex items-center gap-1 text-[#D96B27] mb-1">
                         <Star className="w-3 h-3 fill-current" />
                         <span className="text-[11px] font-mono font-semibold">{book.rating || 4.8}</span>
+                        {book.sinhalaTitle && (
+                          <span className="ml-1 text-[10px] font-mono text-[#596B32] font-semibold bg-[#F0F4E8] px-1.5 py-0.2 rounded">
+                            {book.sinhalaTitle}
+                          </span>
+                        )}
                       </div>
-                      <h3 className="font-display font-medium text-base text-[#20231B] line-clamp-1 group-hover:text-[#34451D] transition-colors">
-                        {book.title}
-                      </h3>
+                      <Link
+                        href={`/catalog/${book.id}`}
+                        className="group/title block"
+                      >
+                        <h3 className="font-display font-medium text-base text-[#20231B] line-clamp-1 group-hover/title:text-[#34451D] group-hover/title:underline transition-colors">
+                          {book.title}
+                        </h3>
+                      </Link>
                       <p className="text-xs text-[#85887A] line-clamp-1 font-light">{book.author}</p>
                     </div>
                   </div>
@@ -622,18 +719,39 @@ export default function CatalogPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-2">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
               <div>
                 <span className="text-xs text-[#85887A] block">Retail Price</span>
                 <span className="font-mono text-lg font-medium text-[#20231B]">LKR {previewBook.price.toFixed(2)}</span>
               </div>
-              <button
-                onClick={() => { addToCart(previewBook); setPreviewBook(null); }}
-                className="px-5 py-2.5 rounded-full bg-[#34451D] hover:bg-[#20231B] text-white text-xs font-medium shadow-md transition-all active:scale-95 flex items-center gap-1.5"
-              >
-                <ShoppingCart className="w-3.5 h-3.5" />
-                <span>Add to Shopping Bag</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    const b = previewBook;
+                    setPreviewBook(null);
+                    setActiveFlipbookBook(b);
+                  }}
+                  className="px-4 py-2.5 rounded-full bg-[#1A261C] hover:bg-[#34451D] text-[#B7D85A] border border-[#B7D85A]/40 text-xs font-mono font-medium shadow-sm transition-all flex items-center gap-1.5"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Read 3D</span>
+                </button>
+                <Link
+                  href={`/catalog/${previewBook.id}`}
+                  onClick={() => setPreviewBook(null)}
+                  className="px-4 py-2.5 rounded-full border border-[#34451D] text-[#34451D] hover:bg-[#F0F4E8] text-xs font-medium transition-all flex items-center gap-1"
+                >
+                  <BookOpen className="w-3.5 h-3.5" />
+                  <span>Full Details</span>
+                </Link>
+                <button
+                  onClick={() => { addToCart(previewBook); setPreviewBook(null); }}
+                  className="px-4 py-2.5 rounded-full bg-[#34451D] hover:bg-[#20231B] text-white text-xs font-medium shadow-md transition-all active:scale-95 flex items-center gap-1.5"
+                >
+                  <ShoppingCart className="w-3.5 h-3.5" />
+                  <span>Add</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -735,7 +853,7 @@ export default function CatalogPage() {
             <div className="flex items-center justify-between p-5 sm:p-7 border-b border-[#E2E7D8]">
               <div>
                 <span className="text-[10px] font-mono uppercase text-[#596B32] font-semibold tracking-wider block">
-                  {checkoutStep === 'shipping' ? 'Step 1 of 2 · Delivery Details' : checkoutStep === 'payment' ? 'Step 2 of 2 · Secure Payment' : '✓ Order Confirmed'}
+                  {checkoutStep === 'shipping' ? 'Step 1 of 2 · Delivery Details' : checkoutStep === 'payment' ? 'Step 2 of 2 · Secure Payment' : 'Order Confirmed'}
                 </span>
                 <h3 className="font-display font-normal text-xl text-[#20231B] mt-0.5">
                   {checkoutStep === 'shipping' ? 'Shipping Information' : checkoutStep === 'payment' ? 'Payment Details' : 'Order Placed Successfully!'}
@@ -800,10 +918,12 @@ export default function CatalogPage() {
                     <div>
                       <label className="block text-[#85887A] font-medium mb-1">Mobile Number *</label>
                       <input
+                        type="tel"
                         required
+                        maxLength={16}
                         value={shippingForm.phone}
-                        onChange={(e) => setShippingForm({ ...shippingForm, phone: e.target.value })}
-                        placeholder="+94 77 123 4567"
+                        onChange={(e) => setShippingForm({ ...shippingForm, phone: formatAndLimitPhone(e.target.value) })}
+                        placeholder="e.g. 077 123 4567 or +94 77 123 4567"
                         className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-white"
                       />
                     </div>
@@ -828,13 +948,17 @@ export default function CatalogPage() {
                         key={m}
                         type="button"
                         onClick={() => setPaymentForm({ ...paymentForm, method: m })}
-                        className={`p-3 rounded-xl border font-medium text-xs transition-all ${
+                        className={`p-3 rounded-xl border font-medium text-xs transition-all flex items-center justify-center gap-2 ${
                           paymentForm.method === m
-                            ? 'border-[#34451D] bg-[#34451D] text-white'
+                            ? 'border-[#34451D] bg-[#34451D] text-white shadow-xs'
                             : 'border-[#E2E7D8] bg-white text-[#20231B] hover:border-[#596B32]'
                         }`}
                       >
-                        {m === 'CREDIT_CARD' ? '💳 Credit Card' : m === 'DEBIT_CARD' ? '🏧 Debit Card' : m === 'BANK_TRANSFER' ? '🏦 Bank Transfer' : '💵 Cash on Delivery'}
+                        {m === 'CREDIT_CARD' && <CreditCard className="w-4 h-4 shrink-0" />}
+                        {m === 'DEBIT_CARD' && <CreditCard className="w-4 h-4 shrink-0" />}
+                        {m === 'BANK_TRANSFER' && <Building2 className="w-4 h-4 shrink-0" />}
+                        {m === 'CASH_ON_DELIVERY' && <Banknote className="w-4 h-4 shrink-0" />}
+                        <span>{m === 'CREDIT_CARD' ? 'Credit Card' : m === 'DEBIT_CARD' ? 'Debit Card' : m === 'BANK_TRANSFER' ? 'Bank Transfer' : 'Cash on Delivery'}</span>
                       </button>
                     ))}
                   </div>
@@ -964,6 +1088,28 @@ export default function CatalogPage() {
           </div>
         </div>
       )}
+
+      {/* ── Interactive Heyzine-style 3D Flipbook Reader ── */}
+      {activeFlipbookBook && (
+        <FlipbookReader
+          book={activeFlipbookBook}
+          isOpen={Boolean(activeFlipbookBook)}
+          onClose={() => setActiveFlipbookBook(null)}
+          userMembership={userMembership}
+        />
+      )}
     </div>
+  );
+}
+
+export default function CatalogPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#F8F9F5] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-[#34451D]/30 border-t-[#34451D] rounded-full animate-spin" />
+      </div>
+    }>
+      <CatalogContent />
+    </Suspense>
   );
 }

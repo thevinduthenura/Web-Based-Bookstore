@@ -10,6 +10,10 @@ export interface Book {
   description: string;
   rating: number;
   hidden?: boolean;
+  sinhalaTitle?: string;
+  language?: string;
+  pages?: number;
+  publisher?: string;
 }
 
 export interface CartItem {
