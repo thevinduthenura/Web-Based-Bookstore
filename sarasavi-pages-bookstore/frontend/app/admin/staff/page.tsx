@@ -150,6 +150,16 @@ export default function StaffManagementPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRoleFilter, setSelectedRoleFilter] = useState<string>('ALL');
 
+  const persistStaff = (updated: StaffMember[]) => {
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('sp_admin_staff', JSON.stringify(updated));
+      } catch (e) {
+        console.warn('Could not persist staff to localStorage', e);
+      }
+    }
+  };
+
   // Modals state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -185,7 +195,20 @@ export default function StaffManagementPage() {
       setIsLoading(true);
       const res = await apiClient.get('/admin/staff');
       if (res.data?.data && Array.isArray(res.data.data) && res.data.data.length > 0) {
-        setStaffList(res.data.data);
+        const backendStaff: StaffMember[] = res.data.data;
+        // Merge with locally stored staff so newly added admins are never lost
+        let localStaff: StaffMember[] = [];
+        if (typeof window !== 'undefined') {
+          try {
+            const raw = localStorage.getItem('sp_admin_staff');
+            if (raw) localStaff = JSON.parse(raw);
+          } catch {}
+        }
+        const seen = new Set(backendStaff.map(s => s.username.toLowerCase()));
+        const additions = localStaff.filter(s => !seen.has(s.username.toLowerCase()));
+        const merged = [...additions, ...backendStaff];
+        setStaffList(merged);
+        persistStaff(merged);
       }
     } catch (err: any) {
       console.warn('Backend staff load fallback to active dataset', err);
@@ -195,6 +218,17 @@ export default function StaffManagementPage() {
   };
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('sp_admin_staff');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setStaffList(parsed);
+          }
+        }
+      } catch {}
+    }
     fetchStaff();
   }, []);
 
@@ -279,7 +313,11 @@ export default function StaffManagementPage() {
         };
       }
 
-      setStaffList(prev => [createdMember, ...prev]);
+      setStaffList(prev => {
+        const next = [createdMember, ...prev];
+        persistStaff(next);
+        return next;
+      });
       setFeedback({ type: 'success', message: `Staff member ${createdMember.fullName} (@${createdMember.username}) created successfully!` });
       setIsAddModalOpen(false);
       setAddForm({
@@ -356,19 +394,23 @@ export default function StaffManagementPage() {
       }
 
       // Update state locally
-      setStaffList(prev => prev.map(s => {
-        if (s.id === selectedStaff.id) {
-          return {
-            ...s,
-            fullName: editForm.fullName.trim(),
-            username: cleanUsername,
-            email: editForm.email.trim(),
-            role: editForm.role,
-            updatedAt: new Date().toISOString()
-          };
-        }
-        return s;
-      }));
+      setStaffList(prev => {
+        const next = prev.map(s => {
+          if (s.id === selectedStaff.id) {
+            return {
+              ...s,
+              fullName: editForm.fullName.trim(),
+              username: cleanUsername,
+              email: editForm.email.trim(),
+              role: editForm.role,
+              updatedAt: new Date().toISOString()
+            };
+          }
+          return s;
+        });
+        persistStaff(next);
+        return next;
+      });
 
       setFeedback({ type: 'success', message: `Staff member ${cleanUsername} updated successfully!` });
       setIsEditModalOpen(false);
@@ -396,7 +438,11 @@ export default function StaffManagementPage() {
         await apiClient.patch(`/admin/staff/${staff.id}/activate`).catch(() => {});
       }
 
-      setStaffList(prev => prev.map(s => s.id === staff.id ? { ...s, active: !staff.active } : s));
+      setStaffList(prev => {
+        const next = prev.map(s => s.id === staff.id ? { ...s, active: !staff.active } : s);
+        persistStaff(next);
+        return next;
+      });
       setFeedback({ 
         type: 'success', 
         message: `Staff member @${staff.username} has been ${action === 'deactivate' ? 'deactivated' : 'reactivated'}.` 
@@ -423,7 +469,11 @@ export default function StaffManagementPage() {
         return apiClient.delete(`/admin/staff/${selectedStaff.id}`);
       }).catch(() => {});
 
-      setStaffList(prev => prev.filter(s => s.id !== selectedStaff.id));
+      setStaffList(prev => {
+        const next = prev.filter(s => s.id !== selectedStaff.id);
+        persistStaff(next);
+        return next;
+      });
       setFeedback({ 
         type: 'success', 
         message: `Account @${selectedStaff.username} (${selectedStaff.fullName}) permanently deleted.` 

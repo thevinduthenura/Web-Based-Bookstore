@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Cookies from 'js-cookie';
+import { printOrderInvoice } from '@/lib/invoice-pdf';
 import { 
   Package, 
   Truck, 
@@ -138,41 +139,27 @@ export default function OrdersHistoryPage() {
 
   const handleDownloadInvoice = (order: OrderRecord) => {
     const invoiceNo = order.invoiceNo || `INV-${order.id.replace('ORD-', '')}`;
-    const lines = [
-      '================================================================',
-      '           SARASAVI PAGES (PVT) LTD - OFFICIAL TAX INVOICE',
-      '================================================================',
-      `Invoice No      : ${invoiceNo}`,
-      `Order Reference : ${order.id}`,
-      `Order Date      : ${order.date}`,
-      `Customer Name   : ${order.customerName || customer?.name || 'Valued Customer'}`,
-      `Customer ID     : ${customer?.customerId || 'GUEST'}`,
-      `Shipping Dest.  : ${order.shippingAddress || customer?.address || 'Colombo, Sri Lanka'}`,
-      `Courier Partner : ${order.courier || 'Domex Express'} (Tracking: ${order.tracking || 'N/A'})`,
-      '----------------------------------------------------------------',
-      'ORDER ITEMS:',
-      order.itemDetails && order.itemDetails.length > 0
-        ? order.itemDetails.map(i => `  ${i.title.padEnd(35)} x${i.qty}  LKR ${(i.price * i.qty).toFixed(2)}`).join('\n')
-        : `  ${order.items}`,
-      '----------------------------------------------------------------',
-      `Subtotal        : LKR ${(order.subtotal || order.amount).toFixed(2)}`,
-      order.discount && order.discount > 0 ? `Discount        : - LKR ${order.discount.toFixed(2)}` : '',
-      `TOTAL AMOUNT    : LKR ${order.amount.toFixed(2)}`,
-      `Payment Status  : PAID & VERIFIED`,
-      `Delivery Status : ${order.status}`,
-      '================================================================',
-      'Thank you for ordering with Sarasavi Pages (Pvt) Ltd!',
-      'Authentic editions · Safe deliveries across Sri Lanka',
-      '================================================================',
-    ].filter(Boolean).join('\n');
+    const items = order.itemDetails && order.itemDetails.length > 0
+      ? order.itemDetails.map(i => ({ title: i.title, qty: i.qty, price: i.price }))
+      : [{ title: order.items || 'Book Order Item(s)', qty: 1, price: order.amount }];
 
-    const blob = new Blob([lines], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${invoiceNo}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
+    printOrderInvoice({
+      invoiceNo,
+      orderId: order.id,
+      date: order.date,
+      customer: order.customerName || customer?.name || 'Valued Customer',
+      email: customer?.email,
+      phone: customer?.phone,
+      address: order.shippingAddress || customer?.address || 'Colombo, Sri Lanka',
+      courier: order.courier,
+      tracking: order.tracking,
+      items,
+      subtotal: order.subtotal || order.amount,
+      discount: order.discount || 0,
+      total: order.amount,
+      paymentMethod: 'Paid Online',
+      status: order.status,
+    });
   };
 
   const getStatusBadge = (status: OrderRecord['status']) => {

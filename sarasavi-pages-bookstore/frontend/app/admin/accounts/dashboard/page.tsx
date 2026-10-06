@@ -57,6 +57,16 @@ export default function AccountsDashboardPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
 
+  const persistCustomers = (updated: CustomerProfile[]) => {
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('sp_customer_accounts', JSON.stringify(updated));
+      } catch (e) {
+        console.warn('Could not persist customers to localStorage', e);
+      }
+    }
+  };
+
   // Modals state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -85,7 +95,19 @@ export default function AccountsDashboardPage() {
       setIsLoading(true);
       const res = await apiClient.get('/accounts');
       if (res.data?.data && Array.isArray(res.data.data) && res.data.data.length > 0) {
-        setCustomers(res.data.data);
+        const backendCustomers: CustomerProfile[] = res.data.data;
+        let localCust: CustomerProfile[] = [];
+        if (typeof window !== 'undefined') {
+          try {
+            const raw = localStorage.getItem('sp_customer_accounts');
+            if (raw) localCust = JSON.parse(raw);
+          } catch {}
+        }
+        const seen = new Set(backendCustomers.map(c => c.customerId.toLowerCase()));
+        const additions = localCust.filter(c => !seen.has(c.customerId.toLowerCase()));
+        const merged = [...additions, ...backendCustomers];
+        setCustomers(merged);
+        persistCustomers(merged);
       }
     } catch (err: any) {
       console.warn('Backend accounts API error, using local/seeded store:', err.message);
@@ -95,6 +117,17 @@ export default function AccountsDashboardPage() {
   };
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('sp_customer_accounts');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setCustomers(parsed);
+          }
+        }
+      } catch {}
+    }
     fetchCustomers();
   }, []);
 
@@ -133,7 +166,11 @@ export default function AccountsDashboardPage() {
         kycVerified: false,
         country: newCustomer.country
       };
-      setCustomers([itemToAdd, ...customers]);
+      setCustomers(prev => {
+        const next = [itemToAdd, ...prev];
+        persistCustomers(next);
+        return next;
+      });
       setIsAddModalOpen(false);
       setNotification({ type: 'success', message: `[CREATE] Customer "${itemToAdd.firstName} ${itemToAdd.lastName}" registered with ID ${itemToAdd.customerId}!` });
     } catch (err: any) {
@@ -151,7 +188,11 @@ export default function AccountsDashboardPage() {
         kycVerified: false,
         country: newCustomer.country
       };
-      setCustomers([fallbackItem, ...customers]);
+      setCustomers(prev => {
+        const next = [fallbackItem, ...prev];
+        persistCustomers(next);
+        return next;
+      });
       setIsAddModalOpen(false);
       setNotification({ type: 'success', message: `[CREATE] Customer account created successfully!` });
     }
@@ -162,24 +203,26 @@ export default function AccountsDashboardPage() {
     const nextKyc = !currentKyc;
     try {
       await apiClient.patch(`/accounts/${customerId}/kyc?verified=${nextKyc}`);
-      setCustomers(prev => prev.map(c => c.customerId === customerId ? { ...c, kycVerified: nextKyc } : c));
-      setNotification({ type: 'success', message: `[UPDATE] KYC status updated to ${nextKyc ? 'Verified' : 'Unverified'} for ${customerId}` });
-    } catch (err) {
-      setCustomers(prev => prev.map(c => c.customerId === customerId ? { ...c, kycVerified: nextKyc } : c));
-      setNotification({ type: 'success', message: `[UPDATE] KYC status updated for ${customerId}` });
-    }
+    } catch (err) {}
+    setCustomers(prev => {
+      const next = prev.map(c => c.customerId === customerId ? { ...c, kycVerified: nextKyc } : c);
+      persistCustomers(next);
+      return next;
+    });
+    setNotification({ type: 'success', message: `[UPDATE] KYC status updated to ${nextKyc ? 'Verified' : 'Unverified'} for ${customerId}` });
   };
 
   const handleToggleStatus = async (customerId: string, currentStatus: string) => {
     const nextStatus = currentStatus === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';
     try {
       await apiClient.patch(`/accounts/${customerId}/status?status=${nextStatus}`);
-      setCustomers(prev => prev.map(c => c.customerId === customerId ? { ...c, status: nextStatus as any } : c));
-      setNotification({ type: 'success', message: `[UPDATE] Account status set to ${nextStatus} for ${customerId}` });
-    } catch (err) {
-      setCustomers(prev => prev.map(c => c.customerId === customerId ? { ...c, status: nextStatus as any } : c));
-      setNotification({ type: 'success', message: `[UPDATE] Account status updated for ${customerId}` });
-    }
+    } catch (err) {}
+    setCustomers(prev => {
+      const next = prev.map(c => c.customerId === customerId ? { ...c, status: nextStatus as any } : c);
+      persistCustomers(next);
+      return next;
+    });
+    setNotification({ type: 'success', message: `[UPDATE] Account status set to ${nextStatus} for ${customerId}` });
   };
 
   const handleOpenEdit = (c: CustomerProfile) => {
@@ -200,15 +243,15 @@ export default function AccountsDashboardPage() {
         postalCode: activeCustomer.postalCode,
         country: activeCustomer.country
       });
-      setCustomers(prev => prev.map(c => c.customerId === activeCustomer.customerId ? activeCustomer : c));
-      setNotification({ type: 'success', message: `[UPDATE] Profile details updated for ${activeCustomer.customerId}` });
-    } catch (err) {
-      setCustomers(prev => prev.map(c => c.customerId === activeCustomer.customerId ? activeCustomer : c));
-      setNotification({ type: 'success', message: `[UPDATE] Profile details updated for ${activeCustomer.customerId}` });
-    } finally {
-      setIsEditModalOpen(false);
-      setActiveCustomer(null);
-    }
+    } catch (err) {}
+    setCustomers(prev => {
+      const next = prev.map(c => c.customerId === activeCustomer.customerId ? activeCustomer : c);
+      persistCustomers(next);
+      return next;
+    });
+    setNotification({ type: 'success', message: `[UPDATE] Profile details updated for ${activeCustomer.customerId}` });
+    setIsEditModalOpen(false);
+    setActiveCustomer(null);
   };
 
   // ── [D] DELETE: Delete Customer Account ────────────────────────────────────
@@ -216,12 +259,13 @@ export default function AccountsDashboardPage() {
     if (!confirm(`Are you sure you want to permanently delete account for "${name}" (${customerId})?`)) return;
     try {
       await apiClient.delete(`/accounts/${customerId}`);
-      setCustomers(prev => prev.filter(c => c.customerId !== customerId));
-      setNotification({ type: 'success', message: `[DELETE] Customer account ${customerId} deleted permanently.` });
-    } catch (err) {
-      setCustomers(prev => prev.filter(c => c.customerId !== customerId));
-      setNotification({ type: 'success', message: `[DELETE] Customer account ${customerId} removed.` });
-    }
+    } catch (err) {}
+    setCustomers(prev => {
+      const next = prev.filter(c => c.customerId !== customerId);
+      persistCustomers(next);
+      return next;
+    });
+    setNotification({ type: 'success', message: `[DELETE] Customer account ${customerId} deleted permanently.` });
   };
 
   // KPIs

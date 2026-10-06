@@ -84,8 +84,8 @@ module.exports = {
       fontFamily: {
         sans:    ['var(--font-manrope)', 'Manrope', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
         display: ['var(--font-sora)', 'Sora', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
-        reina:   ['Reina Neue', 'Georgia', 'serif'],
-        serif:   ['Reina Neue', 'Georgia', 'serif'],
+        reina:   ['"Playfair Display"', '"Cormorant Garamond"', 'Georgia', 'serif'],
+        serif:   ['"Playfair Display"', '"Cormorant Garamond"', 'Georgia', 'serif'],
         mono:    ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'monospace'],
       },
       boxShadow: {

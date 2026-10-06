@@ -88,25 +88,73 @@ export default function InventoryDashboardPage() {
 
   const isAuthorized = isSuperAdmin || hasRole('INVENTORY_ADMIN');
 
-  // Fetch inventory from API
+  const persistInventory = (updated: InventoryItem[]) => {
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('sp_admin_inventory', JSON.stringify(updated));
+      } catch (e) {
+        console.warn('Could not persist inventory to localStorage', e);
+      }
+    }
+  };
+
+  // Fetch inventory from API & merge with localStorage
   const fetchInventory = async () => {
     try {
       setIsLoading(true);
       const res = await apiClient.get('/inventory');
+      let localItems: InventoryItem[] = [];
+      if (typeof window !== 'undefined') {
+        try {
+          const raw = localStorage.getItem('sp_admin_inventory');
+          if (raw) localItems = JSON.parse(raw);
+        } catch {}
+      }
+
       if (res.data?.data && Array.isArray(res.data.data) && res.data.data.length > 0) {
-        setStockItems(res.data.data.map((item: any) => ({
+        const backendItems: InventoryItem[] = res.data.data.map((item: any) => ({
           ...item,
-          status: item.stockQuantity <= item.safetyStockLevel ? 'LOW_STOCK' : 'IN_STOCK'
-        })));
+          status: (item.stockQuantity <= item.safetyStockLevel ? 'LOW_STOCK' : 'IN_STOCK') as 'LOW_STOCK' | 'IN_STOCK'
+        }));
+        const seenIds = new Set(backendItems.map((i: any) => String(i.id)));
+        const seenBookIds = new Set(backendItems.map((i: any) => i.bookId?.toLowerCase()));
+        const additions = localItems.filter(i => !seenIds.has(String(i.id)) && (!i.bookId || !seenBookIds.has(i.bookId.toLowerCase())));
+        const merged = [...additions, ...backendItems];
+        setStockItems(merged);
+        persistInventory(merged);
+      } else if (localItems.length > 0) {
+        setStockItems(localItems);
       }
     } catch (err: any) {
       console.warn('Backend inventory API error, using local/seeded store:', err.message);
+      if (typeof window !== 'undefined') {
+        try {
+          const raw = localStorage.getItem('sp_admin_inventory');
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setStockItems(parsed);
+            }
+          }
+        } catch {}
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem('sp_admin_inventory');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setStockItems(parsed);
+          }
+        }
+      } catch {}
+    }
     fetchInventory();
   }, []);
 
@@ -149,7 +197,11 @@ export default function InventoryDashboardPage() {
         supplier: newItem.supplier,
         status: Number(newItem.stockQuantity) <= Number(newItem.safetyStockLevel) ? 'LOW_STOCK' : 'IN_STOCK'
       };
-      setStockItems([itemToAdd, ...stockItems]);
+      setStockItems(prev => {
+        const updated = [itemToAdd, ...prev];
+        persistInventory(updated);
+        return updated;
+      });
       setIsAddModalOpen(false);
       setNotification({ type: 'success', message: `[CREATE] Item "${itemToAdd.title}" added to inventory catalog!` });
     } catch (err: any) {
@@ -166,7 +218,11 @@ export default function InventoryDashboardPage() {
         sellingPrice: Number(newItem.sellingPrice),
         status: Number(newItem.stockQuantity) <= Number(newItem.safetyStockLevel) ? 'LOW_STOCK' : 'IN_STOCK'
       };
-      setStockItems([fallbackItem, ...stockItems]);
+      setStockItems(prev => {
+        const updated = [fallbackItem, ...prev];
+        persistInventory(updated);
+        return updated;
+      });
       setIsAddModalOpen(false);
       setNotification({ type: 'success', message: `[CREATE] Item "${fallbackItem.title}" saved successfully!` });
     }
@@ -192,22 +248,30 @@ export default function InventoryDashboardPage() {
         ? activeItem.stockQuantity + Number(adjustData.quantity)
         : Math.max(0, activeItem.stockQuantity - Number(adjustData.quantity));
 
-      setStockItems(prev => prev.map(item => item.id === activeItem.id ? {
-        ...item,
-        stockQuantity: newQty,
-        status: newQty <= item.safetyStockLevel ? 'LOW_STOCK' : 'IN_STOCK'
-      } : item));
+      setStockItems(prev => {
+        const updated: InventoryItem[] = prev.map(item => item.id === activeItem.id ? {
+          ...item,
+          stockQuantity: newQty,
+          status: (newQty <= item.safetyStockLevel ? 'LOW_STOCK' : 'IN_STOCK') as 'LOW_STOCK' | 'IN_STOCK'
+        } : item);
+        persistInventory(updated);
+        return updated;
+      });
       setNotification({ type: 'success', message: `[UPDATE] Stock updated for "${activeItem.title}". New qty: ${newQty}` });
     } catch (err) {
       const newQty = adjustData.adjustmentType === 'RESTOCK' || adjustData.adjustmentType === 'RETURN'
         ? activeItem.stockQuantity + Number(adjustData.quantity)
         : Math.max(0, activeItem.stockQuantity - Number(adjustData.quantity));
 
-      setStockItems(prev => prev.map(item => item.id === activeItem.id ? {
-        ...item,
-        stockQuantity: newQty,
-        status: newQty <= item.safetyStockLevel ? 'LOW_STOCK' : 'IN_STOCK'
-      } : item));
+      setStockItems(prev => {
+        const updated: InventoryItem[] = prev.map(item => item.id === activeItem.id ? {
+          ...item,
+          stockQuantity: newQty,
+          status: (newQty <= item.safetyStockLevel ? 'LOW_STOCK' : 'IN_STOCK') as 'LOW_STOCK' | 'IN_STOCK'
+        } : item);
+        persistInventory(updated);
+        return updated;
+      });
       setNotification({ type: 'success', message: `[UPDATE] Stock updated for "${activeItem.title}". New qty: ${newQty}` });
     } finally {
       setIsAdjustModalOpen(false);
@@ -226,10 +290,18 @@ export default function InventoryDashboardPage() {
     if (!activeItem) return;
     try {
       await apiClient.put(`/inventory/${activeItem.id}`, activeItem);
-      setStockItems(prev => prev.map(i => i.id === activeItem.id ? activeItem : i));
+      setStockItems(prev => {
+        const updated = prev.map(i => i.id === activeItem.id ? activeItem : i);
+        persistInventory(updated);
+        return updated;
+      });
       setNotification({ type: 'success', message: `[UPDATE] Item details updated for "${activeItem.title}"` });
     } catch (err) {
-      setStockItems(prev => prev.map(i => i.id === activeItem.id ? activeItem : i));
+      setStockItems(prev => {
+        const updated = prev.map(i => i.id === activeItem.id ? activeItem : i);
+        persistInventory(updated);
+        return updated;
+      });
       setNotification({ type: 'success', message: `[UPDATE] Item details updated for "${activeItem.title}"` });
     } finally {
       setIsEditModalOpen(false);
@@ -242,10 +314,18 @@ export default function InventoryDashboardPage() {
     if (!confirm(`Are you sure you want to permanently remove "${title}" from warehouse inventory?`)) return;
     try {
       await apiClient.delete(`/inventory/${id}`);
-      setStockItems(prev => prev.filter(i => i.id !== id));
+      setStockItems(prev => {
+        const updated = prev.filter(i => i.id !== id);
+        persistInventory(updated);
+        return updated;
+      });
       setNotification({ type: 'success', message: `[DELETE] Item "${title}" removed from catalog.` });
     } catch (err) {
-      setStockItems(prev => prev.filter(i => i.id !== id));
+      setStockItems(prev => {
+        const updated = prev.filter(i => i.id !== id);
+        persistInventory(updated);
+        return updated;
+      });
       setNotification({ type: 'success', message: `[DELETE] Item "${title}" removed from catalog.` });
     }
   };

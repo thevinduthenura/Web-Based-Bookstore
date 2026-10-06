@@ -2,22 +2,50 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import Cookies from 'js-cookie';
 import { useAuth } from '@/hooks/useAuth';
 import AdminModeBar from '@/components/admin/AdminModeBar';
 import Sidebar from '@/components/admin/Sidebar';
 import Header from '@/components/admin/Header';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, setAuthUser } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !user) {
-      router.replace('/login?error=admin_required');
+      let storedStr: string | undefined = undefined;
+      if (typeof window !== 'undefined') {
+        storedStr = localStorage.getItem('sp_user') || Cookies.get('sp_user') || undefined;
+      } else {
+        storedStr = Cookies.get('sp_user');
+      }
+
+      if (storedStr) {
+        try {
+          const parsed = JSON.parse(storedStr);
+          if (parsed && (parsed.role || parsed.username)) {
+            setAuthUser(parsed);
+            return;
+          }
+        } catch {
+          // ignore
+        }
+      }
+
+      // Debounce redirect to allow localStorage hydration
+      const timer = setTimeout(() => {
+        const doubleCheck = typeof window !== 'undefined' ? (localStorage.getItem('sp_user') || Cookies.get('sp_user')) : null;
+        if (!doubleCheck) {
+          router.replace('/login');
+        }
+      }, 400);
+
+      return () => clearTimeout(timer);
     }
-  }, [user, isLoading, router]);
+  }, [user, isLoading, router, setAuthUser]);
 
   // Close mobile sidebar on route transition
   useEffect(() => {

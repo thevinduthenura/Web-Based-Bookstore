@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
+import { printMembershipInvoice } from '@/lib/invoice-pdf';
+import { formatAndLimitPhone } from '@/lib/input-utils';
 import { 
   Check, 
   Gift, 
@@ -279,44 +281,23 @@ export default function MembershipPage() {
     }, 1200);
   };
 
-  // Download Invoice PDF/Text
+  // Download Invoice PDF
   const handleDownloadInvoice = () => {
     if (!activatedInvoice) return;
-    const content = `=====================================================
-            SARASAVI PAGES (PVT) LTD
-           OFFICIAL TAX INVOICE & RECEIPT
-=====================================================
-Invoice No:    ${activatedInvoice.invoiceNo}
-Date / Time:   ${activatedInvoice.date}
-Member ID:     ${customer?.id || 'CUST-8832'}
-Cardholder:    ${cardHolder || fullName || 'Member'}
-Email:         ${emailAddress}
-Location:      ${locationCity}
-
-PLAN SUBSCRIPTION:
-Tier Plan:     SARASAVI ${activatedInvoice.plan}
-Duration:      1 Year (12 Months Unlimited Access)
-Status:        ACTIVE - FULL PRIVILEGES
-Payment Mode:  Card ending in ${cardNumber.slice(-4) || '4444'}
-
-FINANCIAL STATEMENT:
-Base Plan:     LKR ${selectedPlan.yearlyPrice.toFixed(2)}
-Promo Applied: -LKR ${promoDiscount.toFixed(2)} (${promoAppliedCode || 'None'})
-VAT (0%):      LKR 0.00
------------------------------------------------------
-TOTAL PAID:    LKR ${activatedInvoice.amount.toFixed(2)}
-=====================================================
-Welcome to the Sarasavi Pages Elite Reading Circle!
-Enjoy storewide member discounts, priority delivery, and book passes.
-=====================================================`;
-
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${activatedInvoice.invoiceNo}.txt`;
-    link.click();
-    URL.revokeObjectURL(url);
+    printMembershipInvoice({
+      invoiceNo: activatedInvoice.invoiceNo,
+      date: activatedInvoice.date,
+      customer: cardHolder || fullName || customer?.name || 'Member',
+      email: emailAddress || customer?.email,
+      phone: customer?.phone,
+      customerId: customer?.id || 'CUST-8832',
+      plan: activatedInvoice.plan,
+      duration: '1 Year (12 Months Unlimited Access)',
+      price: selectedPlan.yearlyPrice,
+      discount: promoDiscount,
+      total: activatedInvoice.amount,
+      paymentMethod: `Card ending in ${cardNumber.slice(-4) || '4444'}`,
+    });
   };
 
   // Cancel subscription
@@ -632,11 +613,12 @@ Enjoy storewide member discounts, priority delivery, and book passes.
                       PHONE NUMBER *
                     </label>
                     <input
-                      type="text"
+                      type="tel"
                       required
+                      maxLength={16}
                       value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
-                      placeholder="e.g. +94 77 123 4567"
+                      onChange={(e) => setPhoneNumber(formatAndLimitPhone(e.target.value))}
+                      placeholder="e.g. 077 123 4567 or +94 77 123 4567"
                       className="w-full px-4 py-3 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs text-[#20231B] placeholder-[#9E9F94] font-mono focus:outline-none focus:border-[#34451D] focus:bg-white transition-all"
                     />
                   </div>

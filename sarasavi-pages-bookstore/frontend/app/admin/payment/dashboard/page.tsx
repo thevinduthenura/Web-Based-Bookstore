@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import apiClient from '@/lib/api-client';
+import { printPaymentReceipt } from '@/lib/invoice-pdf';
 import { 
   CreditCard, 
   CheckCircle, 
@@ -265,28 +266,17 @@ export default function PaymentDashboardPage() {
   };
 
   const handleDownloadInvoice = (item: PaymentItem) => {
-    const content = `SARASAVI PAGES (PVT) LTD - OFFICIAL PAYMENT RECEIPT
-======================================================
-Invoice Number: ${item.invoiceNumber || 'INV-' + item.id}
-Transaction Ref: ${item.reference}
-Date: ${item.createdAt}
-Customer Name: ${item.customerName || 'Customer #' + item.customerId} (ID: ${item.customerId})
-Order Reference: #${item.orderId}
-Payment Method: ${item.method}
-Payment Status: ${item.status}
-------------------------------------------------------
-Total Paid: ${item.currency} ${item.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-Gateway Log: ${item.gatewayMessage || 'Processed successfully'}
-======================================================
-Module 2: Payment Administration (Anaf M.K.A.S. - IT25102345)
-`;
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `Receipt-${item.reference}.txt`;
-    link.click();
-    URL.revokeObjectURL(url);
+    printPaymentReceipt({
+      invoiceNo: item.invoiceNumber || `INV-${item.id}`,
+      reference: item.reference,
+      date: item.createdAt,
+      customerName: item.customerName || `Customer #${item.customerId}`,
+      customerId: String(item.customerId),
+      amount: item.amount,
+      method: item.method,
+      status: item.status,
+      description: `Payment for Order #${item.orderId}`,
+    });
   };
 
   // KPIs
