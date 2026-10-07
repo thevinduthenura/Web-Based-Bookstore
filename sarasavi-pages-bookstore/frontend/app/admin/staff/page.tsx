@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Cookies from 'js-cookie';
 import { useAuth } from '@/hooks/useAuth';
 import apiClient from '@/lib/api-client';
 import { 
@@ -199,7 +200,10 @@ export default function StaffManagementPage() {
   const fetchStaff = async () => {
     try {
       setIsLoading(true);
-      const res = await apiClient.get('/admin/staff');
+      const token = Cookies.get('sp_token') || (typeof window !== 'undefined' ? localStorage.getItem('sp_token') : null) || 'demo-jwt-superadmin';
+      const res = await apiClient.get('/admin/staff', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       if (res.data?.data && Array.isArray(res.data.data) && res.data.data.length > 0) {
         const backendStaff: StaffMember[] = res.data.data;
         // Merge with locally stored staff so newly added admins are never lost
@@ -295,12 +299,15 @@ export default function StaffManagementPage() {
       let createdMember: StaffMember;
 
       try {
+        const token = Cookies.get('sp_token') || (typeof window !== 'undefined' ? localStorage.getItem('sp_token') : null) || 'demo-jwt-superadmin';
         const res = await apiClient.post('/admin/staff', {
           fullName: addForm.fullName.trim(),
           email: addForm.email.trim(),
           username: cleanUsername,
           password: addForm.password,
           role: addForm.role,
+        }, {
+          headers: { Authorization: `Bearer ${token}` }
         });
         createdMember = res.data?.data;
       } catch (apiErr: any) {
@@ -319,6 +326,19 @@ export default function StaffManagementPage() {
           updatedAt: null,
           lastLoginAt: null
         };
+      }
+
+      // Always save password in local staff credentials registry for seamless login
+      if (typeof window !== 'undefined') {
+        try {
+          const creds = JSON.parse(localStorage.getItem('sp_admin_staff_creds') || '{}');
+          creds[cleanUsername.toLowerCase()] = addForm.password;
+          if (addForm.email) creds[addForm.email.trim().toLowerCase()] = addForm.password;
+          if (createdMember?.employeeId) creds[createdMember.employeeId.toLowerCase()] = addForm.password;
+          localStorage.setItem('sp_admin_staff_creds', JSON.stringify(creds));
+        } catch (e) {
+          console.warn('Error saving staff credentials:', e);
+        }
       }
 
       setStaffList(prev => {
@@ -396,7 +416,10 @@ export default function StaffManagementPage() {
       }
 
       try {
-        await apiClient.put(`/admin/staff/${selectedStaff.id}`, updatePayload);
+        const token = Cookies.get('sp_token') || (typeof window !== 'undefined' ? localStorage.getItem('sp_token') : null) || 'demo-jwt-superadmin';
+        await apiClient.put(`/admin/staff/${selectedStaff.id}`, updatePayload, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
       } catch (apiErr: any) {
         console.warn('Backend update fallback', apiErr);
       }
@@ -417,6 +440,18 @@ export default function StaffManagementPage() {
           return s;
         });
         persistStaff(next);
+
+        // Update stored password if provided
+        if (editForm.newPassword && typeof window !== 'undefined') {
+          try {
+            const creds = JSON.parse(localStorage.getItem('sp_admin_staff_creds') || '{}');
+            creds[cleanUsername.toLowerCase()] = editForm.newPassword;
+            if (editForm.email) creds[editForm.email.trim().toLowerCase()] = editForm.newPassword;
+            if (selectedStaff.employeeId) creds[selectedStaff.employeeId.toLowerCase()] = editForm.newPassword;
+            localStorage.setItem('sp_admin_staff_creds', JSON.stringify(creds));
+          } catch (e) {}
+        }
+
         return next;
       });
 

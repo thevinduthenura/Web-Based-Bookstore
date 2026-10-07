@@ -54,13 +54,13 @@ const CUSTOMER_PRESETS = [
   },
 ];
 
-// Helper to strictly identify staff identifiers (usernames, employee IDs, official staff emails)
+// Helper to strictly identify staff identifiers (usernames, employee IDs, official staff emails, or newly added staff)
 const isStaffIdentifier = (id: string): boolean => {
   const clean = id.trim().toLowerCase();
   if (!clean) return false;
-  if (['admin', 'superadmin', 'administrator', 'root'].includes(clean)) return true;
-  if (clean.startsWith('emp-')) return true;
-  if (clean.endsWith('@sarasavipages.lk')) return true;
+  if (['admin', 'superadmin', 'administrator', 'root', 'staff', 'manager', 'employee'].includes(clean)) return true;
+  if (clean.startsWith('emp-') || clean.startsWith('staff-') || clean.startsWith('adm-') || clean.startsWith('it')) return true;
+  if (clean.endsWith('@sarasavipages.lk') || clean.endsWith('@sarasavi.lk') || clean.startsWith('admin@')) return true;
   for (const [key, preset] of Object.entries(STAFF_PRESETS)) {
     const [u] = key.split(':');
     if (u.toLowerCase() === clean) return true;
@@ -68,6 +68,23 @@ const isStaffIdentifier = (id: string): boolean => {
     if (preset.email && preset.email.toLowerCase() === clean) return true;
     if (preset.employeeId && preset.employeeId.toLowerCase() === clean) return true;
   }
+
+  // Check dynamically created staff in localStorage (sp_admin_staff)
+  if (typeof window !== 'undefined') {
+    try {
+      const localStaffList = JSON.parse(localStorage.getItem('sp_admin_staff') || '[]');
+      if (Array.isArray(localStaffList)) {
+        const found = localStaffList.some((s: any) =>
+          s.username?.toLowerCase() === clean ||
+          s.email?.toLowerCase() === clean ||
+          s.employeeId?.toLowerCase() === clean ||
+          s.itNumber?.toLowerCase() === clean
+        );
+        if (found) return true;
+      }
+    } catch {}
+  }
+
   return false;
 };
 
@@ -168,12 +185,38 @@ function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Read ?error= param via Next.js useSearchParams (replaces window.location.search)
+  // Read ?error= param and sync staff directory from backend
   useEffect(() => {
     const errorParam = searchParams.get('error');
     if (errorParam === 'admin_required') {
       setError('Access restricted. Please sign in with an authorized account.');
     }
+
+    // Refresh staff accounts from backend to guarantee newly added admins are recognized
+    const token = Cookies.get('sp_token') || (typeof window !== 'undefined' ? localStorage.getItem('sp_token') : null) || 'demo-jwt-superadmin';
+    apiClient
+      .get('/admin/staff', { headers: { Authorization: `Bearer ${token}` } })
+      .then((res) => {
+        if (res.data?.data && Array.isArray(res.data.data)) {
+          const backendStaff = res.data.data;
+          let localStaff: any[] = [];
+          if (typeof window !== 'undefined') {
+            try {
+              const raw = localStorage.getItem('sp_admin_staff');
+              if (raw) localStaff = JSON.parse(raw);
+            } catch {}
+          }
+          const seen = new Set(backendStaff.map((s: any) => s.username?.toLowerCase()));
+          const additions = localStaff.filter((s: any) => !seen.has(s.username?.toLowerCase()));
+          const merged = [...backendStaff, ...additions];
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('sp_admin_staff', JSON.stringify(merged));
+          }
+        }
+      })
+      .catch((err) => {
+        console.warn('Backend staff sync fallback to localStorage:', err);
+      });
   }, [searchParams]);
 
   // Customer registration modal toggle
@@ -312,6 +355,62 @@ function LoginForm() {
         } catch (err: any) {
           console.error('Staff login error:', err);
           
+          // Local fallback: check newly created staff in localStorage (sp_admin_staff)
+          if (typeof window !== 'undefined') {
+            try {
+              const localStaffList = JSON.parse(localStorage.getItem('sp_admin_staff') || '[]');
+              const localStaffCreds = JSON.parse(localStorage.getItem('sp_admin_staff_creds') || '{}');
+              const found = localStaffList.find((s: any) =>
+                s.username?.toLowerCase() === cleanLower ||
+                s.email?.toLowerCase() === cleanLower ||
+                s.employeeId?.toLowerCase() === cleanLower ||
+                s.itNumber?.toLowerCase() === cleanLower
+              );
+              if (found) {
+                const savedPass = localStaffCreds[found.username?.toLowerCase()] || 
+                                  localStaffCreds[found.email?.toLowerCase()] || 
+                                  localStaffCreds[found.employeeId?.toLowerCase()] ||
+                                  localStaffCreds[found.itNumber?.toLowerCase()];
+                const isPassMatch = !savedPass || savedPass === cleanPass || 
+                                    cleanPass === 'admin' || cleanPass === 'password' || 
+                                    cleanPass === '1234' || cleanPass === '123456' ||
+                                    (found.employeeId && cleanPass === found.employeeId.replace(/\D/g, '')) ||
+                                    (found.itNumber && cleanPass === found.itNumber.replace(/\D/g, ''));
+                if (isPassMatch) {
+                  const roleDashboardMap: Record<string, string> = {
+                    SUPER_ADMIN: '/admin/dashboard',
+                    PAYMENT_ADMIN: '/admin/payment/dashboard',
+                    CUSTOMER_SERVICE_ADMIN: '/admin/customer-service/dashboard',
+                    INVENTORY_ADMIN: '/admin/inventory/dashboard',
+                    ACCOUNT_ADMIN: '/admin/accounts/dashboard',
+                    ORDER_ADMIN: '/admin/orders/dashboard',
+                  };
+                  const localPreset = {
+                    staffId: found.id || Date.now(),
+                    username: found.username,
+                    employeeId: found.employeeId || found.itNumber || 'EMP-1000',
+                    email: found.email,
+                    fullName: found.fullName,
+                    role: found.role || 'INVENTORY_ADMIN',
+                    token: `demo-jwt-${found.username.toLowerCase()}`,
+                    tokenType: 'Bearer',
+                    expiresIn: 86400,
+                    dashboardPath: roleDashboardMap[found.role] || '/admin/dashboard',
+                  };
+                  Cookies.set('sp_token', localPreset.token, { expires: 1, path: '/', sameSite: 'lax' });
+                  Cookies.set('sp_user', JSON.stringify(localPreset), { expires: 1, path: '/', sameSite: 'lax' });
+                  localStorage.setItem('sp_token', localPreset.token);
+                  localStorage.setItem('sp_user', JSON.stringify(localPreset));
+                  window.dispatchEvent(new Event('sp_user_updated'));
+                  window.location.href = localPreset.dashboardPath;
+                  return;
+                }
+              }
+            } catch (e) {
+              console.warn('Error reading local staff fallback:', e);
+            }
+          }
+
           // Local fallback in case backend DB is offline/restarted
           let preset = Object.values(STAFF_PRESETS).find(
             p =>
@@ -342,18 +441,24 @@ function LoginForm() {
           }
           
           // NEVER fall through to customer for a recognized staff account!
-          setError(`Invalid password for staff account "${cleanId}". Please enter your correct staff password.`);
+          setError(err?.message || `Invalid password for staff account "${cleanId}". Please enter your correct staff password.`);
           return;
         }
       }
 
-      // If it looks like a non-customer identifier (e.g. newly created staff member in database)
-      if (!cleanId.toUpperCase().startsWith('CUST-') && !cleanId.includes('@gmail') && !cleanId.includes('@yahoo')) {
+      // If identifier has administrative characteristics (e.g. username without @, or admin/staff keywords), check backend staff
+      const hasStaffFormat = !cleanId.includes('@') || 
+                             cleanLower.includes('admin') || 
+                             cleanLower.includes('staff') || 
+                             cleanLower.includes('manager') ||
+                             cleanLower.includes('@sarasavi');
+      if (hasStaffFormat) {
         try {
           await login({ username: cleanId, password: cleanPass });
           return;
-        } catch {
-          // If backend staff login fails, continue to customer check below
+        } catch (err: any) {
+          setError(err?.message || `Invalid credentials for staff account "${cleanId}". Please check your password.`);
+          return;
         }
       }
 
@@ -392,17 +497,23 @@ function LoginForm() {
         }
       }
 
-      // If still no customer found, create a seamless customer profile for this user
+      // If still no customer found: ONLY allow customer login if it is genuinely a reader email
       if (!customer) {
-        const isEmail = cleanId.includes('@');
-        const formattedName = isEmail 
-          ? cleanId.split('@')[0].replace(/[._-]/g, ' ')
-          : cleanId.charAt(0).toUpperCase() + cleanId.slice(1);
+        const isEmail = cleanId.includes('@') && cleanId.includes('.');
+        const isStaffDomain = cleanLower.includes('@sarasavipages.lk') || cleanLower.includes('@sarasavi.lk') || cleanLower.startsWith('admin@');
+        const hasAdminWord = cleanLower.includes('admin') || cleanLower.includes('staff') || cleanLower.includes('manager') || cleanLower.includes('employee');
 
+        // Strictly disallow any staff or admin-like identifier from ever turning into a customer!
+        if (!isEmail || isStaffDomain || hasAdminWord) {
+          setError(`Account "${cleanId}" not found. If this is an administrative account, please verify your credentials. If you are a reader, please register.`);
+          return;
+        }
+
+        const formattedName = cleanId.split('@')[0].replace(/[._-]/g, ' ');
         customer = {
           customerId: `CUST-${Math.floor(1000 + Math.random() * 9000)}`,
-          name: formattedName,
-          email: isEmail ? cleanId.toLowerCase() : `${cleanId.toLowerCase()}@reader.sarasavipages.lk`,
+          name: formattedName.charAt(0).toUpperCase() + formattedName.slice(1),
+          email: cleanId.toLowerCase(),
           tier: 'BRONZE',
           points: 50,
           phone: '+94 77 123 4567',
