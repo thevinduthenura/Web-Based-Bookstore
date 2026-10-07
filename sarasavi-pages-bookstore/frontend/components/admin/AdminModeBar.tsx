@@ -1,8 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import Cookies from 'js-cookie';
 import { useAuth } from '@/hooks/useAuth';
 import { ShieldCheck, LogOut, ArrowRight, LayoutDashboard, Users, MessageSquare, BookOpen, ShoppingBag } from 'lucide-react';
 
@@ -13,11 +14,34 @@ interface AdminModeBarProps {
 export default function AdminModeBar({ showOnStorefront = false }: AdminModeBarProps) {
   const { user, logout } = useAuth();
   const router = useRouter();
+  const [activeUser, setActiveUser] = useState<any>(user);
+
+  useEffect(() => {
+    if (user) {
+      setActiveUser(user);
+      return;
+    }
+    try {
+      const raw = Cookies.get('sp_user') || (typeof window !== 'undefined' ? localStorage.getItem('sp_user') : null);
+      if (raw) {
+        setActiveUser(JSON.parse(raw));
+      } else {
+        setActiveUser(null);
+      }
+    } catch {
+      setActiveUser(null);
+    }
+  }, [user]);
 
   const handleSignOut = () => {
     logout();
+    Cookies.remove('sp_user', { path: '/' });
+    if (typeof window !== 'undefined') localStorage.removeItem('sp_user');
+    window.dispatchEvent(new Event('sp_user_updated'));
     router.push('/login');
   };
+
+  if (!activeUser) return null;
 
   return (
     <div className="w-full bg-[#20231B] border-b border-[#34451D] text-xs py-2 px-4 sm:px-6 z-50 text-[#F8F9F5] font-sans">
@@ -29,11 +53,11 @@ export default function AdminModeBar({ showOnStorefront = false }: AdminModeBarP
             <span>ADMIN MODE</span>
           </div>
 
-          {user && (
+          {activeUser && (
             <span className="hidden sm:inline-flex items-center gap-1.5 text-[#E2E7D8] font-mono text-[11px]">
               <span className="text-[#596B32]">|</span>
-              <span className="text-white font-medium">{user.fullName || user.username}</span>
-              <span className="text-[#AAB58A]">({user.role.replace('_', ' ')})</span>
+              <span className="text-white font-medium">{activeUser.fullName || activeUser.username}</span>
+              <span className="text-[#AAB58A]">({(activeUser.role || 'STAFF').replace('_', ' ')})</span>
             </span>
           )}
         </div>
@@ -41,7 +65,7 @@ export default function AdminModeBar({ showOnStorefront = false }: AdminModeBarP
         {/* Right: Navigation Links */}
         <div className="flex items-center gap-4 sm:gap-6 text-[#E2E7D8] font-normal text-xs">
           <Link
-            href="/admin/dashboard"
+            href={activeUser.dashboardPath || '/admin/dashboard'}
             className="hover:text-[#B7D85A] transition-colors flex items-center gap-1"
           >
             <span>Dashboard</span>
@@ -77,7 +101,7 @@ export default function AdminModeBar({ showOnStorefront = false }: AdminModeBarP
 
           {showOnStorefront && (
             <Link
-              href="/admin/dashboard"
+              href={activeUser.dashboardPath || '/admin/dashboard'}
               className="inline-flex items-center gap-1 text-[#B7D85A] hover:text-white font-medium text-xs transition-colors"
             >
               <span>Go to Admin Panel</span>

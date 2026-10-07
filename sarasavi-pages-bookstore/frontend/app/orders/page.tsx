@@ -19,8 +19,15 @@ import {
   ChevronUp, 
   User, 
   Receipt,
-  FileText
+  FileText,
+  Edit3,
+  Trash2,
+  ShieldCheck,
+  Eye,
+  X,
+  Check
 } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 interface OrderItem {
   title: string;
@@ -94,7 +101,46 @@ export default function OrdersHistoryPage() {
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
 
+  // Admin authentication state & permissions
+  const { user: authUser, isSuperAdmin, hasRole } = useAuth();
+  const [adminUser, setAdminUser] = useState<any>(authUser);
+  const [adminViewMode, setAdminViewMode] = useState<'all' | 'my'>('all');
+  const [orderToast, setOrderToast] = useState<string | null>(null);
+
   useEffect(() => {
+    if (authUser) {
+      setAdminUser(authUser);
+    } else {
+      try {
+        const staffRaw = Cookies.get('sp_user') || (typeof window !== 'undefined' ? localStorage.getItem('sp_user') : null);
+        if (staffRaw) setAdminUser(JSON.parse(staffRaw));
+        else setAdminUser(null);
+      } catch {
+        setAdminUser(null);
+      }
+    }
+  }, [authUser]);
+
+  // Order & Payment management roles:
+  // - SUPER_ADMIN
+  // - ORDER_ADMIN (Diyes C.L.)
+  // - PAYMENT_ADMIN (Anaf M.K.A.S.)
+  const canManageOrders = Boolean(
+    (isSuperAdmin || hasRole?.('SUPER_ADMIN')) ||
+    hasRole?.('ORDER_ADMIN') ||
+    hasRole?.('PAYMENT_ADMIN') ||
+    (adminUser && (
+      adminUser.role === 'SUPER_ADMIN' ||
+      adminUser.role === 'ORDER_ADMIN' ||
+      adminUser.role === 'PAYMENT_ADMIN' ||
+      adminUser.username === 'GunathilakaT1540' ||
+      adminUser.username === 'DiyesL0263' ||
+      adminUser.username === 'AnafS2345' ||
+      adminUser.username === 'admin'
+    ))
+  );
+
+  const loadOrdersData = () => {
     const custRaw = Cookies.get('sp_customer') || (typeof window !== 'undefined' ? localStorage.getItem('sp_customer') : null);
     let custId = 'CUST-GUEST';
     if (custRaw) {
@@ -106,33 +152,107 @@ export default function OrdersHistoryPage() {
     }
 
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem(`sp_orders_${custId}`);
-      if (saved !== null) {
-        setOrders(JSON.parse(saved));
+      const allOrdersRaw = localStorage.getItem('sp_all_orders');
+      let allOrders: OrderRecord[] = [];
+      if (allOrdersRaw) {
+        try { allOrders = JSON.parse(allOrdersRaw); } catch {}
+      }
+
+      const userOrdersRaw = localStorage.getItem(`sp_orders_${custId}`);
+      let userOrders: OrderRecord[] = [];
+      if (userOrdersRaw) {
+        try { userOrders = JSON.parse(userOrdersRaw); } catch {}
       } else if (custId === 'CUST-1001') {
-        setOrders(PRESET_DEMO_ORDERS);
+        userOrders = PRESET_DEMO_ORDERS;
+      }
+
+      if (canManageOrders && adminViewMode === 'all') {
+        // Merge preset demo orders if allOrders is empty
+        const list = allOrders.length > 0 ? allOrders : PRESET_DEMO_ORDERS;
+        setOrders(list);
       } else {
-        const allOrders = localStorage.getItem('sp_all_orders');
-        if (allOrders) {
-          try {
-            setOrders(JSON.parse(allOrders));
-          } catch (e) {
-            setOrders([]);
-          }
-        } else {
-          setOrders([]);
-        }
+        setOrders(userOrders.length > 0 ? userOrders : (allOrders.length > 0 ? allOrders : PRESET_DEMO_ORDERS));
       }
     }
     setLoading(false);
-  }, []);
+  };
+
+  useEffect(() => {
+    loadOrdersData();
+  }, [canManageOrders, adminViewMode]);
+
+  // Admin: Live update order status
+  const handleUpdateOrderStatus = (orderId: string, newStatus: OrderRecord['status']) => {
+    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+
+    if (typeof window !== 'undefined') {
+      try {
+        // Update all orders
+        const allRaw = localStorage.getItem('sp_all_orders');
+        let allList: OrderRecord[] = allRaw ? JSON.parse(allRaw) : [...PRESET_DEMO_ORDERS];
+        const idx = allList.findIndex(o => o.id === orderId);
+        if (idx >= 0) {
+          allList[idx].status = newStatus;
+        } else {
+          allList.push({ ...orders.find(o => o.id === orderId)!, status: newStatus });
+        }
+        localStorage.setItem('sp_all_orders', JSON.stringify(allList));
+
+        // Update customer orders if present
+        const custId = customer?.customerId || 'CUST-GUEST';
+        const userRaw = localStorage.getItem(`sp_orders_${custId}`);
+        if (userRaw) {
+          let userList: OrderRecord[] = JSON.parse(userRaw);
+          const uIdx = userList.findIndex(o => o.id === orderId);
+          if (uIdx >= 0) {
+            userList[uIdx].status = newStatus;
+            localStorage.setItem(`sp_orders_${custId}`, JSON.stringify(userList));
+          }
+        }
+      } catch (err) {
+        console.error('Failed to update order status:', err);
+      }
+    }
+
+    setOrderToast(`Order ${orderId} updated to "${newStatus.replace(/_/g, ' ')}"`);
+    setTimeout(() => setOrderToast(null), 3500);
+  };
+
+  // Admin: Delete order
+  const handleDeleteOrder = (orderId: string) => {
+    if (!window.confirm(`Are you sure you want to cancel and remove order ${orderId}?`)) return;
+
+    setOrders(prev => prev.filter(o => o.id !== orderId));
+
+    if (typeof window !== 'undefined') {
+      try {
+        const allRaw = localStorage.getItem('sp_all_orders');
+        if (allRaw) {
+          const list: OrderRecord[] = JSON.parse(allRaw);
+          localStorage.setItem('sp_all_orders', JSON.stringify(list.filter(o => o.id !== orderId)));
+        }
+        const custId = customer?.customerId || 'CUST-GUEST';
+        const userRaw = localStorage.getItem(`sp_orders_${custId}`);
+        if (userRaw) {
+          const uList: OrderRecord[] = JSON.parse(userRaw);
+          localStorage.setItem(`sp_orders_${custId}`, JSON.stringify(uList.filter(o => o.id !== orderId)));
+        }
+      } catch (err) {
+        console.error('Failed to delete order:', err);
+      }
+    }
+
+    setOrderToast(`Order ${orderId} removed from registry.`);
+    setTimeout(() => setOrderToast(null), 3500);
+  };
 
   const filteredOrders = orders.filter((ord) => {
     const matchesSearch = 
       ord.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
       ord.items.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (ord.tracking && ord.tracking.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (ord.invoiceNo && ord.invoiceNo.toLowerCase().includes(searchQuery.toLowerCase()));
+      (ord.invoiceNo && ord.invoiceNo.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (ord.customerName && ord.customerName.toLowerCase().includes(searchQuery.toLowerCase()));
     const matchesStatus = statusFilter === 'ALL' || ord.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -209,6 +329,58 @@ export default function OrdersHistoryPage() {
 
       {/* ── Main Container ─────────────────────────────────────────── */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-6">
+        {/* ── Admin Storefront Orders Live Management Bar ── */}
+        {canManageOrders && (
+          <div className="bg-[#20231B] border border-[#34451D] p-4 sm:p-5 rounded-3xl shadow-md text-[#F8F9F5]">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-[#34451D] border border-[#596B32] flex items-center justify-center text-[#B7D85A] shrink-0">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-[11px] font-bold text-[#B7D85A] tracking-wider uppercase">
+                      Live Storefront Orders CRUD
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full bg-[#34451D] text-[#E2E7D8] text-[10px] font-mono border border-[#596B32]">
+                      {adminUser?.role?.replace('_', ' ') || 'ORDER ADMIN'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-[#AAB58A] mt-0.5 font-light">
+                    Manage customer orders, adjust dispatch statuses, and monitor book deliveries live.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-[#AAB58A] font-mono mr-1">View:</span>
+                <button
+                  type="button"
+                  onClick={() => setAdminViewMode('all')}
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-mono font-medium transition-all ${
+                    adminViewMode === 'all'
+                      ? 'bg-[#B7D85A] text-[#20231B] font-semibold shadow-xs'
+                      : 'bg-white/10 text-[#E2E7D8] hover:bg-white/20'
+                  }`}
+                >
+                  All Customer Orders ({orders.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAdminViewMode('my')}
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-mono font-medium transition-all ${
+                    adminViewMode === 'my'
+                      ? 'bg-[#B7D85A] text-[#20231B] font-semibold shadow-xs'
+                      : 'bg-white/10 text-[#E2E7D8] hover:bg-white/20'
+                  }`}
+                >
+                  My Orders
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Banner with Deep Editorial Contrast */}
         <div className="bg-gradient-to-br from-[#243314] via-[#2F401A] to-[#1C2611] text-[#F7F5EC] p-6 sm:p-8 rounded-3xl border border-[#485B28] shadow-[0_16px_40px_rgba(28,38,17,0.16)] relative overflow-hidden flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1 relative z-10">
@@ -338,9 +510,16 @@ export default function OrdersHistoryPage() {
 
                   {/* Order Items Preview */}
                   <div className="p-5 sm:p-6 bg-[#F8F9F5]">
-                    <div className="text-xs text-[#20231B] font-medium mb-2 flex items-center gap-1.5">
-                      <Package className="w-3.5 h-3.5 text-[#596B32]" />
-                      <span>Order Items:</span>
+                    <div className="text-xs text-[#20231B] font-medium mb-2 flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <Package className="w-3.5 h-3.5 text-[#596B32]" />
+                        <span>Order Items:</span>
+                      </div>
+                      {order.customerName && canManageOrders && (
+                        <span className="text-[11px] font-mono text-[#596B32]">
+                          Customer: <strong className="text-[#20231B]">{order.customerName}</strong> ({order.email || 'N/A'})
+                        </span>
+                      )}
                     </div>
 
                     {order.itemDetails && order.itemDetails.length > 0 ? (
@@ -367,6 +546,40 @@ export default function OrdersHistoryPage() {
                       <p className="text-xs text-[#85887A] bg-white p-3 rounded-xl border border-[#E2E7D8]">
                         {order.items}
                       </p>
+                    )}
+
+                    {/* Admin Live In-Place Status Control Bar */}
+                    {canManageOrders && (
+                      <div className="mt-4 pt-3 border-t border-[#E2E7D8] flex flex-wrap items-center justify-between gap-3 bg-[#F0F4E8]/80 p-3 rounded-2xl border border-[#D5DEC4]">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="text-[11px] font-mono text-[#34451D] font-semibold">
+                            Admin Status Transition:
+                          </span>
+                          <select
+                            value={order.status}
+                            onChange={(e) => handleUpdateOrderStatus(order.id, e.target.value as any)}
+                            className="text-xs font-mono py-1.5 px-3 rounded-xl border border-[#B7D85A] bg-white text-[#20231B] font-medium focus:outline-none focus:border-[#34451D] cursor-pointer shadow-xs"
+                          >
+                            <option value="PENDING">PENDING</option>
+                            <option value="PROCESSING">PROCESSING</option>
+                            <option value="OUT_FOR_DELIVERY">OUT FOR DELIVERY</option>
+                            <option value="DELIVERED">DELIVERED</option>
+                            <option value="CANCELLED">CANCELLED</option>
+                          </select>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteOrder(order.id)}
+                            className="px-3 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-medium flex items-center gap-1.5 transition-all active:scale-95"
+                            title="Cancel and remove order"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>Cancel & Remove</span>
+                          </button>
+                        </div>
+                      </div>
                     )}
                   </div>
 
@@ -422,6 +635,21 @@ export default function OrdersHistoryPage() {
           </div>
         )}
       </main>
+
+      {/* ── Order Admin Toast Feedback ── */}
+      {orderToast && (
+        <div className="fixed bottom-6 right-6 z-50 bg-[#20231B] text-[#F8F9F5] border border-[#34451D] px-4 py-3 rounded-2xl shadow-xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-4">
+          <CheckCircle2 className="w-4 h-4 text-[#B7D85A] shrink-0" />
+          <span className="text-xs font-medium">{orderToast}</span>
+          <button
+            type="button"
+            onClick={() => setOrderToast(null)}
+            className="text-[#AAB58A] hover:text-white ml-2"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }

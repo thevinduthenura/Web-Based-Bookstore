@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { AuthProvider } from '@/hooks/useAuth';
+import StorefrontAdminBar from '@/components/admin/StorefrontAdminBar';
 
 // ── SEO Metadata ----------------------------------------------------------
 export const metadata: Metadata = {
@@ -54,6 +55,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="bg-[#F8F9F5] text-[#20231B] antialiased selection:bg-[#34451D] selection:text-white font-sans">
         <AuthProvider>
+          <StorefrontAdminBar />
           {children}
         </AuthProvider>
       </body>

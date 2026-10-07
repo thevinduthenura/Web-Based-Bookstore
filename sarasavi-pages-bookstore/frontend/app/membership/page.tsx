@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
+import Cookies from 'js-cookie';
+import { useAuth } from '@/hooks/useAuth';
 import { printMembershipInvoice } from '@/lib/invoice-pdf';
 import { formatAndLimitPhone } from '@/lib/input-utils';
 import { 
@@ -16,7 +18,10 @@ import {
   Download,
   MessageCircle,
   User,
-  Sparkles
+  Sparkles,
+  ShieldCheck,
+  CheckCircle2,
+  X
 } from 'lucide-react';
 
 interface MembershipPlan {
@@ -154,6 +159,63 @@ export default function MembershipPage() {
   // Cancellation modal
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [cancelSuccessMsg, setCancelSuccessMsg] = useState('');
+
+  // Admin authentication state & permissions
+  const { user: authUser, isSuperAdmin, hasRole } = useAuth();
+  const [adminUser, setAdminUser] = useState<any>(authUser);
+  const [adminToast, setAdminToast] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (authUser) {
+      setAdminUser(authUser);
+    } else {
+      try {
+        const staffRaw = Cookies.get('sp_user') || (typeof window !== 'undefined' ? localStorage.getItem('sp_user') : null);
+        if (staffRaw) setAdminUser(JSON.parse(staffRaw));
+        else setAdminUser(null);
+      } catch {
+        setAdminUser(null);
+      }
+    }
+  }, [authUser]);
+
+  // Account / Membership management role:
+  // - ACCOUNT_ADMIN (Gayathmi P.G.R. / GayathmiR3013)
+  // - SUPER_ADMIN (Universal)
+  const canManageMembership = Boolean(
+    (isSuperAdmin || hasRole?.('SUPER_ADMIN')) ||
+    hasRole?.('ACCOUNT_ADMIN') ||
+    (adminUser && (
+      adminUser.role === 'SUPER_ADMIN' ||
+      adminUser.role === 'ACCOUNT_ADMIN' ||
+      adminUser.username === 'GunathilakaT1540' ||
+      adminUser.username === 'GayathmiR3013' ||
+      adminUser.username === 'admin'
+    ))
+  );
+
+  const handleAdminGrantTier = (tier: 'STARTER' | 'BASIC' | 'PREMIUM') => {
+    const updatedCust = {
+      ...(customer || {
+        id: 'CUST-8832',
+        name: 'Active Reader',
+        email: 'reader@sarasavipages.lk',
+        phone: '0771234567',
+        city: 'Colombo'
+      }),
+      membership: tier,
+      tier: tier === 'PREMIUM' ? 'SCHOLAR' : tier === 'BASIC' ? 'READER' : 'STANDARD',
+      isMember: tier !== 'STARTER'
+    };
+    setCustomer(updatedCust as any);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('sp_customer', JSON.stringify(updatedCust));
+      localStorage.setItem('sp_membership', tier);
+      window.dispatchEvent(new Event('sp_customer_updated'));
+    }
+    setAdminToast(`Customer membership tier set to ${tier}!`);
+    setTimeout(() => setAdminToast(null), 3500);
+  };
 
   // Load customer info from localStorage if logged in
   useEffect(() => {
@@ -332,6 +394,57 @@ export default function MembershipPage() {
       {currentStep === 'plans' && (
         <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10 animate-in fade-in duration-300">
           
+          {/* ── Admin Storefront Membership Control Bar ── */}
+          {canManageMembership && (
+            <div className="bg-[#20231B] border border-[#34451D] p-4 sm:p-5 rounded-3xl shadow-md text-[#F8F9F5]">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-[#34451D] border border-[#596B32] flex items-center justify-center text-[#B7D85A] shrink-0">
+                    <ShieldCheck className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-[11px] font-bold text-[#B7D85A] tracking-wider uppercase">
+                        Account & Membership Live Controls
+                      </span>
+                      <span className="px-2 py-0.5 rounded-full bg-[#34451D] text-[#E2E7D8] text-[10px] font-mono border border-[#596B32]">
+                        {adminUser?.role?.replace('_', ' ') || 'ACCOUNT ADMIN'}
+                      </span>
+                    </div>
+                    <p className="text-xs text-[#AAB58A] mt-0.5 font-light">
+                      Manage membership tiers and grant subscriber benefits to users on the fly.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs text-[#AAB58A] font-mono mr-1">Assign Tier:</span>
+                  <button
+                    type="button"
+                    onClick={() => handleAdminGrantTier('PREMIUM')}
+                    className="px-3.5 py-1.5 rounded-full bg-[#B7D85A] text-[#20231B] hover:bg-white text-xs font-semibold shadow-xs transition-all active:scale-95"
+                  >
+                    + Grant Scholar (20%)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleAdminGrantTier('BASIC')}
+                    className="px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-[#E2E7D8] text-xs font-medium border border-white/20 transition-all active:scale-95"
+                  >
+                    + Grant Basic (10%)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleAdminGrantTier('STARTER')}
+                    className="px-3.5 py-1.5 rounded-full bg-red-950/40 hover:bg-red-900/40 text-red-300 text-xs font-medium border border-red-800/40 transition-all active:scale-95"
+                  >
+                    Reset Tier
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Header Heading */}
           <div className="text-center space-y-3 pt-3">
             <span className="text-[11px] font-mono font-semibold uppercase tracking-[0.25em] text-[#D96B27] block">
@@ -976,6 +1089,21 @@ export default function MembershipPage() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ── Admin Toast Notification ── */}
+      {adminToast && (
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-[#20231B] text-[#F8F9F5] px-5 py-3.5 rounded-2xl shadow-2xl border border-[#34451D] animate-in slide-in-from-bottom-5">
+          <CheckCircle2 className="w-5 h-5 text-[#B7D85A] shrink-0" />
+          <span className="text-xs font-mono">{adminToast}</span>
+          <button
+            type="button"
+            onClick={() => setAdminToast(null)}
+            className="ml-2 text-[#AAB58A] hover:text-white"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
       )}
 

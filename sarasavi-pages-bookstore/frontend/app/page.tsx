@@ -899,11 +899,6 @@ export default function StorefrontPage() {
 
   return (
     <div className="min-h-screen bg-[#F8F9F5] text-[#20231B] font-sans antialiased selection:bg-[#34451D] selection:text-white flex flex-col">
-      {/* ── CINEVAULT-STYLE ADMIN MODE TOP BAR (Visible only to Admins) ── */}
-      {loggedInStaff && (
-        <AdminModeBar showOnStorefront={true} />
-      )}
-
       {/* ── HEALIUM AUTHENTIC FLOATING PILL NAVIGATION ───────── */}
       <Navbar 
         activeTab="home" 

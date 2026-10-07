@@ -27,13 +27,21 @@ import {
   ChevronRight, 
   ChevronLeft,
   Eye,
+  EyeOff,
+  Edit3,
   Award,
   ExternalLink,
   CreditCard,
   Building2,
   Banknote,
-  Landmark
+  Landmark,
+  Package,
+  Layers,
+  AlertTriangle,
+  RotateCcw,
+  Sparkle
 } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 import FlipbookReader from '@/components/FlipbookReader';
 import { ordersApi } from '@/lib/orders-api';
 import apiClient from '@/lib/api-client';
@@ -141,6 +149,66 @@ function CatalogContent() {
     return null;
   });
 
+  // Admin authentication state & live storefront permissions
+  const { user: authUser, isSuperAdmin, hasRole } = useAuth();
+  const [adminUser, setAdminUser] = useState<any>(authUser);
+
+  useEffect(() => {
+    if (authUser) {
+      setAdminUser(authUser);
+    } else {
+      try {
+        const staffRaw = Cookies.get('sp_user') || (typeof window !== 'undefined' ? localStorage.getItem('sp_user') : null);
+        if (staffRaw) setAdminUser(JSON.parse(staffRaw));
+        else setAdminUser(null);
+      } catch {
+        setAdminUser(null);
+      }
+    }
+  }, [authUser]);
+
+  // Specific Role-Based Access:
+  // - SUPER_ADMIN (Universal access)
+  // - ORDER_ADMIN (Diyes C.L. - Dedicated Catalog & Flipbook manager)
+  // - INVENTORY_ADMIN (Dissanayake S.A.S.D. - Warehouse stock & catalog items manager)
+  const canManageBooks = Boolean(
+    (isSuperAdmin || hasRole?.('SUPER_ADMIN')) ||
+    hasRole?.('ORDER_ADMIN') ||
+    hasRole?.('INVENTORY_ADMIN') ||
+    (adminUser && (
+      adminUser.role === 'SUPER_ADMIN' ||
+      adminUser.role === 'ORDER_ADMIN' ||
+      adminUser.role === 'INVENTORY_ADMIN' ||
+      adminUser.username === 'GunathilakaT1540' ||
+      adminUser.username === 'DissanayakeD1062' ||
+      adminUser.username === 'DiyesL0263' ||
+      adminUser.username === 'admin'
+    ))
+  );
+
+  // Storefront CRUD Management States
+  const [showDeactivated, setShowDeactivated] = useState(true);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [editingBook, setEditingBook] = useState<Book | null>(null);
+  const [deletingBook, setDeletingBook] = useState<Book | null>(null);
+  const [adminToast, setAdminToast] = useState<string | null>(null);
+
+  const initialBookForm = {
+    title: '',
+    sinhalaTitle: '',
+    author: '',
+    category: 'Literature',
+    price: 1500,
+    stockQuantity: 25,
+    isbn: '',
+    description: '',
+    publisher: 'Sarasavi Publishers',
+    pages: 280,
+    language: 'English',
+    coverImage: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=600'
+  };
+  const [bookForm, setBookForm] = useState(initialBookForm);
+
   useEffect(() => {
     async function loadBooks() {
       try {
@@ -164,7 +232,13 @@ function CatalogContent() {
         const hiddenIds: string[] = typeof window !== 'undefined'
           ? JSON.parse(localStorage.getItem('sp_hidden_books') || '[]')
           : [];
-        setBooks(initialList.filter(b => !hiddenIds.includes(b.id) && !b.hidden));
+        
+        // Preserve hidden boolean property
+        const fullList = initialList.map(b => ({
+          ...b,
+          hidden: Boolean(b.hidden || hiddenIds.includes(String(b.id)))
+        }));
+        setBooks(fullList);
       } catch (err) {
         console.error('Failed to load books:', err);
       } finally {
@@ -172,6 +246,31 @@ function CatalogContent() {
       }
     }
     loadBooks();
+
+    const handleCatalogUpdated = () => {
+      try {
+        const raw = localStorage.getItem('sp_catalog_books');
+        const hiddenIds: string[] = JSON.parse(localStorage.getItem('sp_hidden_books') || '[]');
+        if (raw) {
+          const stored: Book[] = JSON.parse(raw);
+          setBooks(prev => {
+            const merged = prev.map(p => {
+              const found = stored.find(s => String(s.id) === String(p.id));
+              const isHidden = hiddenIds.includes(String(p.id)) || (found?.hidden ?? p.hidden);
+              return found ? { ...found, hidden: isHidden } : { ...p, hidden: isHidden };
+            });
+            const prevIds = new Set(prev.map(p => String(p.id)));
+            const newlyAdded = stored.filter(s => !prevIds.has(String(s.id))).map(s => ({
+              ...s,
+              hidden: Boolean(s.hidden || hiddenIds.includes(String(s.id)))
+            }));
+            return [...merged, ...newlyAdded];
+          });
+        }
+      } catch {}
+    };
+
+    window.addEventListener('sp_catalog_updated', handleCatalogUpdated);
 
     const custRaw = Cookies.get('sp_customer') || (typeof window !== 'undefined' ? localStorage.getItem('sp_customer') : null);
     if (custRaw) {
@@ -187,12 +286,23 @@ function CatalogContent() {
         }
       } catch (e) {}
     }
+
+    return () => {
+      window.removeEventListener('sp_catalog_updated', handleCatalogUpdated);
+    };
   }, []);
 
   // Filtered and sorted books & stationery items
   const filteredBooks = useMemo(() => {
     return books
       .filter((book) => {
+        // Deactivated status filtering
+        if (!canManageBooks) {
+          if (book.hidden) return false;
+        } else {
+          if (!showDeactivated && book.hidden) return false;
+        }
+
         const matchesSearch = 
           book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
           book.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -230,7 +340,244 @@ function CatalogContent() {
         if (sortBy === 'title') return a.title.localeCompare(b.title);
         return 0; // featured default
       });
-  }, [books, searchQuery, selectedCategory, sortBy, maxPrice, inStockOnly]);
+  }, [books, searchQuery, selectedCategory, sortBy, maxPrice, inStockOnly, canManageBooks, showDeactivated]);
+
+  const deactivatedCount = useMemo(() => books.filter(b => b.hidden).length, [books]);
+
+  // Open Add Modal
+  const handleOpenAddModal = (presetCategory = 'Literature') => {
+    const isStationery = presetCategory.toLowerCase().includes('stationery') || presetCategory.toLowerCase().includes('supplies');
+    setBookForm({
+      ...initialBookForm,
+      category: isStationery ? 'Stationery' : presetCategory,
+      title: '',
+      author: isStationery ? 'Sarasavi Fine Stationery' : '',
+      price: isStationery ? 850 : 1500,
+      stockQuantity: 40,
+      coverImage: isStationery 
+        ? 'https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?auto=format&fit=crop&q=80&w=600'
+        : 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=600'
+    });
+    setIsAddModalOpen(true);
+  };
+
+  // Submit Add Book / Item
+  const handleCreateBook = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!bookForm.title.trim()) return;
+
+    const newId = `sp-${Date.now()}`;
+    const newBook: Book = {
+      id: newId,
+      title: bookForm.title.trim(),
+      sinhalaTitle: bookForm.sinhalaTitle.trim() || undefined,
+      author: bookForm.author.trim() || 'Sarasavi Pages Collection',
+      category: bookForm.category,
+      price: Number(bookForm.price) > 0 ? Number(bookForm.price) : 1000,
+      stockQuantity: Number(bookForm.stockQuantity) >= 0 ? Number(bookForm.stockQuantity) : 20,
+      isbn: bookForm.isbn.trim() || `978-955-${Math.floor(100000 + Math.random() * 900000)}`,
+      description: bookForm.description.trim() || 'Exclusively curated volume from Sarasavi Pages catalog.',
+      publisher: bookForm.publisher.trim() || 'Sarasavi Publishers',
+      pages: Number(bookForm.pages) || 280,
+      language: bookForm.language.trim() || 'Sinhala / English',
+      coverImage: bookForm.coverImage.trim() || 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=600',
+      rating: 4.9,
+      hidden: false
+    };
+
+    setBooks(prev => [newBook, ...prev]);
+
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('sp_catalog_books');
+        const list: Book[] = stored ? JSON.parse(stored) : [];
+        localStorage.setItem('sp_catalog_books', JSON.stringify([newBook, ...list]));
+        window.dispatchEvent(new Event('sp_catalog_updated'));
+      } catch (err) {
+        console.error('Error saving new book:', err);
+      }
+    }
+
+    try {
+      apiClient.post('/books', newBook).catch(() => {});
+    } catch {}
+
+    setIsAddModalOpen(false);
+    setBookForm(initialBookForm);
+    setAdminToast(`"${newBook.title}" successfully added to catalog!`);
+    setTimeout(() => setAdminToast(null), 3500);
+  };
+
+  // Open Edit Modal
+  const handleOpenEditModal = (b: Book) => {
+    setEditingBook(b);
+    setBookForm({
+      title: b.title || '',
+      sinhalaTitle: b.sinhalaTitle || '',
+      author: b.author || '',
+      category: b.category || 'Literature',
+      price: b.price || 1500,
+      stockQuantity: b.stockQuantity ?? 25,
+      isbn: b.isbn || '',
+      description: b.description || '',
+      publisher: b.publisher || 'Sarasavi Publishers',
+      pages: b.pages || 280,
+      language: b.language || 'Sinhala / English',
+      coverImage: b.coverImage || ''
+    });
+  };
+
+  // Save Edit Book
+  const handleSaveEditBook = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingBook) return;
+
+    const updatedBook: Book = {
+      ...editingBook,
+      title: bookForm.title.trim() || editingBook.title,
+      sinhalaTitle: bookForm.sinhalaTitle.trim() || undefined,
+      author: bookForm.author.trim() || editingBook.author,
+      category: bookForm.category,
+      price: Number(bookForm.price) > 0 ? Number(bookForm.price) : editingBook.price,
+      stockQuantity: Number(bookForm.stockQuantity) >= 0 ? Number(bookForm.stockQuantity) : editingBook.stockQuantity,
+      isbn: bookForm.isbn.trim() || editingBook.isbn,
+      description: bookForm.description.trim() || editingBook.description,
+      publisher: bookForm.publisher.trim() || editingBook.publisher,
+      pages: Number(bookForm.pages) || editingBook.pages,
+      language: bookForm.language.trim() || editingBook.language,
+      coverImage: bookForm.coverImage.trim() || editingBook.coverImage
+    };
+
+    setBooks(prev => prev.map(b => (b.id === updatedBook.id ? updatedBook : b)));
+
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('sp_catalog_books');
+        let list: Book[] = stored ? JSON.parse(stored) : [];
+        const idx = list.findIndex(b => String(b.id) === String(updatedBook.id));
+        if (idx >= 0) {
+          list[idx] = updatedBook;
+        } else {
+          list.push(updatedBook);
+        }
+        localStorage.setItem('sp_catalog_books', JSON.stringify(list));
+        window.dispatchEvent(new Event('sp_catalog_updated'));
+      } catch (err) {
+        console.error('Error saving updated book:', err);
+      }
+    }
+
+    try {
+      apiClient.put(`/books/${updatedBook.id}`, updatedBook).catch(() => {});
+    } catch {}
+
+    setEditingBook(null);
+    setAdminToast(`"${updatedBook.title}" updated successfully!`);
+    setTimeout(() => setAdminToast(null), 3500);
+  };
+
+  // Toggle Activate / Deactivate
+  const handleToggleActiveBook = (targetBook: Book) => {
+    const isNowHidden = !targetBook.hidden;
+    const updatedBook: Book = {
+      ...targetBook,
+      hidden: isNowHidden
+    };
+
+    setBooks(prev => prev.map(b => (b.id === targetBook.id ? updatedBook : b)));
+
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('sp_catalog_books');
+        let list: Book[] = stored ? JSON.parse(stored) : [];
+        const idx = list.findIndex(b => String(b.id) === String(targetBook.id));
+        if (idx >= 0) {
+          list[idx] = updatedBook;
+          localStorage.setItem('sp_catalog_books', JSON.stringify(list));
+        }
+
+        const hiddenIds: string[] = JSON.parse(localStorage.getItem('sp_hidden_books') || '[]');
+        let nextHidden: string[];
+        if (isNowHidden) {
+          nextHidden = Array.from(new Set([...hiddenIds, String(targetBook.id)]));
+        } else {
+          nextHidden = hiddenIds.filter(id => id !== String(targetBook.id));
+        }
+        localStorage.setItem('sp_hidden_books', JSON.stringify(nextHidden));
+        window.dispatchEvent(new Event('sp_catalog_updated'));
+      } catch (err) {
+        console.error('Error toggling book active status:', err);
+      }
+    }
+
+    setAdminToast(
+      isNowHidden
+        ? `"${targetBook.title}" deactivated and hidden from regular customers.`
+        : `"${targetBook.title}" reactivated and live in catalog!`
+    );
+    setTimeout(() => setAdminToast(null), 3500);
+  };
+
+  // Open Delete Confirmation
+  const handleOpenDeleteModal = (b: Book) => {
+    setDeletingBook(b);
+  };
+
+  // Execute Delete
+  const handleExecuteDelete = () => {
+    if (!deletingBook) return;
+    const bookToDelete = deletingBook;
+
+    setBooks(prev => prev.filter(b => b.id !== bookToDelete.id));
+
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('sp_catalog_books');
+        if (stored) {
+          const list: Book[] = JSON.parse(stored);
+          const filtered = list.filter(b => String(b.id) !== String(bookToDelete.id));
+          localStorage.setItem('sp_catalog_books', JSON.stringify(filtered));
+        }
+        const hiddenIds: string[] = JSON.parse(localStorage.getItem('sp_hidden_books') || '[]');
+        const updatedHidden = hiddenIds.filter(id => id !== String(bookToDelete.id));
+        localStorage.setItem('sp_hidden_books', JSON.stringify(updatedHidden));
+        window.dispatchEvent(new Event('sp_catalog_updated'));
+      } catch (err) {
+        console.error('Error deleting book:', err);
+      }
+    }
+
+    try {
+      apiClient.delete(`/books/${bookToDelete.id}`).catch(() => {});
+    } catch {}
+
+    setDeletingBook(null);
+    setAdminToast(`"${bookToDelete.title}" removed permanently.`);
+    setTimeout(() => setAdminToast(null), 3500);
+  };
+
+  // Quick adjust stock
+  const handleQuickStock = (targetBook: Book, delta: number) => {
+    const nextStock = Math.max(0, (targetBook.stockQuantity || 0) + delta);
+    const updatedBook: Book = { ...targetBook, stockQuantity: nextStock };
+
+    setBooks(prev => prev.map(b => (b.id === targetBook.id ? updatedBook : b)));
+
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('sp_catalog_books');
+        let list: Book[] = stored ? JSON.parse(stored) : [];
+        const idx = list.findIndex(b => String(b.id) === String(targetBook.id));
+        if (idx >= 0) {
+          list[idx] = updatedBook;
+        } else {
+          list.push(updatedBook);
+        }
+        localStorage.setItem('sp_catalog_books', JSON.stringify(list));
+        window.dispatchEvent(new Event('sp_catalog_updated'));
+      } catch {}
+    }
+  };
 
   // Reset to page 1 on filter changes
   useEffect(() => {
@@ -380,6 +727,66 @@ function CatalogContent() {
 
       {/* ── Main Catalog Content ────────────────────────────────────── */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-6">
+        {/* ── Admin Storefront Live Management Bar ── */}
+        {canManageBooks && (
+          <div className="bg-[#20231B] border border-[#34451D] p-4 sm:p-5 rounded-3xl shadow-md text-[#F8F9F5]">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-[#34451D] border border-[#596B32] flex items-center justify-center text-[#B7D85A] shrink-0 shadow-xs">
+                  <BookOpen className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-[11px] font-bold text-[#B7D85A] tracking-wider uppercase">
+                      Catalog & Inventory CRUD Operations
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full bg-[#34451D] text-[#E2E7D8] text-[10px] font-mono border border-[#596B32]">
+                      {adminUser?.role?.replace('_', ' ') || 'ADMIN'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-[#AAB58A] mt-0.5 font-light">
+                    You have live catalog authoring access. Add, edit, adjust stock, deactivate or delete volumes directly on this page.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setShowDeactivated(!showDeactivated)}
+                  className={`px-3.5 py-2 rounded-full text-xs font-mono font-medium border transition-all flex items-center gap-2 ${
+                    showDeactivated 
+                      ? 'bg-[#34451D] text-[#B7D85A] border-[#7F9148]' 
+                      : 'bg-black/30 text-[#AAB58A] border-white/10 hover:bg-black/50'
+                  }`}
+                  title="Toggle visibility of deactivated books"
+                >
+                  {showDeactivated ? <Eye className="w-3.5 h-3.5 text-[#B7D85A]" /> : <EyeOff className="w-3.5 h-3.5 text-[#AAB58A]" />}
+                  <span>{showDeactivated ? `Showing Deactivated (${deactivatedCount})` : `Hiding Deactivated (${deactivatedCount})`}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleOpenAddModal('Stationery')}
+                  className="px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-[#E2E7D8] hover:text-white text-xs font-medium border border-white/20 transition-all flex items-center gap-1.5"
+                >
+                  <Plus className="w-3.5 h-3.5 text-[#B7D85A]" />
+                  <span>+ Add Stationery</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleOpenAddModal('Literature')}
+                  className="px-4 py-2 rounded-full bg-[#B7D85A] hover:bg-[#a8cd48] text-[#20231B] text-xs font-semibold shadow-md transition-all flex items-center gap-1.5 active:scale-95"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>+ Add New Book</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Banner Section with Rich Editorial Contrast */}
         <div className="bg-gradient-to-br from-[#233014] via-[#2F3F1B] to-[#1C2610] text-[#F7F5EC] p-6 sm:p-10 rounded-3xl border border-[#435527] shadow-[0_16px_40px_rgba(28,38,16,0.16)] relative overflow-hidden">
           <div className="absolute top-0 right-0 w-96 h-96 bg-[#B7D85A]/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
@@ -518,9 +925,24 @@ function CatalogContent() {
               return (
                 <div
                   key={book.id}
-                  className="group relative bg-white rounded-3xl border border-[#E2E7D8] p-4 flex flex-col justify-between shadow-xs hover:shadow-md hover:border-[#596B32] hover:-translate-y-1 transition-all duration-300"
+                  className={`group relative bg-white rounded-3xl border p-4 flex flex-col justify-between shadow-xs hover:shadow-md hover:-translate-y-1 transition-all duration-300 ${
+                    book.hidden
+                      ? 'border-amber-300 bg-amber-50/20 shadow-[0_4px_20px_rgba(217,119,6,0.08)]'
+                      : 'border-[#E2E7D8] hover:border-[#596B32]'
+                  }`}
                 >
                   <div className="space-y-3">
+                    {/* Admin Deactivated Alert Banner if hidden */}
+                    {book.hidden && (
+                      <div className="flex items-center justify-between px-3 py-1 rounded-full bg-amber-100 border border-amber-300 text-amber-900 text-[10px] font-mono font-medium">
+                        <span className="flex items-center gap-1">
+                          <EyeOff className="w-3 h-3 text-amber-700" />
+                          <span>DEACTIVATED (HIDDEN)</span>
+                        </span>
+                        <span className="text-[9px] uppercase tracking-wider text-amber-700">Admin Only</span>
+                      </div>
+                    )}
+
                     {/* Cover Image Container with Same Tab Link */}
                     <div className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden bg-[#F8F9F5] border border-[#E2E7D8] shadow-xs">
                       <Link
@@ -531,7 +953,9 @@ function CatalogContent() {
                         <img
                           src={book.coverImage || 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=600'}
                           alt={book.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ${
+                            book.hidden ? 'opacity-70 grayscale-[20%]' : ''
+                          }`}
                         />
                       </Link>
 
@@ -578,6 +1002,53 @@ function CatalogContent() {
                       </div>
                     </div>
 
+                    {/* Admin Action Ribbon: In-place CRUD Buttons */}
+                    {canManageBooks && (
+                      <div className="p-2 rounded-2xl bg-[#F0F4E8] border border-[#D5DEC4] flex items-center justify-between gap-1 shadow-xs">
+                        <button
+                          type="button"
+                          onClick={() => handleOpenEditModal(book)}
+                          className="flex-1 py-1 px-2 rounded-xl bg-white hover:bg-[#34451D] text-[#34451D] hover:text-white border border-[#E2E7D8] text-[11px] font-medium transition-all flex items-center justify-center gap-1"
+                          title="Edit book details"
+                        >
+                          <Edit3 className="w-3 h-3" />
+                          <span>Edit</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleToggleActiveBook(book)}
+                          className={`flex-1 py-1 px-2 rounded-xl text-[11px] font-medium transition-all flex items-center justify-center gap-1 border ${
+                            book.hidden
+                              ? 'bg-[#34451D] hover:bg-[#20231B] text-[#B7D85A] border-[#34451D]'
+                              : 'bg-amber-50 hover:bg-amber-100 text-amber-800 border-amber-300'
+                          }`}
+                          title={book.hidden ? 'Reactivate book for customers' : 'Deactivate / hide from customers'}
+                        >
+                          {book.hidden ? (
+                            <>
+                              <Eye className="w-3 h-3" />
+                              <span>Activate</span>
+                            </>
+                          ) : (
+                            <>
+                              <EyeOff className="w-3 h-3" />
+                              <span>Deactivate</span>
+                            </>
+                          )}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleOpenDeleteModal(book)}
+                          className="p-1 rounded-xl bg-white hover:bg-red-50 text-red-600 hover:text-red-700 border border-red-200 transition-all"
+                          title="Delete permanently"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )}
+
                     {/* Book Metadata with Same Tab Link */}
                     <div>
                       <div className="flex items-center gap-1 text-[#D96B27] mb-1">
@@ -618,14 +1089,38 @@ function CatalogContent() {
                           LKR {book.price.toFixed(0)}
                         </span>
                       )}
-                      <span className="text-[9px] font-mono text-[#596B32] block font-medium">
-                        {book.stockQuantity > 0 ? `${book.stockQuantity} in stock` : 'Out of stock'}
-                      </span>
+                      
+                      {/* Stock indicator with Quick Adjust buttons for Admin */}
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <span className="text-[9px] font-mono text-[#596B32] block font-medium">
+                          {book.stockQuantity > 0 ? `${book.stockQuantity} in stock` : 'Out of stock'}
+                        </span>
+                        {canManageBooks && (
+                          <div className="flex items-center gap-0.5 ml-1">
+                            <button
+                              type="button"
+                              onClick={() => handleQuickStock(book, -1)}
+                              className="w-4 h-4 rounded bg-[#E2E7D8] hover:bg-[#34451D] hover:text-white text-[#20231B] text-[10px] flex items-center justify-center font-bold"
+                              title="Decrease stock"
+                            >
+                              -
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleQuickStock(book, 1)}
+                              className="w-4 h-4 rounded bg-[#E2E7D8] hover:bg-[#34451D] hover:text-white text-[#20231B] text-[10px] flex items-center justify-center font-bold"
+                              title="Increase stock"
+                            >
+                              +
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     <button
                       onClick={() => addToCart(book)}
-                      disabled={book.stockQuantity <= 0}
+                      disabled={book.stockQuantity <= 0 || (book.hidden && !canManageBooks)}
                       className="px-3.5 py-1.5 rounded-full bg-[#34451D] hover:bg-[#20231B] text-white text-xs font-medium shadow-xs transition-all active:scale-95 disabled:opacity-50 flex items-center gap-1.5 shrink-0"
                     >
                       <Plus className="w-3.5 h-3.5" />
@@ -1097,6 +1592,442 @@ function CatalogContent() {
           onClose={() => setActiveFlipbookBook(null)}
           userMembership={userMembership}
         />
+      )}
+
+      {/* ── Admin Storefront: Add Book / Stationery Modal ── */}
+      {isAddModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl border border-[#E2E7D8] shadow-2xl max-w-2xl w-full p-6 sm:p-8 space-y-6 animate-in fade-in zoom-in-95 my-8">
+            <div className="flex items-center justify-between border-b border-[#E2E7D8] pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-[#34451D] text-[#B7D85A] flex items-center justify-center">
+                  <Plus className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-display font-medium text-lg text-[#20231B]">Add New Catalog Item</h3>
+                  <p className="text-xs text-[#85887A]">Direct live authoring to Sarasavi Pages storefront</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsAddModalOpen(false)}
+                className="p-2 rounded-full hover:bg-[#F0F4E8] text-[#85887A] hover:text-[#20231B]"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateBook} className="space-y-4">
+              {/* Preset Picker */}
+              <div className="flex items-center gap-2 pb-2">
+                <button
+                  type="button"
+                  onClick={() => setBookForm(prev => ({
+                    ...prev,
+                    category: 'Fiction',
+                    author: '',
+                    price: 1500,
+                    coverImage: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=600'
+                  }))}
+                  className={`px-3 py-1.5 rounded-full text-xs font-mono transition-all ${
+                    !bookForm.category.toLowerCase().includes('stationery')
+                      ? 'bg-[#34451D] text-[#B7D85A] font-semibold'
+                      : 'bg-[#F0F4E8] text-[#596B32] hover:bg-[#E2E7D8]'
+                  }`}
+                >
+                  Book Volume Preset
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setBookForm(prev => ({
+                    ...prev,
+                    category: 'Stationery',
+                    author: 'Sarasavi Fine Stationery',
+                    price: 850,
+                    coverImage: 'https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?auto=format&fit=crop&q=80&w=600'
+                  }))}
+                  className={`px-3 py-1.5 rounded-full text-xs font-mono transition-all ${
+                    bookForm.category.toLowerCase().includes('stationery')
+                      ? 'bg-[#34451D] text-[#B7D85A] font-semibold'
+                      : 'bg-[#F0F4E8] text-[#596B32] hover:bg-[#E2E7D8]'
+                  }`}
+                >
+                  Stationery Preset
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-[#20231B] mb-1">Title *</label>
+                  <input
+                    required
+                    type="text"
+                    value={bookForm.title}
+                    onChange={(e) => setBookForm({ ...bookForm, title: e.target.value })}
+                    placeholder="e.g. Madol Doova"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs text-[#20231B] focus:outline-none focus:border-[#34451D] focus:bg-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-[#20231B] mb-1">Sinhala Title (Optional)</label>
+                  <input
+                    type="text"
+                    value={bookForm.sinhalaTitle}
+                    onChange={(e) => setBookForm({ ...bookForm, sinhalaTitle: e.target.value })}
+                    placeholder="e.g. මඩොල් දූව"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs text-[#20231B] focus:outline-none focus:border-[#34451D] focus:bg-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-[#20231B] mb-1">Author / Creator *</label>
+                  <input
+                    required
+                    type="text"
+                    value={bookForm.author}
+                    onChange={(e) => setBookForm({ ...bookForm, author: e.target.value })}
+                    placeholder="e.g. Martin Wickramasinghe"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs text-[#20231B] focus:outline-none focus:border-[#34451D] focus:bg-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-[#20231B] mb-1">Category *</label>
+                  <select
+                    value={bookForm.category}
+                    onChange={(e) => setBookForm({ ...bookForm, category: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs text-[#20231B] focus:outline-none focus:border-[#34451D] focus:bg-white cursor-pointer"
+                  >
+                    {CATEGORIES.filter(c => c !== 'All').map(cat => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-[#20231B] mb-1">Price (LKR) *</label>
+                  <input
+                    required
+                    type="number"
+                    min="1"
+                    value={bookForm.price}
+                    onChange={(e) => setBookForm({ ...bookForm, price: Number(e.target.value) })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs font-mono text-[#20231B] focus:outline-none focus:border-[#34451D] focus:bg-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-[#20231B] mb-1">Stock Quantity *</label>
+                  <input
+                    required
+                    type="number"
+                    min="0"
+                    value={bookForm.stockQuantity}
+                    onChange={(e) => setBookForm({ ...bookForm, stockQuantity: Number(e.target.value) })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs font-mono text-[#20231B] focus:outline-none focus:border-[#34451D] focus:bg-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-[#20231B] mb-1">ISBN / Barcode</label>
+                  <input
+                    type="text"
+                    value={bookForm.isbn}
+                    onChange={(e) => setBookForm({ ...bookForm, isbn: e.target.value })}
+                    placeholder="978-955-xxx-xxx-x"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs font-mono text-[#20231B] focus:outline-none focus:border-[#34451D] focus:bg-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-[#20231B] mb-1">Publisher</label>
+                  <input
+                    type="text"
+                    value={bookForm.publisher}
+                    onChange={(e) => setBookForm({ ...bookForm, publisher: e.target.value })}
+                    placeholder="Sarasavi Publishers"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs text-[#20231B] focus:outline-none focus:border-[#34451D] focus:bg-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-[#20231B] mb-1">Cover Image URL</label>
+                <input
+                  type="text"
+                  value={bookForm.coverImage}
+                  onChange={(e) => setBookForm({ ...bookForm, coverImage: e.target.value })}
+                  placeholder="https://..."
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs text-[#20231B] focus:outline-none focus:border-[#34451D] focus:bg-white mb-2"
+                />
+                <div className="flex items-center gap-2 overflow-x-auto text-[10px] text-[#596B32]">
+                  <span className="text-[#85887A]">Image Presets:</span>
+                  <button
+                    type="button"
+                    onClick={() => setBookForm({ ...bookForm, coverImage: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=600' })}
+                    className="underline hover:text-[#34451D]"
+                  >
+                    Classic Book
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBookForm({ ...bookForm, coverImage: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&q=80&w=600' })}
+                    className="underline hover:text-[#34451D]"
+                  >
+                    Vintage Novel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBookForm({ ...bookForm, coverImage: 'https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?auto=format&fit=crop&q=80&w=600' })}
+                    className="underline hover:text-[#34451D]"
+                  >
+                    Notebook/Stationery
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBookForm({ ...bookForm, coverImage: 'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&q=80&w=600' })}
+                    className="underline hover:text-[#34451D]"
+                  >
+                    Art Supplies
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-[#20231B] mb-1">Description</label>
+                <textarea
+                  rows={3}
+                  value={bookForm.description}
+                  onChange={(e) => setBookForm({ ...bookForm, description: e.target.value })}
+                  placeholder="Enter a compelling overview of the book..."
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs text-[#20231B] focus:outline-none focus:border-[#34451D] focus:bg-white resize-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#E2E7D8]">
+                <button
+                  type="button"
+                  onClick={() => setIsAddModalOpen(false)}
+                  className="px-5 py-2 rounded-full border border-[#E2E7D8] text-xs font-medium text-[#85887A] hover:bg-[#F0F4E8]"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2 rounded-full bg-[#34451D] hover:bg-[#20231B] text-white text-xs font-semibold shadow-md transition-all active:scale-95 flex items-center gap-1.5"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Publish to Catalog</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── Admin Storefront: Edit Book Modal ── */}
+      {editingBook && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl border border-[#E2E7D8] shadow-2xl max-w-2xl w-full p-6 sm:p-8 space-y-6 animate-in fade-in zoom-in-95 my-8">
+            <div className="flex items-center justify-between border-b border-[#E2E7D8] pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-[#34451D] text-[#B7D85A] flex items-center justify-center">
+                  <Edit3 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-display font-medium text-lg text-[#20231B]">Edit Catalog Item</h3>
+                  <p className="text-xs text-[#85887A]">Updating &ldquo;{editingBook.title}&rdquo; (ID: {editingBook.id})</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingBook(null)}
+                className="p-2 rounded-full hover:bg-[#F0F4E8] text-[#85887A] hover:text-[#20231B]"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEditBook} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-[#20231B] mb-1">Title *</label>
+                  <input
+                    required
+                    type="text"
+                    value={bookForm.title}
+                    onChange={(e) => setBookForm({ ...bookForm, title: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs text-[#20231B] focus:outline-none focus:border-[#34451D] focus:bg-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-[#20231B] mb-1">Sinhala Title</label>
+                  <input
+                    type="text"
+                    value={bookForm.sinhalaTitle}
+                    onChange={(e) => setBookForm({ ...bookForm, sinhalaTitle: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs text-[#20231B] focus:outline-none focus:border-[#34451D] focus:bg-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-[#20231B] mb-1">Author / Creator *</label>
+                  <input
+                    required
+                    type="text"
+                    value={bookForm.author}
+                    onChange={(e) => setBookForm({ ...bookForm, author: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs text-[#20231B] focus:outline-none focus:border-[#34451D] focus:bg-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-[#20231B] mb-1">Category *</label>
+                  <select
+                    value={bookForm.category}
+                    onChange={(e) => setBookForm({ ...bookForm, category: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs text-[#20231B] focus:outline-none focus:border-[#34451D] focus:bg-white cursor-pointer"
+                  >
+                    {CATEGORIES.filter(c => c !== 'All').map(cat => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-[#20231B] mb-1">Price (LKR) *</label>
+                  <input
+                    required
+                    type="number"
+                    min="1"
+                    value={bookForm.price}
+                    onChange={(e) => setBookForm({ ...bookForm, price: Number(e.target.value) })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs font-mono text-[#20231B] focus:outline-none focus:border-[#34451D] focus:bg-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-[#20231B] mb-1">Stock Quantity *</label>
+                  <input
+                    required
+                    type="number"
+                    min="0"
+                    value={bookForm.stockQuantity}
+                    onChange={(e) => setBookForm({ ...bookForm, stockQuantity: Number(e.target.value) })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs font-mono text-[#20231B] focus:outline-none focus:border-[#34451D] focus:bg-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-[#20231B] mb-1">ISBN / Barcode</label>
+                  <input
+                    type="text"
+                    value={bookForm.isbn}
+                    onChange={(e) => setBookForm({ ...bookForm, isbn: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs font-mono text-[#20231B] focus:outline-none focus:border-[#34451D] focus:bg-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-[#20231B] mb-1">Publisher</label>
+                  <input
+                    type="text"
+                    value={bookForm.publisher}
+                    onChange={(e) => setBookForm({ ...bookForm, publisher: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs text-[#20231B] focus:outline-none focus:border-[#34451D] focus:bg-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-[#20231B] mb-1">Cover Image URL</label>
+                <input
+                  type="text"
+                  value={bookForm.coverImage}
+                  onChange={(e) => setBookForm({ ...bookForm, coverImage: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs text-[#20231B] focus:outline-none focus:border-[#34451D] focus:bg-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-[#20231B] mb-1">Description</label>
+                <textarea
+                  rows={3}
+                  value={bookForm.description}
+                  onChange={(e) => setBookForm({ ...bookForm, description: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs text-[#20231B] focus:outline-none focus:border-[#34451D] focus:bg-white resize-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#E2E7D8]">
+                <button
+                  type="button"
+                  onClick={() => setEditingBook(null)}
+                  className="px-5 py-2 rounded-full border border-[#E2E7D8] text-xs font-medium text-[#85887A] hover:bg-[#F0F4E8]"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2 rounded-full bg-[#34451D] hover:bg-[#20231B] text-white text-xs font-semibold shadow-md transition-all active:scale-95 flex items-center gap-1.5"
+                >
+                  <Check className="w-3.5 h-3.5 text-[#B7D85A]" />
+                  <span>Save Changes</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── Admin Storefront: Delete Confirmation Modal ── */}
+      {deletingBook && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl border border-red-200 shadow-2xl max-w-md w-full p-6 space-y-4 animate-in fade-in zoom-in-95">
+            <div className="w-12 h-12 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center mx-auto">
+              <AlertTriangle className="w-6 h-6" />
+            </div>
+            <div className="text-center space-y-1">
+              <h3 className="font-display font-medium text-lg text-[#20231B]">Delete Catalog Item?</h3>
+              <p className="text-xs text-[#85887A]">
+                Are you sure you want to permanently delete &ldquo;<strong className="text-[#20231B]">{deletingBook.title}</strong>&rdquo; by {deletingBook.author}? This action cannot be undone.
+              </p>
+            </div>
+            <div className="flex items-center justify-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setDeletingBook(null)}
+                className="flex-1 py-2 rounded-full border border-[#E2E7D8] text-xs font-medium text-[#85887A] hover:bg-[#F0F4E8]"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleExecuteDelete}
+                className="flex-1 py-2 rounded-full bg-red-600 hover:bg-red-700 text-white text-xs font-semibold shadow-md transition-all active:scale-95"
+              >
+                Yes, Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Admin Toast Feedback ── */}
+      {adminToast && (
+        <div className="fixed bottom-6 right-6 z-50 bg-[#20231B] text-[#F8F9F5] border border-[#34451D] px-4 py-3 rounded-2xl shadow-xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-4">
+          <CheckCircle2 className="w-4 h-4 text-[#B7D85A] shrink-0" />
+          <span className="text-xs font-medium">{adminToast}</span>
+          <button
+            type="button"
+            onClick={() => setAdminToast(null)}
+            className="text-[#AAB58A] hover:text-white ml-2"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
       )}
     </div>
   );
