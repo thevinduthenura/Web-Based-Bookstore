@@ -162,16 +162,21 @@ export default function OrdersHistoryPage() {
       let userOrders: OrderRecord[] = [];
       if (userOrdersRaw) {
         try { userOrders = JSON.parse(userOrdersRaw); } catch {}
-      } else if (custId === 'CUST-1001') {
+      } else if (custId === 'CUST-1001' || (customer && customer.email === 'kamal.perera@gmail.com')) {
         userOrders = PRESET_DEMO_ORDERS;
       }
 
       if (canManageOrders && adminViewMode === 'all') {
-        // Merge preset demo orders if allOrders is empty
+        // Staff/Admin view: show all bookstore orders
         const list = allOrders.length > 0 ? allOrders : PRESET_DEMO_ORDERS;
         setOrders(list);
       } else {
-        setOrders(userOrders.length > 0 ? userOrders : (allOrders.length > 0 ? allOrders : PRESET_DEMO_ORDERS));
+        // Reader view: show ONLY this customer's orders (fresh users start with 0 orders)
+        if (custId === 'CUST-1001' || (customer && customer.email === 'kamal.perera@gmail.com')) {
+          setOrders(userOrders.length > 0 ? userOrders : PRESET_DEMO_ORDERS);
+        } else {
+          setOrders(userOrders);
+        }
       }
     }
     setLoading(false);
