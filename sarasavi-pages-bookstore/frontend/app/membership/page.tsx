@@ -1326,7 +1326,7 @@ export default function MembershipPage() {
               }}
             >
               {/* Radial Pulsing Aura Glow Behind the Card (CineVault pulse) */}
-              <div className="absolute -inset-6 bg-radial-gradient from-[#B7D85A]/40 via-[#D96B27]/20 to-transparent rounded-3xl blur-2xl animate-vip-pulse pointer-events-none" />
+              <div className="absolute -inset-6 bg-[radial-gradient(ellipse_at_center,_rgba(183,216,90,0.5)_0%,_rgba(217,107,39,0.25)_45%,_transparent_70%)] rounded-3xl blur-2xl animate-vip-pulse pointer-events-none" />
 
               {/* Physical Floating VIP Card */}
               <div 

@@ -232,6 +232,95 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ─────────────────────────────────────────────────────────────────
+   3D CARD & VIP MEMBERSHIP CELEBRATION ANIMATIONS
+   Ref: CineVault 3D Card Engine with Sarasavi Brand Styling
+   ──────────────────────────────────────────────────────────────── */
+.perspective-1000 {
+  perspective: 1000px;
+  -webkit-perspective: 1000px;
+}
+
+.preserve-3d {
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+
+/* 3D Floating VIP Card animation */
+@keyframes vipFloat {
+  0%, 100% {
+    transform: translateY(0px) rotateX(4deg);
+  }
+  50% {
+    transform: translateY(-16px) rotateX(-4deg);
+  }
+}
+.animate-vip-float {
+  animation: vipFloat 4.5s ease-in-out infinite;
+}
+
+/* Glowing Aura Pulse animation */
+@keyframes vipPulse {
+  0%, 100% {
+    opacity: 0.35;
+    transform: scale(0.96);
+  }
+  50% {
+    opacity: 0.75;
+    transform: scale(1.08);
+  }
+}
+.animate-vip-pulse {
+  animation: vipPulse 3s ease-in-out infinite;
+}
+
+/* Holographic Diagonal Sheen Sweep */
+@keyframes vipShine {
+  0% {
+    transform: translateX(-160%) rotate(25deg);
+  }
+  40%, 100% {
+    transform: translateX(160%) rotate(25deg);
+  }
+}
+.animate-vip-shine {
+  animation: vipShine 3.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* Falling Celebratory Confetti */
+@keyframes confettiFall {
+  0% {
+    transform: translateY(0) rotate(0deg) scale(1);
+    opacity: 1;
+  }
+  80% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(420px) rotate(720deg) scale(0.6);
+    opacity: 0;
+  }
+}
+.confetti-item {
+  position: absolute;
+  width: 8px;
+  height: 14px;
+  border-radius: 2px;
+  will-change: transform, opacity;
+  animation-name: confettiFall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+/* ─────────────────────────────────────────────────────────────────
    UTILITIES
    ──────────────────────────────────────────────────────────────── */
 .no-scrollbar::-webkit-scrollbar { display: none; }
