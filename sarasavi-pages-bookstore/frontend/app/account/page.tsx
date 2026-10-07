@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Cookies from 'js-cookie';
+import apiClient from '@/lib/api-client';
+import { isCustomerDeactivatedLocally } from '@/hooks/useAuth';
 import { printMembershipInvoice, printPaymentReceipt } from '@/lib/invoice-pdf';
 import { formatAndLimitPhone, handlePhoneKeyDown } from '@/lib/input-utils';
 import { 
@@ -173,6 +175,17 @@ export default function CustomerAccountPage() {
     if (raw) {
       try {
         const parsed: CustomerData = JSON.parse(raw);
+        const deactCheck = isCustomerDeactivatedLocally(parsed.customerId || parsed.email);
+        if (deactCheck.isDeactivated) {
+          Cookies.remove('sp_customer', { path: '/' });
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('sp_customer');
+            window.dispatchEvent(new Event('sp_customer_updated'));
+          }
+          router.push('/login?deactivated=true');
+          return;
+        }
+
         if (typeof window !== 'undefined') {
           const savedMembership = localStorage.getItem('sp_membership');
           if (savedMembership && (!parsed.membership || parsed.membership === 'NONE')) {
@@ -311,8 +324,55 @@ export default function CustomerAccountPage() {
     Cookies.remove('sp_customer', { path: '/' });
     if (typeof window !== 'undefined') {
       localStorage.removeItem('sp_customer');
+      window.dispatchEvent(new Event('sp_customer_updated'));
     }
     router.push('/login');
+  };
+
+  const handleDeactivateAccount = async () => {
+    if (!confirm('Are you sure you want to deactivate your reader account? You will be signed out immediately and cannot sign in until reactivated by administration.')) {
+      return;
+    }
+
+    try {
+      if (customer.customerId) {
+        await apiClient.patch(`/accounts/${customer.customerId}/status?status=DEACTIVATED`).catch(() => {});
+      }
+    } catch {}
+
+    if (typeof window !== 'undefined') {
+      try {
+        let deactCusts: string[] = JSON.parse(localStorage.getItem('sp_deactivated_customers') || '[]');
+        const cid = (customer.customerId || '').toLowerCase();
+        const em = (customer.email || '').toLowerCase();
+        if (cid && !deactCusts.includes(cid)) deactCusts.push(cid);
+        if (em && !deactCusts.includes(em)) deactCusts.push(em);
+        localStorage.setItem('sp_deactivated_customers', JSON.stringify(deactCusts));
+
+        // Update status in local account store
+        const accounts: any[] = JSON.parse(localStorage.getItem('sp_customer_accounts') || '[]');
+        const updatedAccounts = accounts.map((a: any) =>
+          (a.customerId?.toLowerCase() === cid || a.email?.toLowerCase() === em) ? { ...a, status: 'DEACTIVATED' } : a
+        );
+        localStorage.setItem('sp_customer_accounts', JSON.stringify(updatedAccounts));
+
+        // Update in registered customers
+        const registered: any[] = JSON.parse(localStorage.getItem('sp_registered_customers') || '[]');
+        const updatedRegistered = registered.map((r: any) =>
+          (r.customerId?.toLowerCase() === cid || r.email?.toLowerCase() === em) ? { ...r, status: 'DEACTIVATED' } : r
+        );
+        localStorage.setItem('sp_registered_customers', JSON.stringify(updatedRegistered));
+
+        Cookies.remove('sp_customer', { path: '/' });
+        localStorage.removeItem('sp_customer');
+        window.dispatchEvent(new Event('sp_customer_updated'));
+        window.dispatchEvent(new Event('sp_deactivated_customers_updated'));
+      } catch (e) {
+        console.error('Error during self deactivation:', e);
+      }
+    }
+
+    router.push('/login?deactivated=true');
   };
 
   const handleSaveProfile = (e: React.FormEvent) => {
@@ -556,6 +616,26 @@ export default function CustomerAccountPage() {
                 <span className="text-[11px] text-[#85887A] block">Next Tier Upgrade</span>
                 <span className="text-xs font-medium text-[#34451D]">150 more points to PLATINUM</span>
               </div>
+            </div>
+
+            {/* Danger Zone: Account Deactivation */}
+            <div className="md:col-span-3 bg-white p-6 rounded-2xl border border-rose-200 bg-gradient-to-r from-white via-rose-50/20 to-rose-50/40 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h4 className="text-sm font-semibold text-rose-900 flex items-center gap-1.5">
+                  <ShieldCheck className="w-4 h-4 text-rose-600" />
+                  <span>Account Deactivation (Self-Service)</span>
+                </h4>
+                <p className="text-xs text-[#85887A] mt-1 max-w-xl">
+                  Temporarily disable or deactivate your Sarasavi Pages reader profile. While deactivated, you will not be able to log in or make purchases until an administrator re-activates your account.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleDeactivateAccount}
+                className="px-4 py-2 rounded-xl border border-rose-300 text-rose-700 bg-white hover:bg-rose-50 text-xs font-semibold shrink-0 transition-all shadow-xs"
+              >
+                Deactivate My Account
+              </button>
             </div>
           </div>
         )}

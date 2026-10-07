@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Cookies from 'js-cookie';
 import { useAuth } from '@/hooks/useAuth';
 import apiClient from '@/lib/api-client';
 import { formatAndLimitPhone, handlePhoneKeyDown, limitPostalCode } from '@/lib/input-utils';
@@ -214,7 +215,7 @@ export default function AccountsDashboardPage() {
   };
 
   const handleToggleStatus = async (customerId: string, currentStatus: string) => {
-    const nextStatus = currentStatus === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';
+    const nextStatus = currentStatus === 'ACTIVE' ? 'DEACTIVATED' : 'ACTIVE';
     try {
       await apiClient.patch(`/accounts/${customerId}/status?status=${nextStatus}`);
     } catch (err) {}
@@ -223,6 +224,40 @@ export default function AccountsDashboardPage() {
       persistCustomers(next);
       return next;
     });
+
+    if (typeof window !== 'undefined') {
+      try {
+        let deactCusts: string[] = JSON.parse(localStorage.getItem('sp_deactivated_customers') || '[]');
+        const target = customers.find(c => c.customerId === customerId);
+        const cid = customerId.toLowerCase();
+        const em = target?.email?.toLowerCase();
+
+        if (nextStatus === 'DEACTIVATED') {
+          if (!deactCusts.includes(cid)) deactCusts.push(cid);
+          if (em && !deactCusts.includes(em)) deactCusts.push(em);
+
+          // Purge session if this customer is currently logged in
+          const activeCustRaw = localStorage.getItem('sp_customer');
+          if (activeCustRaw) {
+            try {
+              const activeCust = JSON.parse(activeCustRaw);
+              if (activeCust && (activeCust.customerId?.toLowerCase() === cid || activeCust.email?.toLowerCase() === em)) {
+                Cookies.remove('sp_customer', { path: '/' });
+                localStorage.removeItem('sp_customer');
+                window.dispatchEvent(new Event('sp_customer_updated'));
+              }
+            } catch {}
+          }
+        } else {
+          deactCusts = deactCusts.filter(x => x !== cid && x !== em);
+        }
+        localStorage.setItem('sp_deactivated_customers', JSON.stringify(deactCusts));
+        window.dispatchEvent(new Event('sp_deactivated_customers_updated'));
+      } catch (e) {
+        console.error('Error updating sp_deactivated_customers:', e);
+      }
+    }
+
     setNotification({ type: 'success', message: `[UPDATE] Account status set to ${nextStatus} for ${customerId}` });
   };
 
@@ -266,6 +301,28 @@ export default function AccountsDashboardPage() {
       persistCustomers(next);
       return next;
     });
+
+    if (typeof window !== 'undefined') {
+      try {
+        let deactCusts: string[] = JSON.parse(localStorage.getItem('sp_deactivated_customers') || '[]');
+        const cid = customerId.toLowerCase();
+        if (!deactCusts.includes(cid)) deactCusts.push(cid);
+        localStorage.setItem('sp_deactivated_customers', JSON.stringify(deactCusts));
+        
+        const activeCustRaw = localStorage.getItem('sp_customer');
+        if (activeCustRaw) {
+          try {
+            const activeCust = JSON.parse(activeCustRaw);
+            if (activeCust && activeCust.customerId?.toLowerCase() === cid) {
+              Cookies.remove('sp_customer', { path: '/' });
+              localStorage.removeItem('sp_customer');
+              window.dispatchEvent(new Event('sp_customer_updated'));
+            }
+          } catch {}
+        }
+      } catch {}
+    }
+
     setNotification({ type: 'success', message: `[DELETE] Customer account ${customerId} deleted permanently.` });
   };
 

@@ -141,6 +141,78 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
+// ── Helper functions to check if account is deactivated locally ──────────────────
+export const isStaffDeactivatedLocally = (identifier: string): { isDeactivated: boolean; reason?: string } => {
+  if (typeof window === 'undefined' || !identifier) return { isDeactivated: false };
+  try {
+    const clean = identifier.trim().toLowerCase();
+
+    // 1. Explicit deactivated staff list
+    const deactList: string[] = JSON.parse(localStorage.getItem('sp_deactivated_staff') || '[]');
+    if (deactList.some(d => d.toLowerCase() === clean)) {
+      return { isDeactivated: true, reason: `Staff account "${identifier}" has been deactivated by Super Admin.` };
+    }
+
+    // 2. Staff registry in localStorage
+    const staffList: any[] = JSON.parse(localStorage.getItem('sp_admin_staff') || '[]');
+    const matched = staffList.find((s: any) =>
+      s.username?.toLowerCase() === clean ||
+      s.email?.toLowerCase() === clean ||
+      s.employeeId?.toLowerCase() === clean ||
+      s.itNumber?.toLowerCase() === clean
+    );
+    if (matched && (matched.active === false || matched.status === 'DEACTIVATED')) {
+      return { isDeactivated: true, reason: `Staff account @${matched.username} is deactivated. Access is denied.` };
+    }
+  } catch {}
+  return { isDeactivated: false };
+};
+
+export const isCustomerDeactivatedLocally = (identifier: string): { isDeactivated: boolean; reason?: string } => {
+  if (typeof window === 'undefined' || !identifier) return { isDeactivated: false };
+  try {
+    const clean = identifier.trim().toLowerCase();
+
+    // 1. Explicit deactivated customer list
+    const deactList: string[] = JSON.parse(localStorage.getItem('sp_deactivated_customers') || '[]');
+    if (deactList.some(d => d.toLowerCase() === clean)) {
+      return { isDeactivated: true, reason: 'This customer account has been deactivated by administration.' };
+    }
+
+    // 2. Customer accounts store (from Admin Accounts dashboard)
+    const accounts: any[] = JSON.parse(localStorage.getItem('sp_customer_accounts') || '[]');
+    const matched = accounts.find((a: any) =>
+      a.customerId?.toLowerCase() === clean ||
+      a.email?.toLowerCase() === clean ||
+      `${a.firstName || ''} ${a.lastName || ''}`.trim().toLowerCase() === clean
+    );
+    if (matched) {
+      if (matched.status === 'DEACTIVATED') {
+        return { isDeactivated: true, reason: `Customer account (${matched.customerId}) has been DEACTIVATED.` };
+      }
+      if (matched.status === 'SUSPENDED') {
+        return { isDeactivated: true, reason: `Customer account (${matched.customerId}) is SUSPENDED.` };
+      }
+    }
+
+    // 3. Registered customers store
+    const registered: any[] = JSON.parse(localStorage.getItem('sp_registered_customers') || '[]');
+    const regMatched = registered.find((r: any) =>
+      r.customerId?.toLowerCase() === clean ||
+      r.email?.toLowerCase() === clean
+    );
+    if (regMatched) {
+      if (regMatched.status === 'DEACTIVATED' || regMatched.active === false) {
+        return { isDeactivated: true, reason: 'This customer account has been deactivated.' };
+      }
+      if (regMatched.status === 'SUSPENDED') {
+        return { isDeactivated: true, reason: 'This customer account is suspended.' };
+      }
+    }
+  } catch {}
+  return { isDeactivated: false };
+};
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -155,7 +227,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
-        setUser(parsed);
+        const deactCheck = isStaffDeactivatedLocally(parsed.username || parsed.email || parsed.employeeId || '');
+        if (deactCheck.isDeactivated) {
+          Cookies.remove('sp_user', { path: '/' });
+          Cookies.remove('sp_token', { path: '/' });
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('sp_user');
+            localStorage.removeItem('sp_token');
+            window.dispatchEvent(new Event('sp_user_updated'));
+          }
+          setUser(null);
+        } else {
+          setUser(parsed);
+        }
       } catch {
         Cookies.remove('sp_user', { path: '/' });
         Cookies.remove('sp_token', { path: '/' });
@@ -203,6 +287,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const cleanUserLower = cleanUser.toLowerCase();
     const cleanPass = (credentials.password || '').trim();
 
+    // 0. Check if account is deactivated locally
+    const initialDeactCheck = isStaffDeactivatedLocally(cleanUser);
+    if (initialDeactCheck.isDeactivated) {
+      throw new Error(initialDeactCheck.reason || `This staff account (@${cleanUser}) has been deactivated. Access is denied.`);
+    }
+
     // 1. Try real Spring Boot API call
     try {
       const { data } = await apiClient.post('/auth/login', {
@@ -212,7 +302,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (data?.data?.token) {
         authUser = data.data;
       }
-    } catch {
+    } catch (err: any) {
+      const status = err?.response?.status;
+      const respData = err?.response?.data;
+      const errorMsg = respData?.message || err?.message || '';
+      if (
+        status === 403 || 
+        errorMsg.toLowerCase().includes('deactivated') || 
+        errorMsg.toLowerCase().includes('disabled') ||
+        errorMsg.toLowerCase().includes('locked')
+      ) {
+        throw new Error(errorMsg || `This staff account (@${cleanUser}) has been deactivated by Super Admin.`);
+      }
       // API call failed or in-memory DB reset -> fall back to local presets
     }
 
@@ -230,6 +331,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         );
         
         if (found) {
+          if (found.active === false || found.status === 'DEACTIVATED') {
+            throw new Error(`This staff account (@${found.username}) has been deactivated by Super Admin. Access is denied.`);
+          }
+
           const savedPass = localStaffCreds[found.username?.toLowerCase()] || 
                             localStaffCreds[found.email?.toLowerCase()] || 
                             localStaffCreds[found.employeeId?.toLowerCase()] ||
@@ -268,7 +373,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         }
       } catch (e: any) {
-        if (e.message && e.message.includes('Invalid password')) {
+        if (e.message && (e.message.includes('Invalid password') || e.message.includes('deactivated'))) {
           throw e;
         }
       }
@@ -307,6 +412,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Check generic admin keywords
       if (!authUser && (cleanUserLower === 'admin' || cleanUserLower === 'superadmin' || cleanUserLower === 'administrator' || cleanUserLower === 'root')) {
         authUser = STAFF_PRESETS['admin:admin'];
+      }
+    }
+
+    // Verify resolved preset is not deactivated
+    if (authUser) {
+      const checkPresetDeact = isStaffDeactivatedLocally(authUser.username) ||
+                               (authUser.email ? isStaffDeactivatedLocally(authUser.email) : { isDeactivated: false }) ||
+                               (authUser.employeeId ? isStaffDeactivatedLocally(authUser.employeeId) : { isDeactivated: false });
+      if (checkPresetDeact.isDeactivated) {
+        throw new Error(checkPresetDeact.reason || `This staff account (@${authUser.username}) has been deactivated by Super Admin. Access is denied.`);
       }
     }
 

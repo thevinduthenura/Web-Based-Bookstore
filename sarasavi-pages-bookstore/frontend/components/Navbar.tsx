@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Cookies from 'js-cookie';
+import { isCustomerDeactivatedLocally, isStaffDeactivatedLocally } from '@/hooks/useAuth';
 import { 
   Globe, 
   ShoppingCart, 
@@ -213,6 +214,17 @@ export default function Navbar({
         const staffRaw = Cookies.get('sp_user') || (typeof window !== 'undefined' ? localStorage.getItem('sp_user') : null);
         if (staffRaw) {
           const parsed = JSON.parse(staffRaw);
+          if (isStaffDeactivatedLocally(parsed.username || parsed.email || parsed.employeeId || '').isDeactivated) {
+            Cookies.remove('sp_user', { path: '/' });
+            Cookies.remove('sp_token', { path: '/' });
+            if (typeof window !== 'undefined') {
+              localStorage.removeItem('sp_user');
+              localStorage.removeItem('sp_token');
+            }
+            setCustomer(null);
+            return;
+          }
+
           setCustomer({ 
             id: parsed.username || 'admin', 
             name: parsed.fullName || parsed.username || 'Admin',
@@ -227,6 +239,15 @@ export default function Navbar({
         const custRaw = Cookies.get('sp_customer') || (typeof window !== 'undefined' ? localStorage.getItem('sp_customer') : null);
         if (custRaw) {
           const parsed = JSON.parse(custRaw);
+          if (isCustomerDeactivatedLocally(parsed.customerId || parsed.email || '').isDeactivated) {
+            Cookies.remove('sp_customer', { path: '/' });
+            if (typeof window !== 'undefined') {
+              localStorage.removeItem('sp_customer');
+            }
+            setCustomer(null);
+            return;
+          }
+
           setCustomer(parsed);
           return;
         }

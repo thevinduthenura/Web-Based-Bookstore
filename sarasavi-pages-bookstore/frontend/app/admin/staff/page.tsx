@@ -484,6 +484,31 @@ export default function StaffManagementPage() {
       setStaffList(prev => {
         const next = prev.map(s => s.id === staff.id ? { ...s, active: !staff.active } : s);
         persistStaff(next);
+
+        // Synchronize sp_deactivated_staff registry
+        if (typeof window !== 'undefined') {
+          try {
+            let deactList: string[] = JSON.parse(localStorage.getItem('sp_deactivated_staff') || '[]');
+            const u = staff.username.toLowerCase();
+            const em = (staff.email || '').toLowerCase();
+            const emp = (staff.employeeId || '').toLowerCase();
+
+            if (staff.active) {
+              // Action was deactivating
+              if (!deactList.includes(u)) deactList.push(u);
+              if (em && !deactList.includes(em)) deactList.push(em);
+              if (emp && !deactList.includes(emp)) deactList.push(emp);
+            } else {
+              // Action was activating
+              deactList = deactList.filter(item => item !== u && item !== em && item !== emp);
+            }
+            localStorage.setItem('sp_deactivated_staff', JSON.stringify(deactList));
+            window.dispatchEvent(new Event('sp_deactivated_staff_updated'));
+          } catch (e) {
+            console.error('Failed to update sp_deactivated_staff:', e);
+          }
+        }
+
         return next;
       });
       setFeedback({ 

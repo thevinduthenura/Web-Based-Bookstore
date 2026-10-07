@@ -45,6 +45,11 @@ public class AuthController {
                         request.getUsername(), request.getPassword()));
 
         Staff staff = (Staff) auth.getPrincipal();
+        if (!staff.isActive()) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.FORBIDDEN)
+                    .body(ApiResponse.error("This staff account has been deactivated. Please contact the Super Admin."));
+        }
+
         String token = jwtUtil.generateToken(staff);
 
         // Record the login in audit log

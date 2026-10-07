@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Cookies from 'js-cookie';
-import { useAuth, STAFF_PRESETS } from '@/hooks/useAuth';
+import { useAuth, STAFF_PRESETS, isStaffDeactivatedLocally, isCustomerDeactivatedLocally } from '@/hooks/useAuth';
 import apiClient from '@/lib/api-client';
 import { formatAndLimitPhone, handlePhoneKeyDown } from '@/lib/input-utils';
 import { 
@@ -186,11 +186,14 @@ function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Read ?error= param and sync staff directory from backend
+  // Read ?error= or ?deactivated= param and sync staff directory from backend
   useEffect(() => {
     const errorParam = searchParams.get('error');
     if (errorParam === 'admin_required') {
       setError('Access restricted. Please sign in with an authorized account.');
+    }
+    if (searchParams.get('deactivated') === 'true') {
+      setError('Your account has been deactivated. Access is restricted. Please contact administration.');
     }
 
     // Refresh staff accounts from backend to guarantee newly added admins are recognized
@@ -212,6 +215,20 @@ function LoginForm() {
           const merged = [...backendStaff, ...additions];
           if (typeof window !== 'undefined') {
             localStorage.setItem('sp_admin_staff', JSON.stringify(merged));
+            try {
+              let deactList: string[] = JSON.parse(localStorage.getItem('sp_deactivated_staff') || '[]');
+              merged.forEach((s: any) => {
+                if (s.active === false || s.status === 'DEACTIVATED') {
+                  const u = s.username?.toLowerCase();
+                  const em = s.email?.toLowerCase();
+                  const emp = (s.employeeId || s.itNumber)?.toLowerCase();
+                  if (u && !deactList.includes(u)) deactList.push(u);
+                  if (em && !deactList.includes(em)) deactList.push(em);
+                  if (emp && !deactList.includes(emp)) deactList.push(emp);
+                }
+              });
+              localStorage.setItem('sp_deactivated_staff', JSON.stringify(deactList));
+            } catch {}
           }
         }
       })
@@ -263,6 +280,21 @@ function LoginForm() {
     );
 
     if (isCustomer) {
+      const deactCheck = isCustomerDeactivatedLocally(u);
+      if (deactCheck.isDeactivated) {
+        setError(deactCheck.reason || 'This customer account has been deactivated or suspended by administration.');
+        setIsSubmitting(false);
+        return;
+      }
+
+      let customer = CUSTOMER_PRESETS.find(c => c.email.toLowerCase() === u.toLowerCase()) || CUSTOMER_PRESETS[0];
+      const checkMatched = isCustomerDeactivatedLocally(customer.customerId) || isCustomerDeactivatedLocally(customer.email);
+      if (checkMatched.isDeactivated) {
+        setError(checkMatched.reason || 'This customer account has been deactivated or suspended by administration.');
+        setIsSubmitting(false);
+        return;
+      }
+
       Cookies.remove('sp_token', { path: '/' });
       Cookies.remove('sp_user', { path: '/' });
       if (typeof window !== 'undefined') {
@@ -271,7 +303,6 @@ function LoginForm() {
         window.dispatchEvent(new Event('sp_user_updated'));
       }
 
-      let customer = CUSTOMER_PRESETS.find(c => c.email.toLowerCase() === u.toLowerCase()) || CUSTOMER_PRESETS[0];
       Cookies.set('sp_customer', JSON.stringify(customer), { expires: 7, path: '/' });
       if (typeof window !== 'undefined') {
         localStorage.setItem('sp_customer', JSON.stringify(customer));
@@ -283,6 +314,13 @@ function LoginForm() {
     }
 
     // Staff instant login
+    const staffDeactCheck = isStaffDeactivatedLocally(u);
+    if (staffDeactCheck.isDeactivated) {
+      setError(staffDeactCheck.reason || `Staff account "${u}" has been deactivated by Super Admin.`);
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       Cookies.remove('sp_customer', { path: '/' });
       if (typeof window !== 'undefined') {
@@ -292,6 +330,12 @@ function LoginForm() {
       await login({ username: u, password: p });
     } catch (err: any) {
       console.error('Staff instant login error:', err);
+      if (err?.message && (err.message.includes('deactivated') || err.message.includes('disabled') || err.message.includes('denied'))) {
+        setError(err.message);
+        setIsSubmitting(false);
+        return;
+      }
+
       // Fallback: check STAFF_PRESETS directly
       const cleanLower = u.toLowerCase();
       let matchedPreset = Object.values(STAFF_PRESETS).find(
@@ -308,6 +352,12 @@ function LoginForm() {
       }
 
       if (matchedPreset) {
+        if (isStaffDeactivatedLocally(matchedPreset.username).isDeactivated) {
+          setError(`Staff account @${matchedPreset.username} has been deactivated by Super Admin. Access is denied.`);
+          setIsSubmitting(false);
+          return;
+        }
+
         Cookies.set('sp_token', matchedPreset.token, { expires: 1, path: '/', sameSite: 'lax' });
         Cookies.set('sp_user', JSON.stringify(matchedPreset), { expires: 1, path: '/', sameSite: 'lax' });
         if (typeof window !== 'undefined') {
@@ -343,6 +393,13 @@ function LoginForm() {
 
       // 1. Strictly detect if this is a Staff / Administrator user
       if (isStaffIdentifier(cleanId)) {
+        // Immediate local deactivation check
+        const staffDeact = isStaffDeactivatedLocally(cleanId);
+        if (staffDeact.isDeactivated) {
+          setError(staffDeact.reason || `This staff account (@${cleanId}) has been deactivated by Super Admin. Access is denied.`);
+          return;
+        }
+
         // Purge any customer cookies/localStorage so staff session takes full precedence
         Cookies.remove('sp_customer', { path: '/' });
         if (typeof window !== 'undefined') {
@@ -356,6 +413,11 @@ function LoginForm() {
         } catch (err: any) {
           console.error('Staff login error:', err);
           
+          if (err?.message && (err.message.includes('deactivated') || err.message.includes('disabled') || err.message.includes('denied'))) {
+            setError(err.message);
+            return;
+          }
+
           // Local fallback: check newly created staff in localStorage (sp_admin_staff)
           if (typeof window !== 'undefined') {
             try {
@@ -368,6 +430,11 @@ function LoginForm() {
                 s.itNumber?.toLowerCase() === cleanLower
               );
               if (found) {
+                if (found.active === false || found.status === 'DEACTIVATED' || isStaffDeactivatedLocally(found.username).isDeactivated) {
+                  setError(`Staff account @${found.username} has been deactivated by Super Admin. Access is denied.`);
+                  return;
+                }
+
                 const savedPass = localStaffCreds[found.username?.toLowerCase()] || 
                                   localStaffCreds[found.email?.toLowerCase()] || 
                                   localStaffCreds[found.employeeId?.toLowerCase()] ||
@@ -428,6 +495,11 @@ function LoginForm() {
           }
 
           if (preset) {
+            if (isStaffDeactivatedLocally(preset.username).isDeactivated) {
+              setError(`Staff account @${preset.username} has been deactivated by Super Admin. Access is denied.`);
+              return;
+            }
+
             const expectedPass = matchedKey ? matchedKey.split(':')[1] : '';
             const isPasswordCorrect = 
               (expectedPass && (cleanPass === expectedPass || cleanPass.toLowerCase() === expectedPass.toLowerCase())) ||
@@ -461,6 +533,12 @@ function LoginForm() {
                              cleanLower.includes('manager') ||
                              cleanLower.includes('@sarasavi');
       if (hasStaffFormat) {
+        const staffDeact = isStaffDeactivatedLocally(cleanId);
+        if (staffDeact.isDeactivated) {
+          setError(staffDeact.reason || `This staff account (@${cleanId}) has been deactivated by Super Admin. Access is denied.`);
+          return;
+        }
+
         try {
           await login({ username: cleanId, password: cleanPass });
           return;
@@ -471,6 +549,13 @@ function LoginForm() {
       }
 
       // ── 2. Customer / Reader Authentication Path ─────────────────────────
+      // Immediate deactivation check for customer identifier
+      const custDeact = isCustomerDeactivatedLocally(cleanId);
+      if (custDeact.isDeactivated) {
+        setError(custDeact.reason || `This customer account (${cleanId}) has been deactivated or suspended by administration.`);
+        return;
+      }
+
       // Clear any staff tokens to avoid cross-contamination
       Cookies.remove('sp_token', { path: '/' });
       Cookies.remove('sp_user', { path: '/' });
@@ -502,6 +587,15 @@ function LoginForm() {
           if (found) customer = found;
         } catch (e) {
           console.error(e);
+        }
+      }
+
+      // Verify resolved customer is not deactivated
+      if (customer) {
+        const checkMatched = isCustomerDeactivatedLocally(customer.customerId) || isCustomerDeactivatedLocally(customer.email);
+        if (checkMatched.isDeactivated) {
+          setError(checkMatched.reason || `This account (${customer.email}) has been deactivated or suspended by administration.`);
+          return;
         }
       }
 
