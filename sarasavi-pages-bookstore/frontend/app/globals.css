@@ -1,94 +1,8 @@
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&family=Sora:wght@300;400;500;600;700&display=swap');
-
 :root {
   --font-sora: 'Sora', system-ui, sans-serif;
   --font-manrope: 'Manrope', system-ui, sans-serif;
 }
 
-/* ─────────────────────────────────────────────────────────────────
-   REINA NEUE - Premium Display Typeface (@font-face declarations)
-   Place your licensed .woff2 files inside: /public/fonts/
-   Download / purchase: https://www.fenotype.com/fonts/reina
-   ──────────────────────────────────────────────────────────────── */
-@font-face {
-  font-family: 'Reina Neue';
-  src: url('/fonts/ReinaNeue-Light.woff2') format('woff2');
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Reina Neue';
-  src: url('/fonts/ReinaNeue-Regular.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Reina Neue';
-  src: url('/fonts/ReinaNeue-Medium.woff2') format('woff2');
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Reina Neue';
-  src: url('/fonts/ReinaNeue-SemiBold.woff2') format('woff2');
-  font-weight: 600;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Reina Neue';
-  src: url('/fonts/ReinaNeue-Bold.woff2') format('woff2');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Reina Neue';
-  src: url('/fonts/ReinaNeue-ExtraBold.woff2') format('woff2');
-  font-weight: 800;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Reina Neue';
-  src: url('/fonts/ReinaNeue-Black.woff2') format('woff2');
-  font-weight: 900;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Reina Neue';
-  src: url('/fonts/ReinaNeue-LightItalic.woff2') format('woff2');
-  font-weight: 300;
-  font-style: italic;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Reina Neue';
-  src: url('/fonts/ReinaNeue-Italic.woff2') format('woff2');
-  font-weight: 400;
-  font-style: italic;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Reina Neue';
-  src: url('/fonts/ReinaNeue-BoldItalic.woff2') format('woff2');
-  font-weight: 700;
-  font-style: italic;
-  font-display: swap;
-}
 
 /* ─────────────────────────────────────────────────────────────────
    CSS CUSTOM PROPERTIES
@@ -409,5 +323,53 @@ h1, h2, h3, h4, h5, h6 {
 .admin-theme span.bg-black {
   background-color: #20231B !important;
   color: #FFFFFF !important;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   CINEMATIC & VINTAGE POSTAL ARCHIVAL UTILITIES
+   Inspired by Ceylon philately, classic editorial serifs & archival letters
+   ──────────────────────────────────────────────────────────────── */
+.font-cinematic {
+  font-family: 'Cormorant Garamond', 'Playfair Display', Georgia, serif;
+}
+
+.font-editorial-serif {
+  font-family: 'Playfair Display', Georgia, serif;
+}
+
+.font-archival {
+  font-family: 'Cinzel', serif;
+  letter-spacing: 0.12em;
+}
+
+.font-postcard {
+  font-family: 'Caveat', cursive, sans-serif;
+}
+
+/* Burnished antique gold text gradient */
+.text-gold-gradient {
+  background: linear-gradient(135deg, #F4DFC0 0%, #D4AF37 50%, #AA8232 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.bg-gold-gradient {
+  background: linear-gradient(135deg, #D4AF37 0%, #E5C07B 50%, #C5A059 100%);
+}
+
+.border-gold-subtle {
+  border-color: rgba(212, 175, 55, 0.35);
+}
+
+/* Arched window shape for heritage card */
+.arch-card {
+  border-top-left-radius: 9999px;
+  border-top-right-radius: 9999px;
+}
+
+/* Cinematic film grain overlay */
+.cinematic-grain {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 0);
+  background-size: 24px 24px;
 }
 

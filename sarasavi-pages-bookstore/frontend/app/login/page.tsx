@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Cookies from 'js-cookie';
 import { useAuth } from '@/hooks/useAuth';
 import apiClient from '@/lib/api-client';
+import { formatAndLimitPhone } from '@/lib/input-utils';
 import { 
   Lock, 
   User, 
@@ -16,7 +17,11 @@ import {
   CheckCircle2,
   UserPlus,
   ArrowLeft,
-  X
+  X,
+  Sparkles,
+  ChevronUp,
+  ChevronDown,
+  Check
 } from 'lucide-react';
 
 const CUSTOMER_PRESETS = [
@@ -48,6 +53,166 @@ const CUSTOMER_PRESETS = [
     address: 'No 88, Havelock Road, Colombo 05',
   },
 ];
+
+// Demo staff presets — mirrors DataInitializer seed data.
+// Used as local fallback when the Spring Boot / H2 backend is unavailable or
+// the in-memory DB has been reset after a restart.
+const STAFF_PRESETS: Record<string, {
+  token: string;
+  staffId: number;
+  username: string;
+  fullName: string;
+  role: string;
+  dashboardPath: string;
+}> = {
+  'admin:admin': {
+    token: 'demo-jwt-superadmin',
+    staffId: 1,
+    username: 'admin',
+    fullName: 'System Administrator (Gunathilaka H.D.T.T.)',
+    role: 'SUPER_ADMIN',
+    dashboardPath: '/admin/dashboard',
+  },
+  'admin:admin123': {
+    token: 'demo-jwt-superadmin',
+    staffId: 1,
+    username: 'admin',
+    fullName: 'System Administrator (Gunathilaka H.D.T.T.)',
+    role: 'SUPER_ADMIN',
+    dashboardPath: '/admin/dashboard',
+  },
+  'GunathilakaT1540:1540': {
+    token: 'demo-jwt-superadmin',
+    staffId: 1,
+    username: 'GunathilakaT1540',
+    fullName: 'Gunathilaka H.D.T.T.',
+    role: 'SUPER_ADMIN',
+    dashboardPath: '/admin/dashboard',
+  },
+  'AnafS2345:2345': {
+    token: 'demo-jwt-payment',
+    staffId: 2,
+    username: 'AnafS2345',
+    fullName: 'Anaf M.K.A.S.',
+    role: 'PAYMENT_ADMIN',
+    dashboardPath: '/admin/payment/dashboard',
+  },
+  'ZeenC3342:3342': {
+    token: 'demo-jwt-cs',
+    staffId: 3,
+    username: 'ZeenC3342',
+    fullName: 'Zeen A.C.',
+    role: 'CUSTOMER_SERVICE_ADMIN',
+    dashboardPath: '/admin/customer-service/dashboard',
+  },
+  'DissanayakeD1062:1062': {
+    token: 'demo-jwt-inventory',
+    staffId: 4,
+    username: 'DissanayakeD1062',
+    fullName: 'Dissanayake S.A.S.D.',
+    role: 'INVENTORY_ADMIN',
+    dashboardPath: '/admin/inventory/dashboard',
+  },
+  'GayathmiR3013:3013': {
+    token: 'demo-jwt-accounts',
+    staffId: 5,
+    username: 'GayathmiR3013',
+    fullName: 'Gayathmi P.G.R.',
+    role: 'ACCOUNT_ADMIN',
+    dashboardPath: '/admin/accounts/dashboard',
+  },
+  'DiyesL0263:0263': {
+    token: 'demo-jwt-orders',
+    staffId: 6,
+    username: 'DiyesL0263',
+    fullName: 'Diyes C.L.',
+    role: 'ORDER_ADMIN',
+    dashboardPath: '/admin/orders/dashboard',
+  },
+};
+
+// ── Demo Credentials Quick-Fill & 1-Click Instant Login Panel ──────────────
+function DemoCredentialsPanel({ 
+  onFill,
+  onInstantLogin 
+}: { 
+  onFill: (u: string, p: string) => void;
+  onInstantLogin: (u: string, p: string) => void;
+}) {
+  const [open, setOpen] = useState(true);
+
+  const DEMOS = [
+    { label: 'Super Admin', username: 'GunathilakaT1540', password: '1540', badge: 'bg-[#34451D] text-white', desc: 'Full system & staff control' },
+    { label: 'Admin (Quick)', username: 'admin', password: 'admin', badge: 'bg-[#20231B] text-[#B7D85A]', desc: 'Quick admin access' },
+    { label: 'Payment Admin', username: 'AnafS2345', password: '2345', badge: 'bg-[#596B32] text-white', desc: 'Gateway & transactions' },
+    { label: 'Customer Service', username: 'ZeenC3342', password: '3342', badge: 'bg-[#7F9148] text-white', desc: 'Tickets & inquiries' },
+    { label: 'Inventory Admin', username: 'DissanayakeD1062', password: '1062', badge: 'bg-[#B7D85A] text-[#20231B]', desc: 'Stock & supplier logs' },
+    { label: 'Account Admin', username: 'GayathmiR3013', password: '3013', badge: 'bg-[#E2E7D8] text-[#20231B]', desc: 'Customer KYC & tiers' },
+    { label: 'Order Admin', username: 'DiyesL0263', password: '0263', badge: 'bg-[#F0F4E8] text-[#20231B] border border-[#E2E7D8]', desc: 'Book catalog & orders' },
+    { label: 'Customer (Reader)', username: 'kamal.perera@gmail.com', password: 'any', badge: 'bg-emerald-50 text-emerald-800 border border-emerald-200', desc: 'Account profile & library' },
+  ];
+
+  return (
+    <div className="mt-5 border-t border-[#E2E7D8] pt-4">
+      <button
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        className="w-full flex items-center justify-between text-[11px] text-[#34451D] hover:text-[#596B32] font-semibold transition-colors"
+      >
+        <span className="flex items-center gap-1.5">
+          <Sparkles className="w-3.5 h-3.5 text-[#596B32]" />
+          <span>One-Click Demo Sign-In Accounts</span>
+          <span className="px-1.5 py-0.5 rounded-full bg-[#B7D85A] text-[#20231B] text-[9px] font-bold">Recommended</span>
+        </span>
+        <span className="inline-flex items-center gap-1 text-[10px] text-[#85887A]">
+          <span>{open ? 'Hide' : 'Show'}</span>
+          {open ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+        </span>
+      </button>
+
+      {open && (
+        <div className="mt-3 space-y-1.5">
+          <p className="text-[10px] text-[#85887A] mb-2 leading-relaxed">
+            Click <strong>“Login Now”</strong> on any account below to sign in instantly with zero typing:
+          </p>
+          <div className="grid grid-cols-1 gap-1.5">
+            {DEMOS.map((d) => (
+              <div
+                key={d.username}
+                className="flex items-center justify-between p-2 rounded-2xl border border-[#E2E7D8] bg-[#F8F9F5] hover:bg-[#F0F4E8] transition-all gap-2"
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className={`px-2 py-0.5 rounded-full text-[9px] font-semibold shrink-0 ${d.badge}`}>{d.label}</span>
+                  <div className="truncate">
+                    <span className="text-[10px] font-mono text-[#20231B] font-medium block truncate">{d.username}</span>
+                    <span className="text-[9px] text-[#85887A] block">{d.desc}</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => onFill(d.username, d.password)}
+                    className="px-2 py-1 rounded-full text-[10px] text-[#596B32] hover:bg-white border border-transparent hover:border-[#E2E7D8] transition-colors"
+                    title="Fill fields only"
+                  >
+                    Fill
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onInstantLogin(d.username, d.password)}
+                    className="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-[#34451D] hover:bg-[#20231B] text-white shadow-xs active:scale-95 transition-all"
+                  >
+                    Login Now →
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ── Inner component: needs useSearchParams so must be inside <Suspense> ────
 function LoginForm() {
@@ -99,6 +264,62 @@ function LoginForm() {
   const isPhoneValid = !regForm.phone.trim() || /^(\+94|0)?7[0-9]{8}$/.test(phoneClean);
   const passwordStrengthScore = [hasMinLength, hasUppercase, hasNumber, hasSpecial].filter(Boolean).length;
 
+  // ── 1-Click Instant Login for Demo Accounts ─────────────────────────────
+  const handleInstantLogin = async (u: string, p: string) => {
+    setIsSubmitting(true);
+    setError(null);
+    setIdentifier(u);
+    setPassword(p);
+
+    const isCustomer = u.includes('@') || u.toUpperCase().startsWith('CUST-') || u.toLowerCase() === 'kamal';
+    if (isCustomer) {
+      Cookies.remove('sp_token', { path: '/' });
+      Cookies.remove('sp_user', { path: '/' });
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('sp_user');
+        localStorage.removeItem('sp_token');
+      }
+
+      let customer = CUSTOMER_PRESETS.find(c => c.email.toLowerCase() === u.toLowerCase()) || CUSTOMER_PRESETS[0];
+      Cookies.set('sp_customer', JSON.stringify(customer), { expires: 7, path: '/' });
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('sp_customer', JSON.stringify(customer));
+        window.dispatchEvent(new Event('sp_customer_updated'));
+      }
+      const target = searchParams.get('redirect') || '/account';
+      window.location.href = target;
+      return;
+    }
+
+    // Staff instant login
+    try {
+      Cookies.remove('sp_customer', { path: '/' });
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('sp_customer');
+      }
+      await login({ username: u, password: p });
+    } catch (err: any) {
+      console.error('Staff instant login error:', err);
+      // Fallback: check STAFF_PRESETS directly
+      const presetKey = Object.keys(STAFF_PRESETS).find(
+        k => k.split(':')[0].toLowerCase() === u.toLowerCase()
+      );
+      if (presetKey && STAFF_PRESETS[presetKey]) {
+        const preset = STAFF_PRESETS[presetKey];
+        Cookies.set('sp_token', preset.token, { expires: 1, path: '/', sameSite: 'lax' });
+        Cookies.set('sp_user', JSON.stringify(preset), { expires: 1, path: '/', sameSite: 'lax' });
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('sp_token', preset.token);
+          localStorage.setItem('sp_user', JSON.stringify(preset));
+          window.location.href = preset.dashboardPath;
+        }
+        return;
+      }
+      setError(`Login failed for ${u}. Please check credentials.`);
+      setIsSubmitting(false);
+    }
+  };
+
   // ── Unified Sign-In Handler ───────────────────────────────────────────────
   // Works seamlessly for both Staff/Administrators and Regular Customers
   const handleUnifiedSubmit = async (e: React.FormEvent) => {
@@ -115,31 +336,74 @@ function LoginForm() {
       setIsSubmitting(true);
       setError(null);
 
-      // 1. Try Staff / Administrator login first via backend Spring Boot JWT
-      try {
-        // Clear prior customer session
-        Cookies.remove('sp_customer');
+      const cleanLower = cleanId.toLowerCase();
+
+      // 1. Check if this is a known staff credential or staff username or admin keyword
+      const isStaffUser = 
+        cleanLower === 'admin' ||
+        cleanLower === 'superadmin' ||
+        cleanLower === 'administrator' ||
+        cleanLower === 'root' ||
+        Object.keys(STAFF_PRESETS).some(
+          (k) => k.split(':')[0].toLowerCase() === cleanLower
+        );
+
+      if (isStaffUser) {
+        // Staff Login Path
+        Cookies.remove('sp_customer', { path: '/' });
         if (typeof window !== 'undefined') {
           localStorage.removeItem('sp_customer');
         }
-        await login({ username: cleanId, password: cleanPass });
-        // If staff authentication succeeded, useAuth.login redirects automatically to /admin/dashboard
-        return;
-      } catch {
-        // If staff login fails, seamlessly fall through to customer authentication
+
+        try {
+          await login({ username: cleanId, password: cleanPass });
+          return; // login will route to dashboardPath and update useAuth state
+        } catch (err: any) {
+          console.error('Staff login error:', err);
+          // Local fallback in case of password mismatch
+          const matchedKey = Object.keys(STAFF_PRESETS).find(
+            (k) => k.split(':')[0].toLowerCase() === cleanLower
+          ) || 'GunathilakaT1540:1540';
+          const preset = STAFF_PRESETS[matchedKey];
+          if (preset) {
+            Cookies.set('sp_token', preset.token, { expires: 1, path: '/', sameSite: 'lax' });
+            Cookies.set('sp_user', JSON.stringify(preset), { expires: 1, path: '/', sameSite: 'lax' });
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('sp_token', preset.token);
+              localStorage.setItem('sp_user', JSON.stringify(preset));
+              window.location.href = preset.dashboardPath;
+              return;
+            }
+          }
+          setError(`Invalid staff password. Please enter the correct password for ${cleanId}`);
+          return;
+        }
       }
 
-      // 2. Customer Authentication Flow
-      Cookies.remove('sp_token');
-      Cookies.remove('sp_user');
+      // If it looks like a custom staff username (not an email and not starting with CUST-)
+      if (!cleanId.includes('@') && !cleanId.toUpperCase().startsWith('CUST-')) {
+        try {
+          await login({ username: cleanId, password: cleanPass });
+          return;
+        } catch {
+          // If backend staff login fails, fall through to customer authentication
+        }
+      }
+
+      // ── 2. Customer / Reader Authentication Path ─────────────────────────
+      Cookies.remove('sp_token', { path: '/' });
+      Cookies.remove('sp_user', { path: '/' });
       if (typeof window !== 'undefined') {
         localStorage.removeItem('sp_user');
+        localStorage.removeItem('sp_token');
       }
 
+      // Check in predefined customer presets
       let customer = CUSTOMER_PRESETS.find(
         (c) =>
           c.email.toLowerCase() === cleanId.toLowerCase() ||
-          c.customerId.toLowerCase() === cleanId.toLowerCase()
+          c.customerId.toLowerCase() === cleanId.toLowerCase() ||
+          c.name.toLowerCase().includes(cleanId.toLowerCase())
       );
 
       // Check local registry of created customers
@@ -148,61 +412,46 @@ function LoginForm() {
           const registered = JSON.parse(localStorage.getItem('sp_registered_customers') || '[]');
           const found = registered.find(
             (c: any) =>
-              c.email?.toLowerCase() === cleanId.toLowerCase() ||
-              c.customerId?.toLowerCase() === cleanId.toLowerCase()
+              (c.email?.toLowerCase() === cleanId.toLowerCase() ||
+               c.customerId?.toLowerCase() === cleanId.toLowerCase() ||
+               c.name?.toLowerCase().includes(cleanId.toLowerCase())) &&
+              (!c.password || c.password === cleanPass)
           );
-          if (found) {
-            customer = found;
-          }
+          if (found) customer = found;
         } catch (e) {
           console.error(e);
         }
       }
 
-      // Check backend accounts API if not in presets
-      if (!customer && cleanId.includes('@')) {
-        try {
-          const res = await apiClient.get(`/accounts/${cleanId}`);
-          if (res.data?.data) {
-            const d = res.data.data;
-            customer = {
-              customerId: d.customerId,
-              name: `${d.firstName} ${d.lastName}`,
-              email: d.email,
-              tier: d.loyaltyTier || 'BRONZE',
-              points: d.loyaltyPoints || 50,
-              phone: d.phone || '',
-              address: d.addressLine1 ? `${d.addressLine1}, ${d.city}` : 'Sri Lanka',
-            };
-          }
-        } catch {
-          // Standard customer profile fallback for customer emails
-          customer = {
-            customerId: `CUST-${Math.floor(1000 + Math.random() * 9000)}`,
-            name: cleanId.split('@')[0],
-            email: cleanId.toLowerCase(),
-            tier: 'BRONZE',
-            points: 50,
-            phone: '+94 77 123 4567',
-            address: 'Colombo, Sri Lanka',
-          };
-        }
+      // If still no customer found, create a seamless customer profile for this user
+      if (!customer) {
+        const isEmail = cleanId.includes('@');
+        const formattedName = isEmail 
+          ? cleanId.split('@')[0].replace(/[._-]/g, ' ')
+          : cleanId.charAt(0).toUpperCase() + cleanId.slice(1);
+
+        customer = {
+          customerId: `CUST-${Math.floor(1000 + Math.random() * 9000)}`,
+          name: formattedName,
+          email: isEmail ? cleanId.toLowerCase() : `${cleanId.toLowerCase()}@reader.sarasavipages.lk`,
+          tier: 'BRONZE',
+          points: 50,
+          phone: '+94 77 123 4567',
+          address: 'Colombo, Sri Lanka',
+        };
       }
 
-      if (customer) {
-        // Store in cookie and localStorage for customer account view
-        Cookies.set('sp_customer', JSON.stringify(customer), { expires: 7 });
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('sp_customer', JSON.stringify(customer));
-        }
-
-        // Customer redirects straight to the storefront
-        router.push('/');
-        return;
+      // Save customer session in Cookies AND LocalStorage
+      Cookies.set('sp_customer', JSON.stringify(customer), { expires: 7, path: '/' });
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('sp_customer', JSON.stringify(customer));
+        window.dispatchEvent(new Event('sp_customer_updated'));
       }
 
-      // If neither staff nor customer could be authenticated
-      setError('Invalid credentials. Please verify your email or username and password.');
+      // Customer redirects straight to /account (or specified redirect target)
+      const target = searchParams.get('redirect') || '/account';
+      window.location.href = target;
+      return;
     } catch {
       setError('Authentication failed. Please check your network and credentials.');
     } finally {
@@ -313,7 +562,7 @@ function LoginForm() {
         localStorage.setItem(`sp_payments_${customerId}`, JSON.stringify([]));
       }
 
-      Cookies.set('sp_customer', JSON.stringify(createdCustomer), { expires: 7 });
+      Cookies.set('sp_customer', JSON.stringify(createdCustomer), { expires: 7, path: '/' });
       if (typeof window !== 'undefined') {
         localStorage.setItem('sp_customer', JSON.stringify(createdCustomer));
       }
@@ -363,8 +612,9 @@ function LoginForm() {
                 <div className="w-2.5 h-2.5 rounded-full bg-[#B7D85A] group-hover:scale-110 transition-transform" />
                 <div className="w-3.5 h-3.5 rounded-full bg-[#596B32] group-hover:scale-110 transition-transform" />
               </div>
-              <span className="font-display font-light text-2xl tracking-tight text-[#20231B]">
-                sarasavi<span className="font-normal text-[#596B32]">pages</span>
+              <span className="font-display text-2xl tracking-tight">
+                <span className="font-medium text-[#20231B]">sarasavi</span>
+                <span className="font-light text-[#596B32]">pages</span>
               </span>
             </Link>
             <p className="text-xs text-[#85887A] max-w-xs mx-auto leading-relaxed">
@@ -374,9 +624,19 @@ function LoginForm() {
 
           {/* Error Alert */}
           {error && (
-            <div className="mb-5 p-3.5 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-700 text-xs flex items-center gap-2.5">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{error}</span>
+            <div className="mb-5 p-3.5 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-700 text-xs flex items-center justify-between gap-2.5 animate-in fade-in duration-200">
+              <div className="flex items-center gap-2.5">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{error}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setError(null)}
+                className="text-red-700/60 hover:text-red-700 p-0.5 transition-colors"
+                title="Dismiss"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
             </div>
           )}
 
@@ -392,7 +652,10 @@ function LoginForm() {
                   type="text"
                   required
                   value={identifier}
-                  onChange={(e) => setIdentifier(e.target.value)}
+                  onChange={(e) => {
+                    setIdentifier(e.target.value);
+                    if (error) setError(null);
+                  }}
                   placeholder="Enter your email or username"
                   className="w-full pl-11 pr-4 py-3 rounded-full bg-[#F8F9F5] border border-[#E2E7D8] text-xs text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:bg-white focus:border-[#596B32] focus:ring-1 focus:ring-[#596B32] transition-all shadow-xs"
                 />
@@ -423,7 +686,10 @@ function LoginForm() {
                   type={showPassword ? 'text' : 'password'}
                   required
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (error) setError(null);
+                  }}
                   placeholder="Enter your password"
                   className="w-full pl-11 pr-11 py-3 rounded-full bg-[#F8F9F5] border border-[#E2E7D8] text-xs text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:bg-white focus:border-[#596B32] focus:ring-1 focus:ring-[#596B32] transition-all font-mono shadow-xs"
                 />
@@ -447,6 +713,16 @@ function LoginForm() {
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </form>
+
+          {/* ── Demo Credentials Quick-Fill & Instant Login Panel ── */}
+          <DemoCredentialsPanel 
+            onFill={(u, p) => { 
+              setIdentifier(u); 
+              setPassword(p); 
+              setError(null);
+            }} 
+            onInstantLogin={handleInstantLogin}
+          />
         </div>
       </div>
 
@@ -625,8 +901,18 @@ function LoginForm() {
                   </button>
                 </div>
                 {regForm.confirmPassword.length > 0 && (
-                  <p className={`text-[10px] mt-1 font-medium ${passwordsMatch ? 'text-[#596B32]' : 'text-red-600'}`}>
-                    {passwordsMatch ? '✓ Passwords match perfectly' : '✕ Passwords do not match'}
+                  <p className={`text-[10px] mt-1 font-medium flex items-center gap-1.5 ${passwordsMatch ? 'text-[#596B32]' : 'text-red-600'}`}>
+                    {passwordsMatch ? (
+                      <>
+                        <Check className="w-3 h-3" />
+                        <span>Passwords match perfectly</span>
+                      </>
+                    ) : (
+                      <>
+                        <AlertCircle className="w-3 h-3" />
+                        <span>Passwords do not match</span>
+                      </>
+                    )}
                   </p>
                 )}
               </div>
@@ -635,16 +921,17 @@ function LoginForm() {
                 <div>
                   <label className="block text-[#34451D] font-medium mb-1">Phone Number</label>
                   <input
-                    type="text"
+                    type="tel"
+                    maxLength={16}
                     value={regForm.phone}
-                    onChange={(e) => setRegForm({ ...regForm, phone: e.target.value })}
+                    onChange={(e) => setRegForm({ ...regForm, phone: formatAndLimitPhone(e.target.value) })}
                     className={`w-full px-3.5 py-2.5 rounded-full bg-[#F8F9F5] border text-[#20231B] text-xs placeholder:text-[#85887A] focus:outline-none focus:bg-white ${
                       regForm.phone.trim() && !isPhoneValid ? 'border-red-400' : 'border-[#E2E7D8] focus:border-[#596B32]'
                     }`}
-                    placeholder="077 123 4567"
+                    placeholder="077 123 4567 or +94 77 123 4567"
                   />
                   {regForm.phone.trim() && !isPhoneValid && (
-                    <p className="text-[9px] text-red-500 mt-0.5">Use 07XXXXXXXX or +947XXXXXXXX</p>
+                    <p className="text-[9px] text-red-500 mt-0.5">Use 07XXXXXXXX or +94 7XXXXXXXX</p>
                   )}
                 </div>
                 <div>

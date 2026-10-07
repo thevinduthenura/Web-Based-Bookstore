@@ -8,6 +8,9 @@ import Link from 'next/link';
 import Cookies from 'js-cookie';
 import Navbar from '@/components/Navbar';
 import AdminModeBar from '@/components/admin/AdminModeBar';
+import CinematicEditorialSpotlight from '@/components/CinematicEditorialSpotlight';
+import { printOrderInvoice, printMembershipInvoice } from '@/lib/invoice-pdf';
+import { formatAndLimitPhone, limitPostalCode } from '@/lib/input-utils';
 import { 
   BookOpen, 
   Search, 
@@ -51,7 +54,11 @@ import {
   Eye,
   EyeOff,
   AlertCircle,
-  Save
+  Save,
+  CreditCard,
+  Building2,
+  Banknote,
+  Landmark
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { ordersApi } from '@/lib/orders-api';
@@ -342,7 +349,15 @@ export default function StorefrontPage() {
           ? JSON.parse(localStorage.getItem('sp_hidden_books') || '[]')
           : [];
 
-        const initialList = storedBooks.length > 0 ? storedBooks : data;
+        // Merge storedBooks overrides with full data catalog so neither books nor stationery are ever lost
+        const baseList = data.map(b => {
+          const custom = storedBooks.find(s => String(s.id) === String(b.id));
+          return custom ? { ...b, ...custom } : b;
+        });
+        const dataIds = new Set(data.map(b => String(b.id)));
+        const customCreated = storedBooks.filter(s => !dataIds.has(String(s.id)));
+        const initialList = [...baseList, ...customCreated];
+
         const merged = initialList.map(b => ({
           ...b,
           hidden: hiddenIds.includes(b.id) || Boolean(b.hidden)
@@ -509,25 +524,20 @@ export default function StorefrontPage() {
         );
       }
 
-      // ─── 3. Scroll-Driven Clip-Path Reveal for sections ──────────────────
+      // ─── 3. Hardware-Accelerated Fade-Up Reveal for sections ─────────────
       const sections = document.querySelectorAll('[data-gsap-reveal]');
-      sections.forEach((section, i) => {
+      sections.forEach((section) => {
         gsap.fromTo(
           section,
+          { y: 24, opacity: 0 },
           {
-            clipPath: 'inset(0% 0% 100% 0%)',
-            y: 40,
-            opacity: 0,
-          },
-          {
-            clipPath: 'inset(0% 0% 0% 0%)',
             y: 0,
             opacity: 1,
-            duration: 1.0,
-            ease: 'power4.out',
+            duration: 0.65,
+            ease: 'power2.out',
             scrollTrigger: {
               trigger: section,
-              start: 'top 88%',
+              start: 'top 90%',
               toggleActions: 'play none none none',
             },
           }
@@ -539,17 +549,37 @@ export default function StorefrontPage() {
         const bentoCards = bentoRef.current.children;
         gsap.fromTo(
           bentoCards,
-          { opacity: 0, y: 60, scale: 0.92, rotateX: 8 },
+          { opacity: 0, y: 30, scale: 0.96 },
           {
             opacity: 1,
             y: 0,
             scale: 1,
-            rotateX: 0,
-            duration: 0.9,
-            ease: 'back.out(1.4)',
-            stagger: { each: 0.12, from: 'start' },
+            duration: 0.6,
+            ease: 'power2.out',
+            stagger: 0.08,
             scrollTrigger: {
               trigger: bentoRef.current,
+              start: 'top 88%',
+              toggleActions: 'play none none none',
+            },
+          }
+        );
+      }
+
+      // ─── 5. Steps Section - Smooth Entrance ──────────────────────────────
+      if (stepsRef.current) {
+        const stepItems = stepsRef.current.querySelectorAll('[data-step-item]');
+        gsap.fromTo(
+          stepItems,
+          { opacity: 0, x: -20 },
+          {
+            opacity: 1,
+            x: 0,
+            duration: 0.6,
+            ease: 'power2.out',
+            stagger: 0.15,
+            scrollTrigger: {
+              trigger: stepsRef.current,
               start: 'top 85%',
               toggleActions: 'play none none none',
             },
@@ -557,45 +587,21 @@ export default function StorefrontPage() {
         );
       }
 
-      // ─── 5. Steps Section - Line drawing animation ────────────────────────
-      if (stepsRef.current) {
-        const stepItems = stepsRef.current.querySelectorAll('[data-step-item]');
-        gsap.fromTo(
-          stepItems,
-          { opacity: 0, x: -30, filter: 'blur(4px)' },
-          {
-            opacity: 1,
-            x: 0,
-            filter: 'blur(0px)',
-            duration: 0.8,
-            ease: 'expo.out',
-            stagger: 0.2,
-            scrollTrigger: {
-              trigger: stepsRef.current,
-              start: 'top 80%',
-              toggleActions: 'play none none none',
-            },
-          }
-        );
-      }
-
-      // ─── 6. Testimonials - 3D card flip stagger ───────────────────────────
+      // ─── 6. Testimonials - Clean stagger ─────────────────────────────────
       if (testimonialsRef.current) {
         const cards = testimonialsRef.current.querySelectorAll('[data-testimonial-card]');
-        gsap.set(cards, { transformPerspective: 800, transformOrigin: 'top center' });
         gsap.fromTo(
           cards,
-          { opacity: 0, rotateX: -25, y: 50 },
+          { opacity: 0, y: 30 },
           {
             opacity: 1,
-            rotateX: 0,
             y: 0,
-            duration: 0.85,
-            ease: 'power3.out',
-            stagger: 0.18,
+            duration: 0.6,
+            ease: 'power2.out',
+            stagger: 0.12,
             scrollTrigger: {
               trigger: testimonialsRef.current,
-              start: 'top 82%',
+              start: 'top 85%',
               toggleActions: 'play none none none',
             },
           }
@@ -609,7 +615,7 @@ export default function StorefrontPage() {
           const totalWidth = track.scrollWidth / 2;
           gsap.to(track, {
             x: `-${totalWidth}px`,
-            duration: 28,
+            duration: 32,
             ease: 'none',
             repeat: -1,
           });
@@ -623,43 +629,29 @@ export default function StorefrontPage() {
     };
   }, []);
 
-  // ─── GSAP: Magnetic effect on featured book cards (runs after books load) ───
+  // ─── Fast, Lightweight Book Entrance (no CPU-hogging magnetic listeners) ──
   useEffect(() => {
     if (typeof window === 'undefined' || books.length === 0) return;
-    const cleanups: (() => void)[] = [];
 
-    // Featured books stagger spring entrance
     if (featuredBooksRef.current) {
       const cards = featuredBooksRef.current.querySelectorAll('[data-book-card]');
       gsap.fromTo(
         cards,
-        { opacity: 0, y: 50, scale: 0.9, filter: 'blur(6px)' },
+        { opacity: 0, y: 20 },
         {
           opacity: 1,
           y: 0,
-          scale: 1,
-          filter: 'blur(0px)',
-          duration: 0.75,
-          ease: 'back.out(1.6)',
-          stagger: { each: 0.1, from: 'center' },
+          duration: 0.5,
+          ease: 'power2.out',
+          stagger: 0.06,
           scrollTrigger: {
             trigger: featuredBooksRef.current,
-            start: 'top 88%',
+            start: 'top 92%',
             toggleActions: 'play none none none',
           },
         }
       );
-
-      // Magnetic effect on each book card
-      cards.forEach((card) => {
-        const cleanup = addMagneticEffect(card as HTMLElement, 0.2);
-        cleanups.push(cleanup);
-      });
     }
-
-    return () => {
-      cleanups.forEach(fn => fn());
-    };
   }, [books]);
 
   const categories = useMemo(() => {
@@ -832,35 +824,20 @@ export default function StorefrontPage() {
 
   const handleDownloadInvoice = (invoice: typeof orderInvoice) => {
     if (!invoice) return;
-    const lines = [
-      '================================================================',
-      '           SARASAVI PAGES (PVT) LTD - TAX INVOICE',
-      '================================================================',
-      `Invoice No  : ${invoice.invoiceNo}`,
-      `Order ID    : ${invoice.orderId}`,
-      `Date        : ${invoice.date}`,
-      `Customer    : ${invoice.customer}`,
-      `Email       : ${invoice.email}`,
-      '----------------------------------------------------------------',
-      'ITEMS:',
-      ...invoice.items.map(i => `  ${i.title.padEnd(35)} x${i.qty}  LKR ${(i.price * i.qty).toFixed(2)}`),
-      '----------------------------------------------------------------',
-      `Subtotal    : LKR ${invoice.subtotal.toFixed(2)}`,
-      invoice.discount > 0 ? `Discount    : - LKR ${invoice.discount.toFixed(2)}` : '',
-      `TOTAL DUE   : LKR ${invoice.total.toFixed(2)}`,
-      `Payment     : ${invoice.paymentMethod}`,
-      '================================================================',
-      'Thank you for shopping with Sarasavi Pages!',
-      'Islandwide delivery · Authentic editions · Sarasavi Pages (Pvt) Ltd',
-      '================================================================',
-    ].filter(Boolean).join('\n');
-    const blob = new Blob([lines], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${invoice.invoiceNo}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
+    printOrderInvoice({
+      invoiceNo: invoice.invoiceNo,
+      orderId: invoice.orderId,
+      date: invoice.date,
+      customer: invoice.customer,
+      email: invoice.email,
+      address: shippingForm.address ? `${shippingForm.address}, ${shippingForm.city}` : undefined,
+      phone: shippingForm.phone,
+      items: invoice.items,
+      subtotal: invoice.subtotal,
+      discount: invoice.discount,
+      total: invoice.total,
+      paymentMethod: invoice.paymentMethod,
+    });
   };
 
   // ── MEMBERSHIP HANDLERS ───────────────────────────────────────────────────
@@ -888,29 +865,15 @@ export default function StorefrontPage() {
 
   const handleDownloadMembershipInvoice = (inv: typeof membershipInvoice) => {
     if (!inv) return;
-    const lines = [
-      '================================================================',
-      '     SARASAVI PAGES (PVT) LTD - MEMBERSHIP INVOICE',
-      '================================================================',
-      `Invoice No  : ${inv.invoiceNo}`,
-      `Date        : ${inv.date}`,
-      `Customer    : ${inv.customer}`,
-      '----------------------------------------------------------------',
-      `Membership Plan : ${inv.plan}`,
-      `Duration        : ${inv.duration}`,
-      `Amount Paid     : LKR ${inv.price.toFixed(2)}`,
-      '================================================================',
-      'Welcome to Sarasavi Pages Membership!',
-      'Enjoy exclusive discounts, free shipping & more.',
-      '================================================================',
-    ].join('\n');
-    const blob = new Blob([lines], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${inv.invoiceNo}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
+    printMembershipInvoice({
+      invoiceNo: inv.invoiceNo,
+      date: inv.date,
+      customer: inv.customer,
+      plan: inv.plan,
+      duration: inv.duration,
+      price: inv.price,
+      total: inv.price,
+    });
   };
 
   const handleTicketSubmit = async (e: React.FormEvent) => {
@@ -927,7 +890,7 @@ export default function StorefrontPage() {
   };
 
   const handleCustomerSignOut = () => {
-    Cookies.remove('sp_customer');
+    Cookies.remove('sp_customer', { path: '/' });
     if (typeof window !== 'undefined') {
       localStorage.removeItem('sp_customer');
     }
@@ -1107,6 +1070,9 @@ export default function StorefrontPage() {
                 ))}
               </div>
             </div>
+
+            {/* ── CINEMATIC EDITORIAL SPOTLIGHT (GSAP ScrollTrigger Fan Deck) ── */}
+            <CinematicEditorialSpotlight onAddToCart={addToCart} />
 
             {/* ── MAIN CONTENT SECTIONS CONTAINER ────────────────────────── */}
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-20 w-full flex-1">
@@ -1967,12 +1933,13 @@ export default function StorefrontPage() {
                 <div>
                   <label className="block text-[#7B806B] font-medium mb-1">Contact Phone / WhatsApp</label>
                   <input
-                    type="text"
+                    type="tel"
                     required
+                    maxLength={16}
                     value={ticketForm.contactNumber}
-                    onChange={e => setTicketForm({ ...ticketForm, contactNumber: e.target.value })}
+                    onChange={e => setTicketForm({ ...ticketForm, contactNumber: formatAndLimitPhone(e.target.value) })}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:bg-white focus:outline-none focus:border-[#596B32]"
-                    placeholder="+94 7X XXX XXXX"
+                    placeholder="e.g. 077 123 4567 or +94 77 123 4567"
                   />
                 </div>
 
@@ -2160,7 +2127,7 @@ export default function StorefrontPage() {
             <div className="flex items-center justify-between p-5 sm:p-7 border-b border-[#E2E7D8]">
               <div>
                 <span className="text-[10px] font-mono uppercase text-[#596B32] font-semibold tracking-wider block">
-                  {checkoutStep === 'shipping' ? 'Step 1 of 2 · Delivery Details' : checkoutStep === 'payment' ? 'Step 2 of 2 · Secure Payment' : '✓ Order Confirmed'}
+                  {checkoutStep === 'shipping' ? 'Step 1 of 2 · Delivery Details' : checkoutStep === 'payment' ? 'Step 2 of 2 · Secure Payment' : 'Order Confirmed'}
                 </span>
                 <h3 className="font-display font-normal text-xl text-[#20231B] mt-0.5">
                   {checkoutStep === 'shipping' ? 'Shipping Information' : checkoutStep === 'payment' ? 'Payment Details' : 'Order Placed Successfully!'}
@@ -2200,8 +2167,15 @@ export default function StorefrontPage() {
                   </div>
                   <div>
                     <label className="block text-[#85887A] font-medium mb-1">Mobile / WhatsApp *</label>
-                    <input required value={shippingForm.phone} onChange={e => setShippingForm({...shippingForm, phone: e.target.value})}
-                      placeholder="+94 7X XXX XXXX" className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:bg-white focus:outline-none focus:border-[#596B32]" />
+                    <input
+                      type="tel"
+                      required
+                      maxLength={16}
+                      value={shippingForm.phone}
+                      onChange={e => setShippingForm({ ...shippingForm, phone: formatAndLimitPhone(e.target.value) })}
+                      placeholder="e.g. 077 123 4567 or +94 77 123 4567"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:bg-white focus:outline-none focus:border-[#596B32]"
+                    />
                   </div>
                   <div>
                     <label className="block text-[#85887A] font-medium mb-1">Street Address *</label>
@@ -2225,8 +2199,13 @@ export default function StorefrontPage() {
                     </div>
                     <div>
                       <label className="block text-[#85887A] font-medium mb-1">Postal Code</label>
-                      <input value={shippingForm.postalCode} onChange={e => setShippingForm({...shippingForm, postalCode: e.target.value})}
-                        placeholder="00300" className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:bg-white focus:outline-none focus:border-[#596B32]" />
+                      <input
+                        maxLength={5}
+                        value={shippingForm.postalCode}
+                        onChange={e => setShippingForm({ ...shippingForm, postalCode: limitPostalCode(e.target.value) })}
+                        placeholder="00300"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:bg-white focus:outline-none focus:border-[#596B32]"
+                      />
                     </div>
                   </div>
                   {/* Order Summary in shipping step */}
@@ -2256,10 +2235,14 @@ export default function StorefrontPage() {
                     <div className="grid grid-cols-2 gap-2">
                       {(['CREDIT_CARD', 'DEBIT_CARD', 'BANK_TRANSFER', 'CASH_ON_DELIVERY'] as const).map(m => (
                         <button key={m} type="button" onClick={() => setPaymentForm({...paymentForm, method: m})}
-                          className={`p-3 rounded-xl border text-xs font-medium transition-all ${
-                            paymentForm.method === m ? 'border-[#34451D] bg-[#34451D] text-white' : 'border-[#E2E7D8] bg-white text-[#20231B] hover:border-[#596B32]'
+                          className={`p-3 rounded-xl border text-xs font-medium transition-all flex items-center justify-center gap-2 ${
+                            paymentForm.method === m ? 'border-[#34451D] bg-[#34451D] text-white shadow-xs' : 'border-[#E2E7D8] bg-white text-[#20231B] hover:border-[#596B32]'
                           }`}>
-                          {m === 'CREDIT_CARD' ? '💳 Credit Card' : m === 'DEBIT_CARD' ? '🏧 Debit Card' : m === 'BANK_TRANSFER' ? '🏦 Bank Transfer' : '💵 Cash on Delivery'}
+                          {m === 'CREDIT_CARD' && <CreditCard className="w-4 h-4 shrink-0" />}
+                          {m === 'DEBIT_CARD' && <CreditCard className="w-4 h-4 shrink-0" />}
+                          {m === 'BANK_TRANSFER' && <Building2 className="w-4 h-4 shrink-0" />}
+                          {m === 'CASH_ON_DELIVERY' && <Banknote className="w-4 h-4 shrink-0" />}
+                          <span>{m === 'CREDIT_CARD' ? 'Credit Card' : m === 'DEBIT_CARD' ? 'Debit Card' : m === 'BANK_TRANSFER' ? 'Bank Transfer' : 'Cash on Delivery'}</span>
                         </button>
                       ))}
                     </div>
@@ -2444,10 +2427,13 @@ export default function StorefrontPage() {
                     <div className="grid grid-cols-3 gap-2">
                       {(['CREDIT_CARD', 'DEBIT_CARD', 'BANK_TRANSFER'] as const).map(m => (
                         <button key={m} type="button" onClick={() => setMembershipPaymentForm({...membershipPaymentForm, method: m})}
-                          className={`p-2.5 rounded-xl border text-[11px] font-medium transition-all ${
-                            membershipPaymentForm.method === m ? 'border-[#34451D] bg-[#34451D] text-white' : 'border-[#E2E7D8] bg-white text-[#20231B] hover:border-[#596B32]'
+                          className={`p-2.5 rounded-xl border text-[11px] font-medium transition-all flex items-center justify-center gap-1.5 ${
+                            membershipPaymentForm.method === m ? 'border-[#34451D] bg-[#34451D] text-white shadow-xs' : 'border-[#E2E7D8] bg-white text-[#20231B] hover:border-[#596B32]'
                           }`}>
-                          {m === 'CREDIT_CARD' ? '💳 Credit' : m === 'DEBIT_CARD' ? '🏧 Debit' : '🏦 Bank'}
+                          {m === 'CREDIT_CARD' && <CreditCard className="w-3.5 h-3.5 shrink-0" />}
+                          {m === 'DEBIT_CARD' && <CreditCard className="w-3.5 h-3.5 shrink-0" />}
+                          {m === 'BANK_TRANSFER' && <Building2 className="w-3.5 h-3.5 shrink-0" />}
+                          <span>{m === 'CREDIT_CARD' ? 'Credit' : m === 'DEBIT_CARD' ? 'Debit' : 'Bank'}</span>
                         </button>
                       ))}
                     </div>
