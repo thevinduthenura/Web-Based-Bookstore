@@ -1,16 +1,33 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080/api';
+const getApiBase = () => {
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL;
+  }
+  // When running in the browser on Vercel or any public host, automatically target Render backend
+  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    return 'https://web-based-bookstore.onrender.com/api';
+  }
+  return 'http://localhost:8080/api';
+};
+
+const isCloud = typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
 
 const apiClient = axios.create({
-  baseURL: API_BASE,
-  timeout: 3500,
+  baseURL: getApiBase(),
+  timeout: isCloud ? 25000 : 5000,
   headers: { 'Content-Type': 'application/json' },
 });
 
 // ── Request interceptor: attach JWT from cookie or localStorage ─────────────
 apiClient.interceptors.request.use((config) => {
+  if (!process.env.NEXT_PUBLIC_API_URL && typeof window !== 'undefined') {
+    if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+      config.baseURL = 'https://web-based-bookstore.onrender.com/api';
+    }
+  }
+
   let token = Cookies.get('sp_token');
   if (!token && typeof window !== 'undefined') {
     token = localStorage.getItem('sp_token') || undefined;
