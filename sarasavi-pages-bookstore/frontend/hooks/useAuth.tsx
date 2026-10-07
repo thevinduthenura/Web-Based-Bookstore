@@ -10,6 +10,8 @@ export const STAFF_PRESETS: Record<string, AuthUser> = {
   'admin:admin': {
     staffId: 1,
     username: 'admin',
+    employeeId: 'EMP-1000',
+    email: 'admin@sarasavipages.lk',
     fullName: 'System Administrator (Gunathilaka H.D.T.T.)',
     role: 'SUPER_ADMIN',
     token: 'demo-jwt-superadmin',
@@ -20,6 +22,8 @@ export const STAFF_PRESETS: Record<string, AuthUser> = {
   'admin:admin123': {
     staffId: 1,
     username: 'admin',
+    employeeId: 'EMP-1000',
+    email: 'admin@sarasavipages.lk',
     fullName: 'System Administrator (Gunathilaka H.D.T.T.)',
     role: 'SUPER_ADMIN',
     token: 'demo-jwt-superadmin',
@@ -30,6 +34,8 @@ export const STAFF_PRESETS: Record<string, AuthUser> = {
   'GunathilakaT1540:1540': {
     staffId: 1,
     username: 'GunathilakaT1540',
+    employeeId: 'EMP-1000',
+    email: 'admin@sarasavipages.lk',
     fullName: 'Gunathilaka H.D.T.T.',
     role: 'SUPER_ADMIN',
     token: 'demo-jwt-superadmin',
@@ -40,6 +46,8 @@ export const STAFF_PRESETS: Record<string, AuthUser> = {
   'AnafS2345:2345': {
     staffId: 2,
     username: 'AnafS2345',
+    employeeId: 'EMP-1001',
+    email: 'anaf@sarasavipages.lk',
     fullName: 'Anaf M.K.A.S.',
     role: 'PAYMENT_ADMIN',
     token: 'demo-jwt-payment',
@@ -50,6 +58,8 @@ export const STAFF_PRESETS: Record<string, AuthUser> = {
   'ZeenC3342:3342': {
     staffId: 3,
     username: 'ZeenC3342',
+    employeeId: 'EMP-1002',
+    email: 'zeen@sarasavipages.lk',
     fullName: 'Zeen A.C.',
     role: 'CUSTOMER_SERVICE_ADMIN',
     token: 'demo-jwt-cs',
@@ -60,6 +70,8 @@ export const STAFF_PRESETS: Record<string, AuthUser> = {
   'DissanayakeD1062:1062': {
     staffId: 4,
     username: 'DissanayakeD1062',
+    employeeId: 'EMP-1003',
+    email: 'dissanayake@sarasavipages.lk',
     fullName: 'Dissanayake S.A.S.D.',
     role: 'INVENTORY_ADMIN',
     token: 'demo-jwt-inventory',
@@ -70,6 +82,8 @@ export const STAFF_PRESETS: Record<string, AuthUser> = {
   'GayathmiR3013:3013': {
     staffId: 5,
     username: 'GayathmiR3013',
+    employeeId: 'EMP-1004',
+    email: 'gayathmi@sarasavipages.lk',
     fullName: 'Gayathmi P.G.R.',
     role: 'ACCOUNT_ADMIN',
     token: 'demo-jwt-accounts',
@@ -80,6 +94,8 @@ export const STAFF_PRESETS: Record<string, AuthUser> = {
   'DiyesL0263:0263': {
     staffId: 6,
     username: 'DiyesL0263',
+    employeeId: 'EMP-1005',
+    email: 'diyes@sarasavipages.lk',
     fullName: 'Diyes C.L.',
     role: 'ORDER_ADMIN',
     token: 'demo-jwt-orders',
@@ -130,11 +146,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const setAuthUser = (authUser: AuthUser | null) => {
     if (authUser) {
+      // Clear any customer session to avoid collision
+      Cookies.remove('sp_customer', { path: '/' });
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('sp_customer');
+        window.dispatchEvent(new Event('sp_customer_updated'));
+      }
+
       Cookies.set('sp_token', authUser.token, { expires: 1, path: '/', sameSite: 'lax' });
       Cookies.set('sp_user', JSON.stringify(authUser), { expires: 1, path: '/', sameSite: 'lax' });
       if (typeof window !== 'undefined') {
         localStorage.setItem('sp_token', authUser.token);
         localStorage.setItem('sp_user', JSON.stringify(authUser));
+        window.dispatchEvent(new Event('sp_user_updated'));
       }
       setUser(authUser);
     } else {
@@ -143,6 +167,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (typeof window !== 'undefined') {
         localStorage.removeItem('sp_token');
         localStorage.removeItem('sp_user');
+        window.dispatchEvent(new Event('sp_user_updated'));
       }
       setUser(null);
     }
@@ -178,10 +203,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       }
 
-      // Check username match
+      // Check username, email, or employeeId match in presets
       if (!authUser) {
         for (const preset of Object.values(STAFF_PRESETS)) {
-          if (preset.username.toLowerCase() === cleanUserLower) {
+          if (
+            preset.username.toLowerCase() === cleanUserLower ||
+            (preset.email && preset.email.toLowerCase() === cleanUserLower) ||
+            (preset.employeeId && preset.employeeId.toLowerCase() === cleanUserLower)
+          ) {
             authUser = preset;
             break;
           }
@@ -190,36 +219,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       // Check generic admin keywords
       if (!authUser && (cleanUserLower === 'admin' || cleanUserLower === 'superadmin' || cleanUserLower === 'administrator' || cleanUserLower === 'root')) {
-        authUser = STAFF_PRESETS['GunathilakaT1540:1540'];
-      }
-
-      // Check customer accounts (Kamal Perera, emails, etc.)
-      if (!authUser && (cleanUser.includes('@') || cleanUserLower.startsWith('cust-') || cleanUserLower === 'kamal' || cleanUserLower === 'customer')) {
-        const customer = {
-          customerId: 'CUST-1001',
-          name: cleanUser.includes('@') ? cleanUser.split('@')[0].replace(/[._-]/g, ' ') : 'Kamal Perera',
-          email: cleanUser.includes('@') ? cleanUser.toLowerCase() : 'kamal.perera@gmail.com',
-          tier: 'GOLD' as const,
-          points: 350,
-          phone: '+94 77 123 4567',
-          address: 'No 12, Galle Road, Colombo 03',
-        };
-        Cookies.remove('sp_token', { path: '/' });
-        Cookies.remove('sp_user', { path: '/' });
-        Cookies.set('sp_customer', JSON.stringify(customer), { expires: 7, path: '/' });
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('sp_user');
-          localStorage.removeItem('sp_token');
-          localStorage.setItem('sp_customer', JSON.stringify(customer));
-          window.dispatchEvent(new Event('sp_customer_updated'));
-          window.location.href = '/account';
-          return;
-        }
+        authUser = STAFF_PRESETS['admin:admin'];
       }
     }
 
     if (!authUser) {
-      throw new Error(`Invalid credentials for ${cleanUser}. Please enter a valid username and password.`);
+      throw new Error(`Invalid credentials for staff account "${cleanUser}". Please verify your username, email or Employee ID.`);
+    }
+
+    // Strictly purge any leftover customer session so admin is never mistaken for a customer
+    Cookies.remove('sp_customer', { path: '/' });
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('sp_customer');
+      window.dispatchEvent(new Event('sp_customer_updated'));
     }
 
     Cookies.set('sp_token', authUser.token, { expires: 1, path: '/', sameSite: 'lax' });

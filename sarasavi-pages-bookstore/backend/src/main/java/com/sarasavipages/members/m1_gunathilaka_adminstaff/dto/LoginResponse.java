@@ -20,6 +20,8 @@ public class LoginResponse {
     private String username;
     private String fullName;
     private StaffRole role;
+    private String email;
+    private String employeeId;
     /** Which dashboard path to redirect to after login */
     private String dashboardPath;
 }

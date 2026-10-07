@@ -46,14 +46,22 @@ public class DataInitializer implements CommandLineRunner {
             log.info("Verifying and ensuring staff accounts for all 6 members and admin...");
             LocalDateTime now = LocalDateTime.now();
 
+            try {
+                jdbcTemplate.execute(
+                    "IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('staff') AND name = 'it_number') " +
+                    "   AND NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('staff') AND name = 'employee_id') " +
+                    "BEGIN EXEC sp_rename 'staff.it_number', 'employee_id', 'COLUMN'; END"
+                );
+            } catch (Exception ignored) {}
+
             String[][] staffData = {
-                {"admin",            "admin",    "System Administrator",      "admin@sarasavipages.lk",       "IT25100000", "SUPER_ADMIN"},
-                {"GunathilakaT1540", "1540",     "Gunathilaka H.D.T.T.",     "gunathilaka@sarasavipages.lk", "IT25101540", "SUPER_ADMIN"},
-                {"AnafS2345",        "2345",     "Anaf M.K.A.S.",             "anaf@sarasavipages.lk",        "IT25102345", "PAYMENT_ADMIN"},
-                {"ZeenC3342",        "3342",     "Zeen A.C.",                 "zeen@sarasavipages.lk",        "IT25103342", "CUSTOMER_SERVICE_ADMIN"},
-                {"DissanayakeD1062", "1062",     "Dissanayake S.A.S.D.",     "dissanayake@sarasavipages.lk", "IT25101062", "INVENTORY_ADMIN"},
-                {"GayathmiR3013",    "3013",     "Gayathmi P.G.R.",           "gayathmi@sarasavipages.lk",    "IT25103013", "ACCOUNT_ADMIN"},
-                {"DiyesL0263",       "0263",     "Diyes C.L.",                "diyes@sarasavipages.lk",       "IT25100263", "ORDER_ADMIN"}
+                {"admin",            "admin",    "System Administrator",      "admin@sarasavipages.lk",       "EMP-1000", "SUPER_ADMIN"},
+                {"GunathilakaT1540", "1540",     "Gunathilaka H.D.T.T.",     "gunathilaka@sarasavipages.lk", "EMP-1001", "SUPER_ADMIN"},
+                {"AnafS2345",        "2345",     "Anaf M.K.A.S.",             "anaf@sarasavipages.lk",        "EMP-1002", "PAYMENT_ADMIN"},
+                {"ZeenC3342",        "3342",     "Zeen A.C.",                 "zeen@sarasavipages.lk",        "EMP-1003", "CUSTOMER_SERVICE_ADMIN"},
+                {"DissanayakeD1062", "1062",     "Dissanayake S.A.S.D.",     "dissanayake@sarasavipages.lk", "EMP-1004", "INVENTORY_ADMIN"},
+                {"GayathmiR3013",    "3013",     "Gayathmi P.G.R.",           "gayathmi@sarasavipages.lk",    "EMP-1005", "ACCOUNT_ADMIN"},
+                {"DiyesL0263",       "0263",     "Diyes C.L.",                "diyes@sarasavipages.lk",       "EMP-1006", "ORDER_ADMIN"}
             };
 
             for (String[] s : staffData) {
@@ -64,7 +72,7 @@ public class DataInitializer implements CommandLineRunner {
                             .password(passwordEncoder.encode(s[1]))
                             .fullName(s[2])
                             .email(s[3])
-                            .itNumber(s[4])
+                            .employeeId(s[4])
                             .role(StaffRole.valueOf(s[5]))
                             .active(true)
                             .createdAt(now)
@@ -83,10 +91,19 @@ public class DataInitializer implements CommandLineRunner {
                     log.info("Seeded staff account: {}", s[0]);
                 } else {
                     Staff existing = existingOpt.get();
+                    boolean modified = false;
+                    if (existing.getEmployeeId() == null || existing.getEmployeeId().startsWith("IT")) {
+                        existing.setEmployeeId(s[4]);
+                        modified = true;
+                        log.info("Migrated staff employee ID from IT number to {}: {}", s[4], s[0]);
+                    }
                     if (!passwordEncoder.matches(s[1], existing.getPassword())) {
                         existing.setPassword(passwordEncoder.encode(s[1]));
-                        staffRepository.save(existing);
+                        modified = true;
                         log.info("Repaired BCrypt password hash for staff account: {}", s[0]);
+                    }
+                    if (modified) {
+                        staffRepository.save(existing);
                     }
                 }
             }

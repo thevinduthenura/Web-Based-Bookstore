@@ -17,16 +17,27 @@ import java.util.Optional;
 public interface StaffRepository extends JpaRepository<Staff, Long> {
 
     Optional<Staff> findByUsername(String username);
+    Optional<Staff> findByUsernameIgnoreCase(String username);
 
     Optional<Staff> findByEmail(String email);
+    Optional<Staff> findByEmailIgnoreCase(String email);
 
-    Optional<Staff> findByItNumber(String itNumber);
+    Optional<Staff> findByEmployeeId(String employeeId);
+    Optional<Staff> findByEmployeeIdIgnoreCase(String employeeId);
 
     boolean existsByUsername(String username);
 
     boolean existsByEmail(String email);
 
-    boolean existsByItNumber(String itNumber);
+    boolean existsByEmployeeId(String employeeId);
+
+    default Optional<Staff> findByItNumber(String itNumber) {
+        return findByEmployeeId(itNumber);
+    }
+
+    default boolean existsByItNumber(String itNumber) {
+        return existsByEmployeeId(itNumber);
+    }
 
     List<Staff> findAllByOrderByCreatedAtDesc();
 

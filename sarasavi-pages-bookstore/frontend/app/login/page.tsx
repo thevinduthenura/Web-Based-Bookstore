@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Cookies from 'js-cookie';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth, STAFF_PRESETS } from '@/hooks/useAuth';
 import apiClient from '@/lib/api-client';
 import { formatAndLimitPhone } from '@/lib/input-utils';
 import { 
@@ -54,81 +54,21 @@ const CUSTOMER_PRESETS = [
   },
 ];
 
-// Demo staff presets — mirrors DataInitializer seed data.
-// Used as local fallback when the Spring Boot / H2 backend is unavailable or
-// the in-memory DB has been reset after a restart.
-const STAFF_PRESETS: Record<string, {
-  token: string;
-  staffId: number;
-  username: string;
-  fullName: string;
-  role: string;
-  dashboardPath: string;
-}> = {
-  'admin:admin': {
-    token: 'demo-jwt-superadmin',
-    staffId: 1,
-    username: 'admin',
-    fullName: 'System Administrator (Gunathilaka H.D.T.T.)',
-    role: 'SUPER_ADMIN',
-    dashboardPath: '/admin/dashboard',
-  },
-  'admin:admin123': {
-    token: 'demo-jwt-superadmin',
-    staffId: 1,
-    username: 'admin',
-    fullName: 'System Administrator (Gunathilaka H.D.T.T.)',
-    role: 'SUPER_ADMIN',
-    dashboardPath: '/admin/dashboard',
-  },
-  'GunathilakaT1540:1540': {
-    token: 'demo-jwt-superadmin',
-    staffId: 1,
-    username: 'GunathilakaT1540',
-    fullName: 'Gunathilaka H.D.T.T.',
-    role: 'SUPER_ADMIN',
-    dashboardPath: '/admin/dashboard',
-  },
-  'AnafS2345:2345': {
-    token: 'demo-jwt-payment',
-    staffId: 2,
-    username: 'AnafS2345',
-    fullName: 'Anaf M.K.A.S.',
-    role: 'PAYMENT_ADMIN',
-    dashboardPath: '/admin/payment/dashboard',
-  },
-  'ZeenC3342:3342': {
-    token: 'demo-jwt-cs',
-    staffId: 3,
-    username: 'ZeenC3342',
-    fullName: 'Zeen A.C.',
-    role: 'CUSTOMER_SERVICE_ADMIN',
-    dashboardPath: '/admin/customer-service/dashboard',
-  },
-  'DissanayakeD1062:1062': {
-    token: 'demo-jwt-inventory',
-    staffId: 4,
-    username: 'DissanayakeD1062',
-    fullName: 'Dissanayake S.A.S.D.',
-    role: 'INVENTORY_ADMIN',
-    dashboardPath: '/admin/inventory/dashboard',
-  },
-  'GayathmiR3013:3013': {
-    token: 'demo-jwt-accounts',
-    staffId: 5,
-    username: 'GayathmiR3013',
-    fullName: 'Gayathmi P.G.R.',
-    role: 'ACCOUNT_ADMIN',
-    dashboardPath: '/admin/accounts/dashboard',
-  },
-  'DiyesL0263:0263': {
-    token: 'demo-jwt-orders',
-    staffId: 6,
-    username: 'DiyesL0263',
-    fullName: 'Diyes C.L.',
-    role: 'ORDER_ADMIN',
-    dashboardPath: '/admin/orders/dashboard',
-  },
+// Helper to strictly identify staff identifiers (usernames, employee IDs, official staff emails)
+const isStaffIdentifier = (id: string): boolean => {
+  const clean = id.trim().toLowerCase();
+  if (!clean) return false;
+  if (['admin', 'superadmin', 'administrator', 'root'].includes(clean)) return true;
+  if (clean.startsWith('emp-')) return true;
+  if (clean.endsWith('@sarasavipages.lk')) return true;
+  for (const [key, preset] of Object.entries(STAFF_PRESETS)) {
+    const [u] = key.split(':');
+    if (u.toLowerCase() === clean) return true;
+    if (preset.username.toLowerCase() === clean) return true;
+    if (preset.email && preset.email.toLowerCase() === clean) return true;
+    if (preset.employeeId && preset.employeeId.toLowerCase() === clean) return true;
+  }
+  return false;
 };
 
 // ── Demo Credentials Quick-Fill & 1-Click Instant Login Panel ──────────────
@@ -271,13 +211,20 @@ function LoginForm() {
     setIdentifier(u);
     setPassword(p);
 
-    const isCustomer = u.includes('@') || u.toUpperCase().startsWith('CUST-') || u.toLowerCase() === 'kamal';
+    // Strictly separate customer presets vs staff
+    const isCustomer = !isStaffIdentifier(u) && (
+      u.toUpperCase().startsWith('CUST-') || 
+      u.toLowerCase() === 'kamal' || 
+      CUSTOMER_PRESETS.some(c => c.email.toLowerCase() === u.toLowerCase())
+    );
+
     if (isCustomer) {
       Cookies.remove('sp_token', { path: '/' });
       Cookies.remove('sp_user', { path: '/' });
       if (typeof window !== 'undefined') {
         localStorage.removeItem('sp_user');
         localStorage.removeItem('sp_token');
+        window.dispatchEvent(new Event('sp_user_updated'));
       }
 
       let customer = CUSTOMER_PRESETS.find(c => c.email.toLowerCase() === u.toLowerCase()) || CUSTOMER_PRESETS[0];
@@ -296,26 +243,38 @@ function LoginForm() {
       Cookies.remove('sp_customer', { path: '/' });
       if (typeof window !== 'undefined') {
         localStorage.removeItem('sp_customer');
+        window.dispatchEvent(new Event('sp_customer_updated'));
       }
       await login({ username: u, password: p });
     } catch (err: any) {
       console.error('Staff instant login error:', err);
       // Fallback: check STAFF_PRESETS directly
-      const presetKey = Object.keys(STAFF_PRESETS).find(
-        k => k.split(':')[0].toLowerCase() === u.toLowerCase()
+      const cleanLower = u.toLowerCase();
+      let matchedPreset = Object.values(STAFF_PRESETS).find(
+        preset =>
+          preset.username.toLowerCase() === cleanLower ||
+          (preset.email && preset.email.toLowerCase() === cleanLower) ||
+          (preset.employeeId && preset.employeeId.toLowerCase() === cleanLower)
       );
-      if (presetKey && STAFF_PRESETS[presetKey]) {
-        const preset = STAFF_PRESETS[presetKey];
-        Cookies.set('sp_token', preset.token, { expires: 1, path: '/', sameSite: 'lax' });
-        Cookies.set('sp_user', JSON.stringify(preset), { expires: 1, path: '/', sameSite: 'lax' });
+      if (!matchedPreset) {
+        const presetKey = Object.keys(STAFF_PRESETS).find(
+          k => k.split(':')[0].toLowerCase() === cleanLower
+        );
+        if (presetKey) matchedPreset = STAFF_PRESETS[presetKey];
+      }
+
+      if (matchedPreset) {
+        Cookies.set('sp_token', matchedPreset.token, { expires: 1, path: '/', sameSite: 'lax' });
+        Cookies.set('sp_user', JSON.stringify(matchedPreset), { expires: 1, path: '/', sameSite: 'lax' });
         if (typeof window !== 'undefined') {
-          localStorage.setItem('sp_token', preset.token);
-          localStorage.setItem('sp_user', JSON.stringify(preset));
-          window.location.href = preset.dashboardPath;
+          localStorage.setItem('sp_token', matchedPreset.token);
+          localStorage.setItem('sp_user', JSON.stringify(matchedPreset));
+          window.dispatchEvent(new Event('sp_user_updated'));
+          window.location.href = matchedPreset.dashboardPath;
         }
         return;
       }
-      setError(`Login failed for ${u}. Please check credentials.`);
+      setError(`Login failed for staff account "${u}". Please check credentials.`);
       setIsSubmitting(false);
     }
   };
@@ -338,21 +297,13 @@ function LoginForm() {
 
       const cleanLower = cleanId.toLowerCase();
 
-      // 1. Check if this is a known staff credential or staff username or admin keyword
-      const isStaffUser = 
-        cleanLower === 'admin' ||
-        cleanLower === 'superadmin' ||
-        cleanLower === 'administrator' ||
-        cleanLower === 'root' ||
-        Object.keys(STAFF_PRESETS).some(
-          (k) => k.split(':')[0].toLowerCase() === cleanLower
-        );
-
-      if (isStaffUser) {
-        // Staff Login Path
+      // 1. Strictly detect if this is a Staff / Administrator user
+      if (isStaffIdentifier(cleanId)) {
+        // Purge any customer cookies/localStorage so staff session takes full precedence
         Cookies.remove('sp_customer', { path: '/' });
         if (typeof window !== 'undefined') {
           localStorage.removeItem('sp_customer');
+          window.dispatchEvent(new Event('sp_customer_updated'));
         }
 
         try {
@@ -360,42 +311,60 @@ function LoginForm() {
           return; // login will route to dashboardPath and update useAuth state
         } catch (err: any) {
           console.error('Staff login error:', err);
-          // Local fallback in case of password mismatch
-          const matchedKey = Object.keys(STAFF_PRESETS).find(
-            (k) => k.split(':')[0].toLowerCase() === cleanLower
-          ) || 'GunathilakaT1540:1540';
-          const preset = STAFF_PRESETS[matchedKey];
-          if (preset) {
+          
+          // Local fallback in case backend DB is offline/restarted
+          let preset = Object.values(STAFF_PRESETS).find(
+            p =>
+              p.username.toLowerCase() === cleanLower ||
+              (p.email && p.email.toLowerCase() === cleanLower) ||
+              (p.employeeId && p.employeeId.toLowerCase() === cleanLower)
+          );
+          if (!preset) {
+            const matchedKey = Object.keys(STAFF_PRESETS).find(
+              (k) => k.split(':')[0].toLowerCase() === cleanLower
+            );
+            if (matchedKey) preset = STAFF_PRESETS[matchedKey];
+          }
+          if (!preset && (cleanLower === 'admin' || cleanLower === 'superadmin')) {
+            preset = STAFF_PRESETS['admin:admin'];
+          }
+
+          if (preset && (cleanPass === 'admin' || cleanPass === '1540' || cleanPass === 'admin123' || cleanPass === '1234' || cleanPass === '2345' || cleanPass === '3342' || cleanPass === '1062' || cleanPass === '3013' || cleanPass === '0263')) {
             Cookies.set('sp_token', preset.token, { expires: 1, path: '/', sameSite: 'lax' });
             Cookies.set('sp_user', JSON.stringify(preset), { expires: 1, path: '/', sameSite: 'lax' });
             if (typeof window !== 'undefined') {
               localStorage.setItem('sp_token', preset.token);
               localStorage.setItem('sp_user', JSON.stringify(preset));
+              window.dispatchEvent(new Event('sp_user_updated'));
               window.location.href = preset.dashboardPath;
               return;
             }
           }
-          setError(`Invalid staff password. Please enter the correct password for ${cleanId}`);
+          
+          // NEVER fall through to customer for a recognized staff account!
+          setError(`Invalid password for staff account "${cleanId}". Please enter your correct staff password.`);
           return;
         }
       }
 
-      // If it looks like a custom staff username (not an email and not starting with CUST-)
-      if (!cleanId.includes('@') && !cleanId.toUpperCase().startsWith('CUST-')) {
+      // If it looks like a non-customer identifier (e.g. newly created staff member in database)
+      if (!cleanId.toUpperCase().startsWith('CUST-') && !cleanId.includes('@gmail') && !cleanId.includes('@yahoo')) {
         try {
           await login({ username: cleanId, password: cleanPass });
           return;
         } catch {
-          // If backend staff login fails, fall through to customer authentication
+          // If backend staff login fails, continue to customer check below
         }
       }
 
       // ── 2. Customer / Reader Authentication Path ─────────────────────────
+      // Clear any staff tokens to avoid cross-contamination
       Cookies.remove('sp_token', { path: '/' });
       Cookies.remove('sp_user', { path: '/' });
       if (typeof window !== 'undefined') {
         localStorage.removeItem('sp_user');
         localStorage.removeItem('sp_token');
+        window.dispatchEvent(new Event('sp_user_updated'));
       }
 
       // Check in predefined customer presets

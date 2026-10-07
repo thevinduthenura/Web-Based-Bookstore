@@ -72,7 +72,8 @@ const INITIAL_FALLBACK_STAFF: StaffMember[] = [
   {
     id: 1,
     fullName: 'Gunathilaka H.D.T.T.',
-    itNumber: 'IT25101540',
+    employeeId: 'EMP-1001',
+    itNumber: 'EMP-1001',
     username: 'GunathilakaT1540',
     email: 'gunathilaka@sarasavipages.lk',
     role: 'SUPER_ADMIN',
@@ -84,7 +85,8 @@ const INITIAL_FALLBACK_STAFF: StaffMember[] = [
   {
     id: 2,
     fullName: 'Anaf M.K.A.S.',
-    itNumber: 'IT25102345',
+    employeeId: 'EMP-1002',
+    itNumber: 'EMP-1002',
     username: 'AnafS2345',
     email: 'anaf@sarasavipages.lk',
     role: 'PAYMENT_ADMIN',
@@ -96,7 +98,8 @@ const INITIAL_FALLBACK_STAFF: StaffMember[] = [
   {
     id: 3,
     fullName: 'Zeen A.C.',
-    itNumber: 'IT25103342',
+    employeeId: 'EMP-1003',
+    itNumber: 'EMP-1003',
     username: 'ZeenC3342',
     email: 'zeen@sarasavipages.lk',
     role: 'CUSTOMER_SERVICE_ADMIN',
@@ -108,7 +111,8 @@ const INITIAL_FALLBACK_STAFF: StaffMember[] = [
   {
     id: 4,
     fullName: 'Dissanayake S.A.S.D.',
-    itNumber: 'IT25101062',
+    employeeId: 'EMP-1004',
+    itNumber: 'EMP-1004',
     username: 'DissanayakeD1062',
     email: 'dissanayake@sarasavipages.lk',
     role: 'INVENTORY_ADMIN',
@@ -120,7 +124,8 @@ const INITIAL_FALLBACK_STAFF: StaffMember[] = [
   {
     id: 5,
     fullName: 'Gayathmi P.G.R.',
-    itNumber: 'IT25103013',
+    employeeId: 'EMP-1005',
+    itNumber: 'EMP-1005',
     username: 'GayathmiR3013',
     email: 'gayathmi@sarasavipages.lk',
     role: 'ACCOUNT_ADMIN',
@@ -132,7 +137,8 @@ const INITIAL_FALLBACK_STAFF: StaffMember[] = [
   {
     id: 6,
     fullName: 'Diyes C.L.',
-    itNumber: 'IT25100263',
+    employeeId: 'EMP-1006',
+    itNumber: 'EMP-1006',
     username: 'DiyesL0263',
     email: 'diyes@sarasavipages.lk',
     role: 'ORDER_ADMIN',
@@ -237,6 +243,7 @@ export default function StaffManagementPage() {
     const matchesSearch =
       s.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       s.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (s.employeeId && s.employeeId.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (s.itNumber && s.itNumber.toLowerCase().includes(searchTerm.toLowerCase())) ||
       s.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = selectedRoleFilter === 'ALL' || s.role === selectedRoleFilter;
@@ -304,7 +311,8 @@ export default function StaffManagementPage() {
           fullName: addForm.fullName.trim(),
           email: addForm.email.trim(),
           username: cleanUsername,
-          itNumber: `IT25${Math.floor(100000 + Math.random() * 900000)}`,
+          employeeId: `EMP-${Math.floor(1000 + Math.random() * 9000)}`,
+          itNumber: `EMP-${Math.floor(1000 + Math.random() * 9000)}`,
           role: addForm.role,
           active: true,
           createdAt: new Date().toISOString(),
@@ -627,8 +635,8 @@ export default function StaffManagementPage() {
 
                       <td className="py-3.5 px-4">
                         <div className="text-[#596B32] font-semibold text-xs">@{staff.username}</div>
-                        {staff.itNumber && (
-                          <div className="text-[#85887A] text-[11px] font-medium">{staff.itNumber}</div>
+                        {(staff.employeeId || staff.itNumber) && (
+                          <div className="text-[#85887A] text-[11px] font-medium">{staff.employeeId || staff.itNumber}</div>
                         )}
                       </td>
 
@@ -740,7 +748,7 @@ export default function StaffManagementPage() {
                 <li><strong className="text-[#20231B]">Password Rule:</strong> Minimum 6 characters required.</li>
                 <li><strong className="text-[#20231B]">Full Name:</strong> Minimum 3 characters (legal staff name).</li>
                 <li><strong className="text-[#20231B]">Role Authority:</strong> Must select an authorized module role.</li>
-                <li><strong className="text-[#85887A]">IT Number:</strong> Automatically handled (no manual entry needed).</li>
+                <li><strong className="text-[#596B32]">Employee ID:</strong> Automatically assigned (e.g. EMP-1001).</li>
               </ul>
             </div>
 

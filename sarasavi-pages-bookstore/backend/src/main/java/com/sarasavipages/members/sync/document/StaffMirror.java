@@ -32,7 +32,17 @@ public class StaffMirror {
     @Indexed
     private String email;
 
+    private String employeeId;
+
     private String itNumber;
+
+    public String getEmployeeId() {
+        return employeeId != null ? employeeId : itNumber;
+    }
+
+    public String getItNumber() {
+        return employeeId != null ? employeeId : itNumber;
+    }
 
     @Indexed
     private String role;

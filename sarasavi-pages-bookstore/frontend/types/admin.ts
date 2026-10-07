@@ -14,7 +14,8 @@ export interface StaffMember {
   username: string;
   fullName: string;
   email: string;
-  itNumber: string;
+  employeeId?: string;
+  itNumber?: string;
   role: StaffRole;
   active: boolean;
   createdAt: string;
@@ -50,6 +51,8 @@ export interface AuthUser {
   staffId: number;
   username: string;
   fullName: string;
+  email?: string;
+  employeeId?: string;
   role: StaffRole;
   token: string;
   tokenType: string;

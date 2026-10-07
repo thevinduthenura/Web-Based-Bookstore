@@ -19,6 +19,7 @@ public class StaffResponse {
     private String fullName;
     private String email;
     private String itNumber;
+    private String employeeId;
     private StaffRole role;
     private boolean active;
     private LocalDateTime createdAt;
@@ -32,7 +33,8 @@ public class StaffResponse {
         dto.setUsername(staff.getUsername());
         dto.setFullName(staff.getFullName());
         dto.setEmail(staff.getEmail());
-        dto.setItNumber(staff.getItNumber());
+        dto.setEmployeeId(staff.getEmployeeId());
+        dto.setItNumber(staff.getEmployeeId());
         dto.setRole(staff.getRole());
         dto.setActive(staff.isActive());
         dto.setCreatedAt(staff.getCreatedAt());
@@ -51,7 +53,8 @@ public class StaffResponse {
         dto.setUsername(mirror.getUsername());
         dto.setFullName(mirror.getFullName());
         dto.setEmail(mirror.getEmail());
-        dto.setItNumber(mirror.getItNumber());
+        dto.setEmployeeId(mirror.getEmployeeId());
+        dto.setItNumber(mirror.getEmployeeId());
         try {
             dto.setRole(StaffRole.valueOf(mirror.getRole()));
         } catch (Exception e) {

@@ -29,7 +29,8 @@ const TEAM_MEMBERS = [
   {
     id: 1,
     name: 'Gunathilaka H.D.T.T.',
-    itNumber: 'IT25101540',
+    employeeId: 'EMP-1001',
+    itNumber: 'EMP-1001',
     username: 'GunathilakaT1540',
     module: 'M1: Admin & Staff Management',
     role: 'SUPER_ADMIN',
@@ -43,7 +44,8 @@ const TEAM_MEMBERS = [
   {
     id: 2,
     name: 'Anaf M.K.A.S.',
-    itNumber: 'IT25102345',
+    employeeId: 'EMP-1002',
+    itNumber: 'EMP-1002',
     username: 'AnafS2345',
     module: 'M2: Payment Management',
     role: 'PAYMENT_ADMIN',
@@ -56,7 +58,8 @@ const TEAM_MEMBERS = [
   {
     id: 3,
     name: 'Zeen A.C.',
-    itNumber: 'IT25103342',
+    employeeId: 'EMP-1003',
+    itNumber: 'EMP-1003',
     username: 'ZeenC3342',
     module: 'M3: Customer Service & Tickets',
     role: 'CUSTOMER_SERVICE_ADMIN',
@@ -69,7 +72,8 @@ const TEAM_MEMBERS = [
   {
     id: 4,
     name: 'Dissanayake S.A.S.D.',
-    itNumber: 'IT25101062',
+    employeeId: 'EMP-1004',
+    itNumber: 'EMP-1004',
     username: 'DissanayakeD1062',
     module: 'M4: Inventory & Catalog',
     role: 'INVENTORY_ADMIN',
@@ -82,7 +86,8 @@ const TEAM_MEMBERS = [
   {
     id: 5,
     name: 'Gayathmi P.G.R.',
-    itNumber: 'IT25103013',
+    employeeId: 'EMP-1005',
+    itNumber: 'EMP-1005',
     username: 'GayathmiR3013',
     module: 'M5: User Accounts & Profiles',
     role: 'ACCOUNT_ADMIN',
@@ -95,7 +100,8 @@ const TEAM_MEMBERS = [
   {
     id: 6,
     name: 'Diyes C.L.',
-    itNumber: 'IT25100263',
+    employeeId: 'EMP-1006',
+    itNumber: 'EMP-1006',
     username: 'DiyesL0263',
     module: 'M6: Orders & Shopping Cart',
     role: 'ORDER_ADMIN',
@@ -300,7 +306,7 @@ export default function AdminDashboardPage() {
                     </div>
                     <div>
                       <h3 className="text-sm font-display font-normal text-[#20231B]">{member.name}</h3>
-                      <p className="text-xs text-[#707365] font-medium">{member.itNumber}</p>
+                      <p className="text-xs text-[#707365] font-medium">{member.employeeId || member.itNumber}</p>
                     </div>
                   </div>
 

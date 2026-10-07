@@ -50,8 +50,17 @@ public class Staff implements UserDetails {
     @Column(nullable = false, unique = true, length = 100)
     private String email;
 
-    @Column(nullable = false, unique = true, length = 20)
-    private String itNumber; // e.g. IT25101540
+    @Column(name = "employee_id", nullable = false, unique = true, length = 20)
+    private String employeeId; // e.g. EMP-1001
+
+    // Backward compatibility helper
+    public String getItNumber() {
+        return employeeId;
+    }
+
+    public void setItNumber(String itNumber) {
+        this.employeeId = itNumber;
+    }
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)

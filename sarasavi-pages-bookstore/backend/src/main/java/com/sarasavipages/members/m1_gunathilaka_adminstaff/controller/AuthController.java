@@ -56,6 +56,8 @@ public class AuthController {
                 .expiresIn(jwtUtil.getExpirationMs())
                 .staffId(staff.getId())
                 .username(staff.getUsername())
+                .email(staff.getEmail())
+                .employeeId(staff.getEmployeeId())
                 .fullName(staff.getFullName())
                 .role(staff.getRole())
                 .dashboardPath(getDashboardPath(staff.getRole()))

@@ -13,13 +13,35 @@ BEGIN
         password        VARCHAR(255)    NOT NULL,
         full_name       VARCHAR(100)    NOT NULL,
         email           VARCHAR(100)    NOT NULL UNIQUE,
-        it_number       VARCHAR(20)     NOT NULL UNIQUE,
+        employee_id     VARCHAR(20)     NOT NULL UNIQUE,
         role            VARCHAR(30)     NOT NULL,
         active          BIT             NOT NULL DEFAULT 1,
         created_at      DATETIME2       NOT NULL DEFAULT GETDATE(),
         updated_at      DATETIME2,
         last_login_at   DATETIME2
     );
+END;
+ELSE
+BEGIN
+    -- Backward compatibility: Rename it_number to employee_id if it exists from earlier version
+    IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('staff') AND name = 'it_number')
+       AND NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('staff') AND name = 'employee_id')
+    BEGIN
+        EXEC sp_rename 'staff.it_number', 'employee_id', 'COLUMN';
+    END;
+END;
+
+-- Standardize any existing IT numbers to EMP format
+IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('staff') AND name = 'employee_id')
+BEGIN
+    UPDATE staff SET employee_id = 'EMP-1000' WHERE username = 'admin' AND employee_id LIKE 'IT%';
+    UPDATE staff SET employee_id = 'EMP-1001' WHERE username = 'GunathilakaT1540' AND employee_id LIKE 'IT%';
+    UPDATE staff SET employee_id = 'EMP-1002' WHERE username = 'AnafS2345' AND employee_id LIKE 'IT%';
+    UPDATE staff SET employee_id = 'EMP-1003' WHERE username = 'ZeenC3342' AND employee_id LIKE 'IT%';
+    UPDATE staff SET employee_id = 'EMP-1004' WHERE username = 'DissanayakeD1062' AND employee_id LIKE 'IT%';
+    UPDATE staff SET employee_id = 'EMP-1005' WHERE username = 'GayathmiR3013' AND employee_id LIKE 'IT%';
+    UPDATE staff SET employee_id = 'EMP-1006' WHERE username = 'DiyesL0263' AND employee_id LIKE 'IT%';
+    UPDATE staff SET employee_id = 'EMP-' + CAST(1000 + id AS VARCHAR(10)) WHERE employee_id LIKE 'IT%';
 END;
 
 -- Audit log table
@@ -46,8 +68,8 @@ IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'idx_audit_log_target' AND
 
 -- ============================================================
 -- SEED: Pre-built staff accounts
--- Username pattern: {LastName}{FirstInitial}{Last4DigitsOfIT}
--- Password: BCrypt hash of last 4 digits of IT number
+-- Username pattern: {LastName}{FirstInitial}{Code}
+-- Password: BCrypt hash of PIN
 --
 -- BCrypt hashes (cost=10) verified:
 --   admin → $2a$10$wqbqVvIy8B6ipFijfdHj2e6T9r0xHtj388GyodSAlESZhlazRvQ3u
@@ -61,84 +83,84 @@ IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'idx_audit_log_target' AND
 
 -- 0. System Administrator – admin (quick access)
 IF NOT EXISTS (SELECT 1 FROM staff WHERE username = 'admin')
-    INSERT INTO staff (username, password, full_name, email, it_number, role, active, created_at)
+    INSERT INTO staff (username, password, full_name, email, employee_id, role, active, created_at)
     VALUES ('admin',
             '$2a$10$wqbqVvIy8B6ipFijfdHj2e6T9r0xHtj388GyodSAlESZhlazRvQ3u',
             'System Administrator',
             'admin@sarasavipages.lk',
-            'IT25100000',
+            'EMP-1000',
             'SUPER_ADMIN',
             1,
             GETDATE());
 
 -- 1. Super Admin – Gunathilaka (full access)
 IF NOT EXISTS (SELECT 1 FROM staff WHERE username = 'GunathilakaT1540')
-    INSERT INTO staff (username, password, full_name, email, it_number, role, active, created_at)
+    INSERT INTO staff (username, password, full_name, email, employee_id, role, active, created_at)
     VALUES ('GunathilakaT1540',
             '$2a$10$mM3mT8.jQ3mBHIzoSla0A.rOcIepfT9SyJzTECfKot3VqvgTt7SRO',
             'Gunathilaka H.D.T.T.',
             'gunathilaka@sarasavipages.lk',
-            'IT25101540',
+            'EMP-1001',
             'SUPER_ADMIN',
             1,
             GETDATE());
 
 -- 2. Payment Admin – Anaf
 IF NOT EXISTS (SELECT 1 FROM staff WHERE username = 'AnafS2345')
-    INSERT INTO staff (username, password, full_name, email, it_number, role, active, created_at)
+    INSERT INTO staff (username, password, full_name, email, employee_id, role, active, created_at)
     VALUES ('AnafS2345',
             '$2a$10$cxwN5yLSybHuACZixkSU4eKQwKc8cGrsU6gdNz/EOGDJBNwMrnl8u',
             'Anaf M.K.A.S.',
             'anaf@sarasavipages.lk',
-            'IT25102345',
+            'EMP-1002',
             'PAYMENT_ADMIN',
             1,
             GETDATE());
 
 -- 3. Customer Service Admin – Zeen
 IF NOT EXISTS (SELECT 1 FROM staff WHERE username = 'ZeenC3342')
-    INSERT INTO staff (username, password, full_name, email, it_number, role, active, created_at)
+    INSERT INTO staff (username, password, full_name, email, employee_id, role, active, created_at)
     VALUES ('ZeenC3342',
             '$2a$10$Pty7Gw9231qd25CRMZIjzOYOItWGgfUR3JYxdsVd9HUfGb5SkozKS',
             'Zeen A.C.',
             'zeen@sarasavipages.lk',
-            'IT25103342',
+            'EMP-1003',
             'CUSTOMER_SERVICE_ADMIN',
             1,
             GETDATE());
 
 -- 4. Inventory Admin – Dissanayake
 IF NOT EXISTS (SELECT 1 FROM staff WHERE username = 'DissanayakeD1062')
-    INSERT INTO staff (username, password, full_name, email, it_number, role, active, created_at)
+    INSERT INTO staff (username, password, full_name, email, employee_id, role, active, created_at)
     VALUES ('DissanayakeD1062',
             '$2a$10$zJSbllDTsljBD9r9pt1LKu2UUM1qXlujRZeAhQ048Pj9qwDQqEZd.',
             'Dissanayake S.A.S.D.',
             'dissanayake@sarasavipages.lk',
-            'IT25101062',
+            'EMP-1004',
             'INVENTORY_ADMIN',
             1,
             GETDATE());
 
 -- 5. Account Admin – Gayathmi
 IF NOT EXISTS (SELECT 1 FROM staff WHERE username = 'GayathmiR3013')
-    INSERT INTO staff (username, password, full_name, email, it_number, role, active, created_at)
+    INSERT INTO staff (username, password, full_name, email, employee_id, role, active, created_at)
     VALUES ('GayathmiR3013',
             '$2a$10$30ARi4BOe3ZQ4.zgoNRqzuCIOSxO28Xc6OBnYJ2TOxdq6oPgb9bVq',
             'Gayathmi P.G.R.',
             'gayathmi@sarasavipages.lk',
-            'IT25103013',
+            'EMP-1005',
             'ACCOUNT_ADMIN',
             1,
             GETDATE());
 
 -- 6. Order Admin – Diyes
 IF NOT EXISTS (SELECT 1 FROM staff WHERE username = 'DiyesL0263')
-    INSERT INTO staff (username, password, full_name, email, it_number, role, active, created_at)
+    INSERT INTO staff (username, password, full_name, email, employee_id, role, active, created_at)
     VALUES ('DiyesL0263',
             '$2a$10$JH/ec6F5M2kcOkwvsiYyH.k9Cj9d/c1XvzEqvyFEyX3wcR92XVHty',
             'Diyes C.L.',
             'diyes@sarasavipages.lk',
-            'IT25100263',
+            'EMP-1006',
             'ORDER_ADMIN',
             1,
             GETDATE());

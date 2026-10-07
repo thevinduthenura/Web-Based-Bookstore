@@ -22,8 +22,11 @@ public class StaffRequest {
     @Email(message = "Invalid email format")
     private String email;
 
-    /** Optional - auto-generated if omitted */
+    /** Optional - auto-generated as EMP-XXXX if omitted */
     private String itNumber;
+
+    /** Corporate Employee ID alias */
+    private String employeeId;
 
     /** Optional on create (auto-generated if omitted); editable on update */
     private String username;

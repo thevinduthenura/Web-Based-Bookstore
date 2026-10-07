@@ -49,15 +49,35 @@ public class StaffService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        if ("admin".equalsIgnoreCase(username) || "superadmin".equalsIgnoreCase(username)) {
-            var adminOpt = staffRepository.findByUsername("admin");
-            if (adminOpt.isPresent()) return adminOpt.get();
-            return staffRepository.findByUsername("GunathilakaT1540")
-                    .orElseThrow(() -> new UsernameNotFoundException("Staff member not found with username: " + username));
+        if (username == null || username.isBlank()) {
+            throw new UsernameNotFoundException("Username or email cannot be empty");
         }
-        return staffRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException(
-                        "Staff member not found with username: " + username));
+        String clean = username.trim();
+
+        if ("admin".equalsIgnoreCase(clean) || "superadmin".equalsIgnoreCase(clean) || "administrator".equalsIgnoreCase(clean)) {
+            var adminOpt = staffRepository.findByUsernameIgnoreCase("admin");
+            if (adminOpt.isPresent()) return adminOpt.get();
+            return staffRepository.findByUsernameIgnoreCase("GunathilakaT1540")
+                    .orElseThrow(() -> new UsernameNotFoundException("Staff member not found with username: " + clean));
+        }
+
+        // 1. Try username
+        var userOpt = staffRepository.findByUsernameIgnoreCase(clean);
+        if (userOpt.isPresent()) return userOpt.get();
+
+        // 2. Try email (e.g. admin@sarasavipages.lk, gunathilaka@sarasavipages.lk)
+        var emailOpt = staffRepository.findByEmailIgnoreCase(clean);
+        if (emailOpt.isPresent()) return emailOpt.get();
+
+        // 3. Try Employee ID (e.g. EMP-1000, EMP-1001)
+        var empOpt = staffRepository.findByEmployeeIdIgnoreCase(clean);
+        if (empOpt.isPresent()) return empOpt.get();
+
+        // 4. Try legacy IT number if applicable
+        var itOpt = staffRepository.findByItNumber(clean);
+        if (itOpt.isPresent()) return itOpt.get();
+
+        throw new UsernameNotFoundException("Staff member not found with identifier: " + clean);
     }
 
     // ── Staff CRUD ────────────────────────────────────────────────────────────
@@ -82,19 +102,29 @@ public class StaffService implements UserDetailsService {
             throw new IllegalArgumentException("Email already in use: " + request.getEmail());
         }
 
-        // IT Number (optional: auto-generated if omitted)
-        String itNumber = request.getItNumber() != null && !request.getItNumber().isBlank()
-                ? request.getItNumber().trim()
-                : "IT25" + (int)(100000 + Math.random() * 900000);
+        // Employee ID / Staff ID (auto-generated as EMP-XXXX if omitted)
+        String empId = request.getEmployeeId() != null && !request.getEmployeeId().isBlank()
+                ? request.getEmployeeId().trim().toUpperCase()
+                : (request.getItNumber() != null && !request.getItNumber().isBlank()
+                    ? request.getItNumber().trim().toUpperCase()
+                    : null);
 
-        while (staffRepository.existsByItNumber(itNumber)) {
-            itNumber = "IT25" + (int)(100000 + Math.random() * 900000);
+        if (empId == null) {
+            int counter = 1001;
+            while (staffRepository.existsByEmployeeId("EMP-" + counter)) {
+                counter++;
+            }
+            empId = "EMP-" + counter;
+        }
+
+        while (staffRepository.existsByEmployeeId(empId)) {
+            empId = "EMP-" + (int)(1000 + Math.random() * 9000);
         }
 
         // Username: user-provided or auto-generated
         String username = request.getUsername() != null && !request.getUsername().isBlank()
                 ? request.getUsername().trim()
-                : generateUsername(request.getFullName(), itNumber);
+                : generateUsername(request.getFullName(), empId);
 
         if (!username.matches("^[a-zA-Z0-9_]{3,30}$")) {
             throw new IllegalArgumentException("Username must be between 3 and 30 characters (letters, numbers, underscores only)");
@@ -105,9 +135,15 @@ public class StaffService implements UserDetailsService {
         }
 
         // Password: user-provided or default to last 4 digits / default strong password
+        String passSuffix = empId.replaceAll("[^0-9]", "");
+        if (passSuffix.length() > 4) {
+            passSuffix = passSuffix.substring(passSuffix.length() - 4);
+        } else if (passSuffix.isEmpty()) {
+            passSuffix = "1234";
+        }
         String rawPassword = request.getPassword() != null && !request.getPassword().isBlank()
                 ? request.getPassword()
-                : "Admin@" + itNumber.substring(itNumber.length() - 4);
+                : "Admin@" + passSuffix;
 
         if (request.getPassword() != null && !request.getPassword().isBlank() && request.getPassword().length() < 6) {
             throw new IllegalArgumentException("Password must be at least 6 characters long");
@@ -118,7 +154,7 @@ public class StaffService implements UserDetailsService {
                 .password(passwordEncoder.encode(rawPassword))
                 .fullName(request.getFullName().trim())
                 .email(request.getEmail().trim())
-                .itNumber(itNumber)
+                .employeeId(empId)
                 .role(request.getRole())
                 .active(true)
                 .createdAt(LocalDateTime.now())
@@ -309,7 +345,8 @@ public class StaffService implements UserDetailsService {
                 .username(staff.getUsername())
                 .fullName(staff.getFullName())
                 .email(staff.getEmail())
-                .itNumber(staff.getItNumber())
+                .employeeId(staff.getEmployeeId())
+                .itNumber(staff.getEmployeeId())
                 .role(staff.getRole() != null ? staff.getRole().name() : "INVENTORY_ADMIN")
                 .active(staff.isActive())
                 .createdAt(staff.getCreatedAt())
@@ -337,17 +374,18 @@ public class StaffService implements UserDetailsService {
     }
 
     /**
-     * Generates username as {LastName}{FirstInitial}{Last4DigitsOfIT}.
-     * Example: "Gunathilaka H.D.T.T." + "IT25101540" → "GunathilakaT1540"
+     * Generates username as {LastName}{FirstInitial}{Code}.
+     * Example: "Gunathilaka H.D.T.T." + "EMP-1001" → "GunathilakaT1001"
      */
-    public static String generateUsername(String fullName, String itNumber) {
+    public static String generateUsername(String fullName, String employeeId) {
         String[] nameParts = fullName.trim().split("\\s+");
         String lastName = nameParts[0];
         // Get first letter of second name part (the initial after last name)
         String firstInitial = nameParts.length > 1
                 ? String.valueOf(nameParts[1].charAt(0)).toUpperCase()
                 : "";
-        String last4 = itNumber.substring(itNumber.length() - 4);
-        return lastName + firstInitial + last4;
+        String cleanId = employeeId != null ? employeeId.replaceAll("[^0-9a-zA-Z]", "") : "1001";
+        String suffix = cleanId.length() >= 4 ? cleanId.substring(cleanId.length() - 4) : cleanId;
+        return lastName + firstInitial + suffix;
     }
 }

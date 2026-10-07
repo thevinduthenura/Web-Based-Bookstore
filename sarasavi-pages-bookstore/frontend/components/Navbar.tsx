@@ -206,23 +206,28 @@ export default function Navbar({
   const isDark = isDarkProp !== undefined ? isDarkProp : isDetectedDark;
 
   useEffect(() => {
-    // 1. Read logged-in customer from cookies or localStorage
+    // 1. Read logged-in user from cookies or localStorage (Staff takes precedence)
     const loadCustomer = () => {
       try {
-        const custRaw = Cookies.get('sp_customer') || (typeof window !== 'undefined' ? localStorage.getItem('sp_customer') : null);
-        if (custRaw) {
-          const parsed = JSON.parse(custRaw);
-          setCustomer(parsed);
-          return;
-        }
+        // Check active staff session first
         const staffRaw = Cookies.get('sp_user') || (typeof window !== 'undefined' ? localStorage.getItem('sp_user') : null);
         if (staffRaw) {
           const parsed = JSON.parse(staffRaw);
           setCustomer({ 
-            id: parsed.username || 'user', 
+            id: parsed.username || 'admin', 
             name: parsed.fullName || parsed.username || 'Admin',
+            isStaff: true,
+            role: parsed.role,
             dashboardPath: parsed.dashboardPath || '/admin/dashboard'
           } as any);
+          return;
+        }
+
+        // If no staff session, check customer session
+        const custRaw = Cookies.get('sp_customer') || (typeof window !== 'undefined' ? localStorage.getItem('sp_customer') : null);
+        if (custRaw) {
+          const parsed = JSON.parse(custRaw);
+          setCustomer(parsed);
           return;
         }
         setCustomer(null);
@@ -255,11 +260,13 @@ export default function Navbar({
     window.addEventListener('storage', updateCount);
     window.addEventListener('sp_cart_updated', updateCount);
     window.addEventListener('sp_customer_updated', loadCustomer);
+    window.addEventListener('sp_user_updated', loadCustomer);
 
     return () => {
       window.removeEventListener('storage', updateCount);
       window.removeEventListener('sp_cart_updated', updateCount);
       window.removeEventListener('sp_customer_updated', loadCustomer);
+      window.removeEventListener('sp_user_updated', loadCustomer);
     };
   }, []);
 
@@ -373,7 +380,14 @@ export default function Navbar({
               <div className="w-4 h-4 rounded-full bg-white/20 flex items-center justify-center">
                 <User className="w-2.5 h-2.5 text-[#B7D85A]" />
               </div>
-              <span className="max-w-[80px] sm:max-w-none truncate font-medium">{displayName}</span>
+              <span className="max-w-[120px] sm:max-w-none truncate font-medium flex items-center gap-1.5">
+                {(customer as any).isStaff && (
+                  <span className="px-1.5 py-0.5 rounded-full bg-[#B7D85A] text-[#20231B] text-[9px] font-bold uppercase tracking-wider">
+                    Staff
+                  </span>
+                )}
+                <span>{displayName}</span>
+              </span>
             </Link>
           ) : (
             <Link
