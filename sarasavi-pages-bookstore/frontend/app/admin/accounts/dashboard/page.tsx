@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import apiClient from '@/lib/api-client';
+import { formatAndLimitPhone, limitPostalCode } from '@/lib/input-utils';
 import { 
   UserCheck, 
   Users, 
@@ -78,7 +79,7 @@ export default function AccountsDashboardPage() {
     lastName: '',
     email: '',
     password: 'Password@123',
-    phone: '+94 77 000 0000',
+    phone: '',
     addressLine1: 'Main Street',
     city: 'Colombo',
     postalCode: '00100',
@@ -610,10 +611,12 @@ export default function AccountsDashboardPage() {
                 <div>
                   <label className="block text-[#85887A] mb-1 font-medium">Phone Number</label>
                   <input
-                    type="text"
+                    type="tel"
                     required
+                    maxLength={16}
+                    placeholder="e.g. 077 123 4567 or +94 77 123 4567"
                     value={newCustomer.phone}
-                    onChange={(e) => setNewCustomer({ ...newCustomer, phone: e.target.value })}
+                    onChange={(e) => setNewCustomer({ ...newCustomer, phone: formatAndLimitPhone(e.target.value) })}
                     className="w-full px-3 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:outline-none focus:bg-white focus:border-[#596B32] font-mono"
                   />
                 </div>
@@ -628,14 +631,27 @@ export default function AccountsDashboardPage() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-[#85887A] mb-1 font-medium">Address Line</label>
-                <input
-                  type="text"
-                  value={newCustomer.addressLine1}
-                  onChange={(e) => setNewCustomer({ ...newCustomer, addressLine1: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:outline-none focus:bg-white focus:border-[#596B32]"
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[#85887A] mb-1 font-medium">Address Line</label>
+                  <input
+                    type="text"
+                    value={newCustomer.addressLine1}
+                    onChange={(e) => setNewCustomer({ ...newCustomer, addressLine1: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:outline-none focus:bg-white focus:border-[#596B32]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[#85887A] mb-1 font-medium">Postal Code</label>
+                  <input
+                    type="text"
+                    maxLength={5}
+                    placeholder="00100"
+                    value={newCustomer.postalCode}
+                    onChange={(e) => setNewCustomer({ ...newCustomer, postalCode: limitPostalCode(e.target.value) })}
+                    className="w-full px-3 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:outline-none focus:bg-white focus:border-[#596B32] font-mono"
+                  />
+                </div>
               </div>
 
               <div className="flex justify-end gap-2 pt-3 border-t border-[#E2E7D8]">
@@ -696,14 +712,29 @@ export default function AccountsDashboardPage() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-[#85887A] mb-1 font-medium">Phone</label>
-                <input
-                  type="text"
-                  value={activeCustomer.phone || ''}
-                  onChange={(e) => setActiveCustomer({ ...activeCustomer, phone: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:outline-none focus:bg-white focus:border-[#596B32] font-mono"
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[#85887A] mb-1 font-medium">Phone</label>
+                  <input
+                    type="tel"
+                    maxLength={16}
+                    placeholder="e.g. 077 123 4567 or +94 77 123 4567"
+                    value={activeCustomer.phone || ''}
+                    onChange={(e) => setActiveCustomer({ ...activeCustomer, phone: formatAndLimitPhone(e.target.value) })}
+                    className="w-full px-3 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:outline-none focus:bg-white focus:border-[#596B32] font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[#85887A] mb-1 font-medium">Postal Code</label>
+                  <input
+                    type="text"
+                    maxLength={5}
+                    placeholder="00100"
+                    value={activeCustomer.postalCode || ''}
+                    onChange={(e) => setActiveCustomer({ ...activeCustomer, postalCode: limitPostalCode(e.target.value) })}
+                    className="w-full px-3 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:outline-none focus:bg-white focus:border-[#596B32] font-mono"
+                  />
+                </div>
               </div>
 
               <div>

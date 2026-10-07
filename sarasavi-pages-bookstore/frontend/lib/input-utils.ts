@@ -1,14 +1,15 @@
 /**
  * Input sanitization and length limiter utilities
  * Enforces standard character and digit limits across forms.
+ * Prevents over-typing beyond valid digit counts.
  */
 
 /**
  * Limits and formats a phone number so it cannot exceed the standard digit count.
  * Sri Lanka standard:
- *  - Local: exactly 10 digits (e.g., 077 123 4567 or 011 234 5678)
- *  - International (+94): exactly 11 digits (e.g., +94 77 123 4567)
- *  - Raw 9-digit (without 0): max 9 digits (e.g., 77 123 4567)
+ *  - Local with leading 0: exactly 10 digits (e.g. 077 123 4567 or 011 234 5678)
+ *  - International (+94): exactly 11 digits (e.g. +94 77 123 4567)
+ *  - Raw 9-digit (without 0): max 9 digits (e.g. 77 123 4567)
  * Once the required numbers are filled, typing stops automatically.
  */
 export function formatAndLimitPhone(input: string): string {
@@ -40,7 +41,7 @@ export function formatAndLimitPhone(input: string): string {
     }
   }
 
-  // Local phone number starting with 0: exactly 10 digits max (e.g. 077 123 4567)
+  // Local phone number starting with 0: exactly 10 digits max (e.g. 077 123 4567 or 011 234 5678)
   if (digits.startsWith('0')) {
     digits = digits.slice(0, 10);
     if (digits.length > 6) {
@@ -51,7 +52,7 @@ export function formatAndLimitPhone(input: string): string {
     return digits;
   }
 
-  // Number typed without leading 0 or + (e.g., 771234567): max 9 digits
+  // Number typed without leading 0 or + (e.g., 714444444): max 9 digits
   if (digits.length > 0) {
     digits = digits.slice(0, 9);
     if (digits.length > 5) {
@@ -66,15 +67,72 @@ export function formatAndLimitPhone(input: string): string {
 }
 
 /**
+ * Limits credit/debit card numbers to exactly 16 digits (or max 19 formatted chars).
+ * Automatically stops typing once 16 digits are entered.
+ */
+export function formatAndLimitCardNumber(input: string): string {
+  const digits = input.replace(/\D/g, '').slice(0, 16);
+  return digits.replace(/(\d{4})/g, '$1 ').trim();
+}
+
+/**
+ * Limits card expiry to MM/YY format (4 digits max, 5 chars with slash).
+ * Automatically stops typing once MM/YY is filled.
+ */
+export function formatAndLimitCardExpiry(input: string): string {
+  const digits = input.replace(/\D/g, '').slice(0, 4);
+  if (digits.length >= 2) {
+    const mm = Math.min(12, Math.max(1, Number(digits.slice(0, 2))));
+    const mmStr = mm < 10 && digits.length >= 2 ? `0${mm}` : `${digits.slice(0, 2)}`;
+    return `${mmStr}/${digits.slice(2)}`;
+  }
+  return digits;
+}
+
+/**
  * Limits postal code to 5 digits max (Sri Lanka postal codes are 5 digits).
+ * Automatically stops typing once 5 digits are entered.
  */
 export function limitPostalCode(input: string): string {
   return input.replace(/\D/g, '').slice(0, 5);
 }
 
 /**
- * Limits CVV to 3 or 4 digits max.
+ * Limits CVV/CVC to 3 or 4 digits max.
+ * Automatically stops typing once 4 digits are entered.
  */
 export function limitCvv(input: string): string {
   return input.replace(/\D/g, '').slice(0, 4);
+}
+
+/**
+ * Limits ISBN number to 13 digits max (or formatted with standard hyphens).
+ * Automatically stops typing once 13 digits are entered.
+ */
+export function formatAndLimitIsbn(input: string): string {
+  const digits = input.replace(/\D/g, '').slice(0, 13);
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 6) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+  if (digits.length <= 10) return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
+  if (digits.length <= 12) return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6, 10)}-${digits.slice(10)}`;
+  return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6, 10)}-${digits.slice(10, 12)}-${digits.slice(12)}`;
+}
+
+/**
+ * Limits Sri Lankan National Identity Card (NIC) input:
+ * - Old format: 9 digits + V/X (10 chars, e.g. 991234567V)
+ * - New format: 12 digits (12 chars, e.g. 200012345678)
+ * Max length is capped at 12 characters.
+ */
+export function limitNic(input: string): string {
+  const cleaned = input.toUpperCase().replace(/[^0-9VX]/g, '');
+  return cleaned.slice(0, 12);
+}
+
+/**
+ * Limits integer numbers up to a maximum digit count or ceiling value.
+ */
+export function limitNumericInput(input: string | number, maxDigits: number = 6): number {
+  const digits = String(input).replace(/\D/g, '').slice(0, maxDigits);
+  return digits ? Number(digits) : 0;
 }

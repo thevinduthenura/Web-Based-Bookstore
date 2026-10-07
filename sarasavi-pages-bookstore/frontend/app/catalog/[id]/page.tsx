@@ -7,6 +7,7 @@ import Navbar from '@/components/Navbar';
 import FlipbookReader from '@/components/FlipbookReader';
 import Cookies from 'js-cookie';
 import { useAuth } from '@/hooks/useAuth';
+import { formatAndLimitIsbn } from '@/lib/input-utils';
 import { 
   BookOpen, 
   ShoppingCart, 
@@ -977,9 +978,11 @@ export default function BookDetailsPage() {
                     type="number"
                     required
                     min={50}
+                    max={999999}
                     step={10}
+                    onInput={(e) => { if (e.currentTarget.value.length > 6) e.currentTarget.value = e.currentTarget.value.slice(0, 6); }}
                     value={editForm.price}
-                    onChange={(e) => setEditForm({ ...editForm, price: Number(e.target.value) })}
+                    onChange={(e) => setEditForm({ ...editForm, price: Math.max(0, Math.min(999999, Number(e.target.value))) })}
                     className="w-full px-3.5 py-2.5 rounded-full bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] font-mono focus:outline-none focus:border-[#596B32] focus:bg-white"
                   />
                 </div>
@@ -989,8 +992,10 @@ export default function BookDetailsPage() {
                     type="number"
                     required
                     min={0}
+                    max={99999}
+                    onInput={(e) => { if (e.currentTarget.value.length > 5) e.currentTarget.value = e.currentTarget.value.slice(0, 5); }}
                     value={editForm.stockQuantity}
-                    onChange={(e) => setEditForm({ ...editForm, stockQuantity: Number(e.target.value) })}
+                    onChange={(e) => setEditForm({ ...editForm, stockQuantity: Math.max(0, Math.min(99999, Number(e.target.value))) })}
                     className="w-full px-3.5 py-2.5 rounded-full bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] font-mono focus:outline-none focus:border-[#596B32] focus:bg-white"
                   />
                 </div>
@@ -998,8 +1003,10 @@ export default function BookDetailsPage() {
                   <label className="block text-[#34451D] font-medium mb-1.5">ISBN-13</label>
                   <input
                     type="text"
+                    maxLength={17}
+                    placeholder="978-955-0201-99-9"
                     value={editForm.isbn}
-                    onChange={(e) => setEditForm({ ...editForm, isbn: e.target.value })}
+                    onChange={(e) => setEditForm({ ...editForm, isbn: formatAndLimitIsbn(e.target.value) })}
                     className="w-full px-3.5 py-2.5 rounded-full bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] font-mono focus:outline-none focus:border-[#596B32] focus:bg-white"
                   />
                 </div>

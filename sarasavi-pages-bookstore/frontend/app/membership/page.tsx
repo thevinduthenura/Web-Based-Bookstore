@@ -6,7 +6,12 @@ import Navbar from '@/components/Navbar';
 import Cookies from 'js-cookie';
 import { useAuth } from '@/hooks/useAuth';
 import { printMembershipInvoice } from '@/lib/invoice-pdf';
-import { formatAndLimitPhone } from '@/lib/input-utils';
+import { 
+  formatAndLimitPhone, 
+  formatAndLimitCardNumber, 
+  formatAndLimitCardExpiry, 
+  limitCvv 
+} from '@/lib/input-utils';
 import { 
   Check, 
   Gift, 
@@ -782,10 +787,7 @@ export default function MembershipPage() {
                       required
                       maxLength={19}
                       value={cardNumber}
-                      onChange={(e) => {
-                        const v = e.target.value.replace(/\D/g, '').replace(/(.{4})/g, '$1 ').trim();
-                        setCardNumber(v);
-                      }}
+                      onChange={(e) => setCardNumber(formatAndLimitCardNumber(e.target.value))}
                       placeholder="•••• •••• •••• ••••"
                       className="w-full px-4 py-3 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs text-[#20231B] placeholder-[#9E9F94] font-mono focus:outline-none focus:border-[#34451D] focus:bg-white transition-all"
                     />
@@ -801,10 +803,7 @@ export default function MembershipPage() {
                         required
                         maxLength={5}
                         value={cardExpiry}
-                        onChange={(e) => {
-                          const v = e.target.value.replace(/\D/g, '').replace(/(\d{2})/, '$1/').slice(0, 5);
-                          setCardExpiry(v);
-                        }}
+                        onChange={(e) => setCardExpiry(formatAndLimitCardExpiry(e.target.value))}
                         placeholder="MM/YY"
                         className="w-full px-4 py-3 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs text-[#20231B] placeholder-[#9E9F94] font-mono focus:outline-none focus:border-[#34451D] focus:bg-white transition-all"
                       />
@@ -819,7 +818,7 @@ export default function MembershipPage() {
                         required
                         maxLength={4}
                         value={cardCvv}
-                        onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, ''))}
+                        onChange={(e) => setCardCvv(limitCvv(e.target.value))}
                         placeholder="•••"
                         className="w-full px-4 py-3 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs text-[#20231B] placeholder-[#9E9F94] font-mono focus:outline-none focus:border-[#34451D] focus:bg-white transition-all"
                       />

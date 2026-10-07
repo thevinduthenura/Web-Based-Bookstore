@@ -10,7 +10,13 @@ import Navbar from '@/components/Navbar';
 import AdminModeBar from '@/components/admin/AdminModeBar';
 import CinematicEditorialSpotlight from '@/components/CinematicEditorialSpotlight';
 import { printOrderInvoice, printMembershipInvoice } from '@/lib/invoice-pdf';
-import { formatAndLimitPhone, limitPostalCode } from '@/lib/input-utils';
+import { 
+  formatAndLimitPhone, 
+  limitPostalCode, 
+  formatAndLimitCardNumber, 
+  formatAndLimitCardExpiry, 
+  limitCvv 
+} from '@/lib/input-utils';
 import { 
   BookOpen, 
   Search, 
@@ -2248,7 +2254,7 @@ export default function StorefrontPage() {
                       <div>
                         <label className="block text-[#85887A] font-medium mb-1">Card Number *</label>
                         <input required maxLength={19} value={paymentForm.cardNumber}
-                          onChange={e => setPaymentForm({...paymentForm, cardNumber: e.target.value.replace(/\D/g,'').replace(/(\d{4})/g,'$1 ').trim()})}
+                          onChange={e => setPaymentForm({...paymentForm, cardNumber: formatAndLimitCardNumber(e.target.value)})}
                           placeholder="1234 5678 9012 3456" className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] font-mono focus:bg-white focus:outline-none focus:border-[#596B32]" />
                       </div>
                       <div>
@@ -2260,12 +2266,12 @@ export default function StorefrontPage() {
                         <div>
                           <label className="block text-[#85887A] font-medium mb-1">Expiry Date *</label>
                           <input required maxLength={5} value={paymentForm.expiry}
-                            onChange={e => setPaymentForm({...paymentForm, expiry: e.target.value.replace(/\D/g,'').replace(/(\d{2})/,'$1/').slice(0,5)})}
+                            onChange={e => setPaymentForm({...paymentForm, expiry: formatAndLimitCardExpiry(e.target.value)})}
                             placeholder="MM/YY" className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] font-mono focus:bg-white focus:outline-none focus:border-[#596B32]" />
                         </div>
                         <div>
                           <label className="block text-[#85887A] font-medium mb-1">CVV *</label>
-                          <input required type="password" maxLength={4} value={paymentForm.cvv} onChange={e => setPaymentForm({...paymentForm, cvv: e.target.value.replace(/\D/g,'')})}
+                          <input required type="password" maxLength={4} value={paymentForm.cvv} onChange={e => setPaymentForm({...paymentForm, cvv: limitCvv(e.target.value)})}
                             placeholder="•••" className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] font-mono focus:bg-white focus:outline-none focus:border-[#596B32]" />
                         </div>
                       </div>
@@ -2438,20 +2444,20 @@ export default function StorefrontPage() {
                       <div>
                         <label className="block text-[#85887A] font-medium mb-1">Card Number *</label>
                         <input required maxLength={19} value={membershipPaymentForm.cardNumber}
-                          onChange={e => setMembershipPaymentForm({...membershipPaymentForm, cardNumber: e.target.value.replace(/\D/g,'').replace(/(\d{4})/g,'$1 ').trim()})}
+                          onChange={e => setMembershipPaymentForm({...membershipPaymentForm, cardNumber: formatAndLimitCardNumber(e.target.value)})}
                           placeholder="1234 5678 9012 3456" className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] font-mono focus:outline-none focus:border-[#596B32] focus:bg-white" />
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <label className="block text-[#85887A] font-medium mb-1">Expiry *</label>
                           <input required maxLength={5} value={membershipPaymentForm.expiry}
-                            onChange={e => setMembershipPaymentForm({...membershipPaymentForm, expiry: e.target.value.replace(/\D/g,'').replace(/(\d{2})/,'$1/').slice(0,5)})}
+                            onChange={e => setMembershipPaymentForm({...membershipPaymentForm, expiry: formatAndLimitCardExpiry(e.target.value)})}
                             placeholder="MM/YY" className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] font-mono text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-white" />
                         </div>
                         <div>
                           <label className="block text-[#85887A] font-medium mb-1">CVV *</label>
                           <input required type="password" maxLength={4} value={membershipPaymentForm.cvv}
-                            onChange={e => setMembershipPaymentForm({...membershipPaymentForm, cvv: e.target.value.replace(/\D/g,'')})}
+                            onChange={e => setMembershipPaymentForm({...membershipPaymentForm, cvv: limitCvv(e.target.value)})}
                             placeholder="•••" className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] font-mono text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-white" />
                         </div>
                       </div>

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import apiClient from '@/lib/api-client';
+import { formatAndLimitIsbn } from '@/lib/input-utils';
 import { 
   Boxes, 
   BookOpen, 
@@ -640,9 +641,10 @@ export default function InventoryDashboardPage() {
                   <input
                     type="text"
                     required
+                    maxLength={17}
                     placeholder="978-955-0201-99-9"
                     value={newItem.isbn}
-                    onChange={(e) => setNewItem({ ...newItem, isbn: e.target.value })}
+                    onChange={(e) => setNewItem({ ...newItem, isbn: formatAndLimitIsbn(e.target.value) })}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] placeholder:text-[#85887A] focus:outline-none focus:border-[#596B32] focus:bg-white font-sans"
                   />
                 </div>
@@ -695,8 +697,10 @@ export default function InventoryDashboardPage() {
                     type="number"
                     required
                     min={0}
+                    max={99999}
+                    onInput={(e) => { if (e.currentTarget.value.length > 5) e.currentTarget.value = e.currentTarget.value.slice(0, 5); }}
                     value={newItem.stockQuantity}
-                    onChange={(e) => setNewItem({ ...newItem, stockQuantity: Number(e.target.value) })}
+                    onChange={(e) => setNewItem({ ...newItem, stockQuantity: Math.max(0, Math.min(99999, Number(e.target.value))) })}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-white"
                   />
                 </div>
@@ -706,8 +710,10 @@ export default function InventoryDashboardPage() {
                     type="number"
                     required
                     min={1}
+                    max={9999}
+                    onInput={(e) => { if (e.currentTarget.value.length > 4) e.currentTarget.value = e.currentTarget.value.slice(0, 4); }}
                     value={newItem.safetyStockLevel}
-                    onChange={(e) => setNewItem({ ...newItem, safetyStockLevel: Number(e.target.value) })}
+                    onChange={(e) => setNewItem({ ...newItem, safetyStockLevel: Math.max(1, Math.min(9999, Number(e.target.value))) })}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-white"
                   />
                 </div>
@@ -717,8 +723,10 @@ export default function InventoryDashboardPage() {
                     type="number"
                     required
                     min={0}
+                    max={999999}
+                    onInput={(e) => { if (e.currentTarget.value.length > 6) e.currentTarget.value = e.currentTarget.value.slice(0, 6); }}
                     value={newItem.sellingPrice}
-                    onChange={(e) => setNewItem({ ...newItem, sellingPrice: Number(e.target.value) })}
+                    onChange={(e) => setNewItem({ ...newItem, sellingPrice: Math.max(0, Math.min(999999, Number(e.target.value))) })}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-white"
                   />
                 </div>

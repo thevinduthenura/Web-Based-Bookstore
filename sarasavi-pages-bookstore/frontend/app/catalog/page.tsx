@@ -6,7 +6,13 @@ import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Cookies from 'js-cookie';
 import { printOrderInvoice } from '@/lib/invoice-pdf';
-import { formatAndLimitPhone } from '@/lib/input-utils';
+import { 
+  formatAndLimitPhone, 
+  formatAndLimitIsbn, 
+  formatAndLimitCardNumber, 
+  formatAndLimitCardExpiry, 
+  limitCvv 
+} from '@/lib/input-utils';
 import { 
   BookOpen, 
   Search, 
@@ -1468,7 +1474,7 @@ function CatalogContent() {
                           value={paymentForm.cardNumber}
                           onChange={(e) => setPaymentForm({
                             ...paymentForm,
-                            cardNumber: e.target.value.replace(/\D/g, '').replace(/(\d{4})/g, '$1 ').trim()
+                            cardNumber: formatAndLimitCardNumber(e.target.value)
                           })}
                           placeholder="1234 5678 9012 3456"
                           className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] font-mono text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-white"
@@ -1483,7 +1489,7 @@ function CatalogContent() {
                             value={paymentForm.expiry}
                             onChange={(e) => setPaymentForm({
                               ...paymentForm,
-                              expiry: e.target.value.replace(/\D/g, '').replace(/(\d{2})/, '$1/').slice(0, 5)
+                              expiry: formatAndLimitCardExpiry(e.target.value)
                             })}
                             placeholder="MM/YY"
                             className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] font-mono text-[#20231B] focus:bg-white"
@@ -1498,7 +1504,7 @@ function CatalogContent() {
                             value={paymentForm.cvv}
                             onChange={(e) => setPaymentForm({
                               ...paymentForm,
-                              cvv: e.target.value.replace(/\D/g, '')
+                              cvv: limitCvv(e.target.value)
                             })}
                             placeholder="•••"
                             className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] font-mono text-[#20231B] focus:bg-white"
@@ -1711,8 +1717,10 @@ function CatalogContent() {
                     required
                     type="number"
                     min="1"
+                    max={999999}
+                    onInput={(e) => { if (e.currentTarget.value.length > 6) e.currentTarget.value = e.currentTarget.value.slice(0, 6); }}
                     value={bookForm.price}
-                    onChange={(e) => setBookForm({ ...bookForm, price: Number(e.target.value) })}
+                    onChange={(e) => setBookForm({ ...bookForm, price: Math.max(0, Math.min(999999, Number(e.target.value))) })}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs font-mono text-[#20231B] focus:outline-none focus:border-[#34451D] focus:bg-white"
                   />
                 </div>
@@ -1723,8 +1731,10 @@ function CatalogContent() {
                     required
                     type="number"
                     min="0"
+                    max={99999}
+                    onInput={(e) => { if (e.currentTarget.value.length > 5) e.currentTarget.value = e.currentTarget.value.slice(0, 5); }}
                     value={bookForm.stockQuantity}
-                    onChange={(e) => setBookForm({ ...bookForm, stockQuantity: Number(e.target.value) })}
+                    onChange={(e) => setBookForm({ ...bookForm, stockQuantity: Math.max(0, Math.min(99999, Number(e.target.value))) })}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs font-mono text-[#20231B] focus:outline-none focus:border-[#34451D] focus:bg-white"
                   />
                 </div>
@@ -1733,8 +1743,9 @@ function CatalogContent() {
                   <label className="block text-xs font-medium text-[#20231B] mb-1">ISBN / Barcode</label>
                   <input
                     type="text"
+                    maxLength={17}
                     value={bookForm.isbn}
-                    onChange={(e) => setBookForm({ ...bookForm, isbn: e.target.value })}
+                    onChange={(e) => setBookForm({ ...bookForm, isbn: formatAndLimitIsbn(e.target.value) })}
                     placeholder="978-955-xxx-xxx-x"
                     className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs font-mono text-[#20231B] focus:outline-none focus:border-[#34451D] focus:bg-white"
                   />
@@ -1902,8 +1913,10 @@ function CatalogContent() {
                     required
                     type="number"
                     min="1"
+                    max={999999}
+                    onInput={(e) => { if (e.currentTarget.value.length > 6) e.currentTarget.value = e.currentTarget.value.slice(0, 6); }}
                     value={bookForm.price}
-                    onChange={(e) => setBookForm({ ...bookForm, price: Number(e.target.value) })}
+                    onChange={(e) => setBookForm({ ...bookForm, price: Math.max(0, Math.min(999999, Number(e.target.value))) })}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs font-mono text-[#20231B] focus:outline-none focus:border-[#34451D] focus:bg-white"
                   />
                 </div>
@@ -1914,8 +1927,10 @@ function CatalogContent() {
                     required
                     type="number"
                     min="0"
+                    max={99999}
+                    onInput={(e) => { if (e.currentTarget.value.length > 5) e.currentTarget.value = e.currentTarget.value.slice(0, 5); }}
                     value={bookForm.stockQuantity}
-                    onChange={(e) => setBookForm({ ...bookForm, stockQuantity: Number(e.target.value) })}
+                    onChange={(e) => setBookForm({ ...bookForm, stockQuantity: Math.max(0, Math.min(99999, Number(e.target.value))) })}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs font-mono text-[#20231B] focus:outline-none focus:border-[#34451D] focus:bg-white"
                   />
                 </div>
@@ -1924,8 +1939,10 @@ function CatalogContent() {
                   <label className="block text-xs font-medium text-[#20231B] mb-1">ISBN / Barcode</label>
                   <input
                     type="text"
+                    maxLength={17}
+                    placeholder="978-955-xxx-xxx-x"
                     value={bookForm.isbn}
-                    onChange={(e) => setBookForm({ ...bookForm, isbn: e.target.value })}
+                    onChange={(e) => setBookForm({ ...bookForm, isbn: formatAndLimitIsbn(e.target.value) })}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs font-mono text-[#20231B] focus:outline-none focus:border-[#34451D] focus:bg-white"
                   />
                 </div>
