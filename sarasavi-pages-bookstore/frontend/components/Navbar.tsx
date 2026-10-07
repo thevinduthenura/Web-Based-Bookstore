@@ -40,6 +40,78 @@ function getLuminance(r: number, g: number, b: number): number {
   return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
 }
 
+// Helper: Inspect element or ancestors for visible background luminance
+function inspectElementLuminance(el: HTMLElement): 'dark' | 'light' | null {
+  let curr: HTMLElement | null = el;
+  while (curr && curr !== document.documentElement) {
+    const classStr = curr.className || '';
+    if (typeof classStr === 'string' && classStr.length > 0) {
+      // 1. Explicit light container classes (cards, sections, panels, backgrounds)
+      if (
+        classStr.includes('bg-white') ||
+        classStr.includes('bg-[#F8F9F5]') ||
+        classStr.includes('bg-[#F0F4E8]') ||
+        classStr.includes('bg-[#E2E7D8]') ||
+        classStr.includes('bg-[#EBF0E4]') ||
+        classStr.includes('bg-[#DCE3D2]') ||
+        classStr.includes('bg-gray-50') ||
+        classStr.includes('bg-stone-50') ||
+        classStr.includes('bg-neutral-50')
+      ) {
+        return 'light';
+      }
+
+      // 2. Explicit dark container classes
+      if (
+        classStr.includes('bg-[#20231B]') ||
+        classStr.includes('bg-[#0E120A]') ||
+        classStr.includes('bg-[#141811]') ||
+        classStr.includes('bg-[#1C2610]') ||
+        classStr.includes('bg-[#233014]') ||
+        classStr.includes('bg-[#2F3F1B]') ||
+        classStr.includes('bg-[#34451D]') ||
+        classStr.includes('bg-[#18220D]') ||
+        classStr.includes('bg-black') ||
+        classStr.includes('from-[#20231B]') ||
+        classStr.includes('from-[#0E120A]') ||
+        classStr.includes('from-[#1C2610]') ||
+        classStr.includes('from-[#34451D]') ||
+        classStr.includes('bg-neutral-900') ||
+        classStr.includes('bg-neutral-950') ||
+        classStr.includes('bg-gray-900') ||
+        classStr.includes('bg-gray-950')
+      ) {
+        return 'dark';
+      }
+    }
+
+    const style = window.getComputedStyle(curr);
+    const bg = parseRgb(style.backgroundColor);
+    if (bg && bg.a > 0.35) {
+      const lum = getLuminance(bg.r, bg.g, bg.b);
+      return lum < 0.5 ? 'dark' : 'light';
+    }
+
+    // Direct text color check
+    const text = curr.textContent?.trim();
+    if (text && text.length > 0) {
+      const textColor = parseRgb(style.color);
+      if (textColor && textColor.a > 0.6) {
+        const textLum = getLuminance(textColor.r, textColor.g, textColor.b);
+        if (textLum > 0.82) {
+          return 'dark';
+        }
+        if (textLum < 0.25) {
+          return 'light';
+        }
+      }
+    }
+
+    curr = curr.parentElement;
+  }
+  return null;
+}
+
 export default function Navbar({ 
   activeTab = 'home', 
   onOpenBag, 
@@ -55,11 +127,12 @@ export default function Navbar({
   const [isDetectedDark, setIsDetectedDark] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
       if (window.location.pathname.includes('/about')) return true;
+      if (window.location.pathname === '/' && window.scrollY === 0) return true;
     }
     return Boolean(isDarkProp);
   });
 
-  // Dynamic real-time underlying background detection
+  // Dynamic real-time underlying background detection (iOS-style adaptive luminance)
   useEffect(() => {
     const checkDarkness = () => {
       if (typeof window === 'undefined' || !headerRef.current) return;
@@ -67,93 +140,41 @@ export default function Navbar({
       const rect = headerRef.current.getBoundingClientRect();
       if (rect.height === 0 || rect.width === 0) return;
 
-      const y = rect.top + rect.height / 2;
       const samplePoints = [
-        rect.left + Math.min(80, rect.width * 0.15),
-        rect.left + rect.width / 2,
-        rect.right - Math.min(80, rect.width * 0.15)
+        { x: rect.left + Math.min(80, rect.width * 0.15), y: rect.top + rect.height / 2 },
+        { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 },
+        { x: rect.right - Math.min(80, rect.width * 0.15), y: rect.top + rect.height / 2 },
+        { x: rect.left + Math.min(80, rect.width * 0.15), y: rect.bottom + 12 },
+        { x: rect.right - Math.min(80, rect.width * 0.15), y: rect.bottom + 12 }
       ];
 
       let darkCount = 0;
       let lightCount = 0;
 
-      for (const x of samplePoints) {
-        if (x < 0 || x > window.innerWidth || y < 0 || y > window.innerHeight) continue;
-        const elements = document.elementsFromPoint(x, y);
+      for (const pt of samplePoints) {
+        if (pt.x < 0 || pt.x > window.innerWidth || pt.y < 0 || pt.y > window.innerHeight) continue;
+        const elements = document.elementsFromPoint(pt.x, pt.y);
 
-        let resolved = false;
         for (const el of elements) {
           if (!el || headerRef.current?.contains(el) || el === headerRef.current) continue;
 
-          const htmlEl = el as HTMLElement;
-
-          // 1. Explicit dark container classes
-          const darkContainer = htmlEl.closest?.(
-            '[class*="bg-[#20231B]"], [class*="bg-[#0E120A]"], [class*="bg-[#141811]"], [class*="bg-[#1C2610]"], [class*="bg-[#233014]"], [class*="bg-[#2F3F1B]"], [class*="bg-[#34451D]"], [class*="bg-black"], [class*="from-[#20231B]"], [class*="from-[#0E120A]"], [class*="bg-neutral-900"], [class*="bg-gray-900"]'
-          );
-          if (darkContainer) {
+          const res = inspectElementLuminance(el as HTMLElement);
+          if (res === 'dark') {
             darkCount++;
-            resolved = true;
             break;
-          }
-
-          // 2. Explicit light container classes
-          const lightContainer = htmlEl.closest?.(
-            '[class*="bg-[#F8F9F5]"], [class*="bg-[#F0F4E8]"], [class*="bg-[#E2E7D8]"], [class*="bg-white"], [class*="bg-gray-50"], [class*="bg-stone-50"]'
-          );
-
-          // 3. Computed background color inspection
-          let curr: HTMLElement | null = htmlEl;
-          while (curr && curr !== document.body && curr !== document.documentElement) {
-            const style = window.getComputedStyle(curr);
-            const bg = parseRgb(style.backgroundColor);
-            if (bg && bg.a > 0.35) {
-              const lum = getLuminance(bg.r, bg.g, bg.b);
-              if (lum < 0.48) {
-                darkCount++;
-              } else {
-                lightCount++;
-              }
-              resolved = true;
-              break;
-            }
-            curr = curr.parentElement;
-          }
-          if (resolved) break;
-
-          // 4. White text strongly implies dark background
-          const textStyle = window.getComputedStyle(htmlEl);
-          const textColor = parseRgb(textStyle.color);
-          if (textColor && textColor.a > 0.6 && !lightContainer) {
-            const textLum = getLuminance(textColor.r, textColor.g, textColor.b);
-            if (textLum > 0.8) {
-              darkCount++;
-              resolved = true;
-              break;
-            }
-          }
-        }
-
-        if (!resolved) {
-          // Check body or route fallback
-          const bodyBg = parseRgb(window.getComputedStyle(document.body).backgroundColor);
-          if (bodyBg && bodyBg.a > 0.35) {
-            if (getLuminance(bodyBg.r, bodyBg.g, bodyBg.b) < 0.48) {
-              darkCount++;
-            } else {
-              lightCount++;
-            }
+          } else if (res === 'light') {
+            lightCount++;
+            break;
           }
         }
       }
 
       if (darkCount > 0 || lightCount > 0) {
-        setIsDetectedDark(darkCount >= lightCount);
+        setIsDetectedDark(darkCount > lightCount);
       } else {
-        // Fallback: check pathname
         if (pathname?.includes('/about')) {
           setIsDetectedDark(true);
-        } else if (isHomeHero && window.scrollY < 650) {
+        } else if (pathname === '/' && window.scrollY < 200) {
           setIsDetectedDark(true);
         } else {
           setIsDetectedDark(false);
@@ -168,7 +189,7 @@ export default function Navbar({
     };
 
     handleUpdate();
-    const timer = setTimeout(handleUpdate, 60);
+    const timer = setTimeout(handleUpdate, 50);
 
     window.addEventListener('scroll', handleUpdate, { passive: true });
     window.addEventListener('resize', handleUpdate, { passive: true });
@@ -179,7 +200,7 @@ export default function Navbar({
       window.removeEventListener('scroll', handleUpdate);
       window.removeEventListener('resize', handleUpdate);
     };
-  }, [pathname, isHomeHero]);
+  }, [pathname]);
 
   // Prop takes precedence if provided; otherwise uses automatic detection
   const isDark = isDarkProp !== undefined ? isDarkProp : isDetectedDark;
@@ -265,15 +286,15 @@ export default function Navbar({
         {/* Left: Brand Wordmark with Organic Dots */}
         <Link href="/" className="flex items-center gap-2 sm:gap-2.5 group text-left shrink-0">
           <div className="flex items-center -space-x-1">
-            <div className={`w-3 sm:w-3.5 h-3 sm:h-3.5 rounded-full ${isDark ? 'bg-white' : 'bg-[#34451D]'} group-hover:scale-110 transition-transform`} />
+            <div className={`w-3 sm:w-3.5 h-3 sm:h-3.5 rounded-full ${isDark ? 'bg-white' : 'bg-[#34451D]'} transition-colors duration-200 group-hover:scale-110`} />
             <div className="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full bg-[#B7D85A] group-hover:scale-110 transition-transform" />
-            <div className={`w-3 sm:w-3.5 h-3 sm:h-3.5 rounded-full ${isDark ? 'bg-[#DCE3D2]' : 'bg-[#596B32]'} group-hover:scale-110 transition-transform`} />
+            <div className={`w-3 sm:w-3.5 h-3 sm:h-3.5 rounded-full ${isDark ? 'bg-[#DCE3D2]' : 'bg-[#596B32]'} transition-colors duration-200 group-hover:scale-110`} />
           </div>
-          <span className="font-display text-base sm:text-lg tracking-tight transition-colors">
-            <span className={`font-medium ${isDark ? 'text-white' : 'text-[#20231B]'}`}>
+          <span className="font-display text-base sm:text-lg tracking-tight">
+            <span className={`font-medium transition-colors duration-200 ${isDark ? 'text-white' : 'text-[#20231B]'}`}>
               sarasavi
             </span>
-            <span className={`font-light ${isDark ? 'text-[#B7D85A]' : 'text-[#596B32]'}`}>
+            <span className={`font-light transition-colors duration-200 ${isDark ? 'text-[#B7D85A]' : 'text-[#596B32]'}`}>
               pages
             </span>
           </span>
@@ -307,9 +328,9 @@ export default function Navbar({
               ? 'text-white hover:bg-white/10' 
               : 'text-[#596B32] hover:text-[#20231B] hover:bg-[#F0F4E8]'
           }`}>
-            <Globe className={`w-3.5 h-3.5 shrink-0 ${isDark ? 'text-[#B7D85A]' : 'text-[#596B32]'}`} />
-            <span className={isDark ? 'text-white' : 'text-[#596B32]'}>LKR</span>
-            <ChevronDown className={`w-3 h-3 ${isDark ? 'text-white/80' : 'text-[#596B32]'}`} />
+            <Globe className={`w-3.5 h-3.5 shrink-0 transition-colors duration-200 ${isDark ? 'text-[#B7D85A]' : 'text-[#596B32]'}`} />
+            <span className={`transition-colors duration-200 ${isDark ? 'text-white' : 'text-[#596B32]'}`}>LKR</span>
+            <ChevronDown className={`w-3 h-3 transition-colors duration-200 ${isDark ? 'text-white/80' : 'text-[#596B32]'}`} />
           </div>
 
           {/* Shopping Bag Button */}
