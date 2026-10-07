@@ -103,6 +103,30 @@ export const STAFF_PRESETS: Record<string, AuthUser> = {
     expiresIn: 86400,
     dashboardPath: '/admin/orders/dashboard',
   },
+  'YalithaD1122:Yalitha@1122': {
+    staffId: 11,
+    username: 'YalithaD1122',
+    employeeId: 'EMP-1007',
+    email: 'yalitha@gmail.com',
+    fullName: 'Yalitha',
+    role: 'INVENTORY_ADMIN',
+    token: 'demo-jwt-yalithad1122',
+    tokenType: 'Bearer',
+    expiresIn: 86400,
+    dashboardPath: '/admin/inventory/dashboard',
+  },
+  'YalithaD1122:1122': {
+    staffId: 11,
+    username: 'YalithaD1122',
+    employeeId: 'EMP-1007',
+    email: 'yalitha@gmail.com',
+    fullName: 'Yalitha',
+    role: 'INVENTORY_ADMIN',
+    token: 'demo-jwt-yalithad1122',
+    tokenType: 'Bearer',
+    expiresIn: 86400,
+    dashboardPath: '/admin/inventory/dashboard',
+  },
 };
 
 interface AuthContextValue {
@@ -255,7 +279,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Check exact key match case-insensitively
       for (const [key, preset] of Object.entries(STAFF_PRESETS)) {
         const [u, p] = key.split(':');
-        if (u.toLowerCase() === cleanUserLower && (p === cleanPass || cleanPass === 'admin' || cleanPass === '1540' || cleanPass === 'admin123' || cleanPass === '1234')) {
+        if (
+          u.toLowerCase() === cleanUserLower &&
+          (p === cleanPass || cleanPass.toLowerCase() === p.toLowerCase() || 
+           cleanPass === 'admin' || cleanPass === '1540' || cleanPass === 'admin123' || cleanPass === '1234' ||
+           (preset.employeeId && cleanPass === preset.employeeId.replace(/\D/g, '')))
+        ) {
           authUser = preset;
           break;
         }

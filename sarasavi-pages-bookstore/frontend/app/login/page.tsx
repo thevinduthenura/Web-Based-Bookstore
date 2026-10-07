@@ -104,6 +104,7 @@ function DemoCredentialsPanel({
     { label: 'Payment Admin', username: 'AnafS2345', password: '2345', badge: 'bg-[#596B32] text-white', desc: 'Gateway & transactions' },
     { label: 'Customer Service', username: 'ZeenC3342', password: '3342', badge: 'bg-[#7F9148] text-white', desc: 'Tickets & inquiries' },
     { label: 'Inventory Admin', username: 'DissanayakeD1062', password: '1062', badge: 'bg-[#B7D85A] text-[#20231B]', desc: 'Stock & supplier logs' },
+    { label: 'Inventory (Yalitha)', username: 'YalithaD1122', password: 'Yalitha@1122', badge: 'bg-[#B7D85A] text-[#20231B]', desc: 'Stock & inventory staff' },
     { label: 'Account Admin', username: 'GayathmiR3013', password: '3013', badge: 'bg-[#E2E7D8] text-[#20231B]', desc: 'Customer KYC & tiers' },
     { label: 'Order Admin', username: 'DiyesL0263', password: '0263', badge: 'bg-[#F0F4E8] text-[#20231B] border border-[#E2E7D8]', desc: 'Book catalog & orders' },
     { label: 'Customer (Reader)', username: 'kamal.perera@gmail.com', password: 'any', badge: 'bg-emerald-50 text-emerald-800 border border-emerald-200', desc: 'Account profile & library' },
@@ -418,25 +419,32 @@ function LoginForm() {
               (p.email && p.email.toLowerCase() === cleanLower) ||
               (p.employeeId && p.employeeId.toLowerCase() === cleanLower)
           );
-          if (!preset) {
-            const matchedKey = Object.keys(STAFF_PRESETS).find(
-              (k) => k.split(':')[0].toLowerCase() === cleanLower
-            );
-            if (matchedKey) preset = STAFF_PRESETS[matchedKey];
-          }
+          const matchedKey = Object.keys(STAFF_PRESETS).find(
+            (k) => k.split(':')[0].toLowerCase() === cleanLower
+          );
+          if (matchedKey) preset = STAFF_PRESETS[matchedKey];
           if (!preset && (cleanLower === 'admin' || cleanLower === 'superadmin')) {
             preset = STAFF_PRESETS['admin:admin'];
           }
 
-          if (preset && (cleanPass === 'admin' || cleanPass === '1540' || cleanPass === 'admin123' || cleanPass === '1234' || cleanPass === '2345' || cleanPass === '3342' || cleanPass === '1062' || cleanPass === '3013' || cleanPass === '0263')) {
-            Cookies.set('sp_token', preset.token, { expires: 1, path: '/', sameSite: 'lax' });
-            Cookies.set('sp_user', JSON.stringify(preset), { expires: 1, path: '/', sameSite: 'lax' });
-            if (typeof window !== 'undefined') {
-              localStorage.setItem('sp_token', preset.token);
-              localStorage.setItem('sp_user', JSON.stringify(preset));
-              window.dispatchEvent(new Event('sp_user_updated'));
-              window.location.href = preset.dashboardPath;
-              return;
+          if (preset) {
+            const expectedPass = matchedKey ? matchedKey.split(':')[1] : '';
+            const isPasswordCorrect = 
+              (expectedPass && (cleanPass === expectedPass || cleanPass.toLowerCase() === expectedPass.toLowerCase())) ||
+              cleanPass === 'admin' || cleanPass === '1540' || cleanPass === 'admin123' || cleanPass === '1234' ||
+              cleanPass === '2345' || cleanPass === '3342' || cleanPass === '1062' || cleanPass === '3013' || cleanPass === '0263' ||
+              (preset.employeeId && cleanPass === preset.employeeId.replace(/\D/g, ''));
+
+            if (isPasswordCorrect) {
+              Cookies.set('sp_token', preset.token, { expires: 1, path: '/', sameSite: 'lax' });
+              Cookies.set('sp_user', JSON.stringify(preset), { expires: 1, path: '/', sameSite: 'lax' });
+              if (typeof window !== 'undefined') {
+                localStorage.setItem('sp_token', preset.token);
+                localStorage.setItem('sp_user', JSON.stringify(preset));
+                window.dispatchEvent(new Event('sp_user_updated'));
+                window.location.href = preset.dashboardPath;
+                return;
+              }
             }
           }
           
