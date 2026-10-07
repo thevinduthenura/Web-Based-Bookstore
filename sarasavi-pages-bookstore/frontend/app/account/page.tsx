@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Cookies from 'js-cookie';
 import { printMembershipInvoice, printPaymentReceipt } from '@/lib/invoice-pdf';
-import { formatAndLimitPhone } from '@/lib/input-utils';
+import { formatAndLimitPhone, handlePhoneKeyDown } from '@/lib/input-utils';
 import { 
   User, 
   Mail, 
@@ -50,14 +50,14 @@ interface CustomerData {
 }
 
 const DEFAULT_CUSTOMER: CustomerData = {
-  customerId: 'CUST-1001',
-  name: 'Kamal Perera',
-  email: 'kamal.perera@gmail.com',
-  tier: 'GOLD',
-  points: 350,
-  phone: '+94 77 123 4567',
-  address: 'No 12, Galle Road, Colombo 03',
-  kycVerified: true
+  customerId: '',
+  name: 'Valued Reader',
+  email: '',
+  tier: 'STANDARD',
+  points: 0,
+  phone: '',
+  address: '',
+  kycVerified: false
 };
 
 export default function CustomerAccountPage() {
@@ -178,6 +178,30 @@ export default function CustomerAccountPage() {
           if (savedMembership && (!parsed.membership || parsed.membership === 'NONE')) {
             parsed.membership = savedMembership;
             parsed.isMember = true;
+          }
+
+          // Self-healing: if an account (like newly registered shaveen silva) received dummy default phone or address, clear them
+          const isPresetKamal = parsed.email === 'kamal.perera@gmail.com' || parsed.customerId === 'CUST-1001';
+          if (!isPresetKamal) {
+            let changed = false;
+            if (parsed.phone === '+94 77 123 4567') {
+              parsed.phone = '';
+              changed = true;
+            }
+            if (parsed.address === 'Colombo, Sri Lanka' || parsed.address === 'No 25, Main Street, Colombo') {
+              parsed.address = '';
+              changed = true;
+            }
+            // If new user still has leftover cart from previous browsing, reset it to empty
+            if ((parsed as any).isNewUser && !localStorage.getItem(`sp_cart_cleared_${parsed.customerId}`)) {
+              localStorage.setItem('sp_cart', JSON.stringify([]));
+              localStorage.setItem(`sp_cart_cleared_${parsed.customerId}`, 'true');
+              window.dispatchEvent(new Event('sp_cart_updated'));
+            }
+            if (changed) {
+              localStorage.setItem('sp_customer', JSON.stringify(parsed));
+              Cookies.set('sp_customer', JSON.stringify(parsed), { expires: 7, path: '/' });
+            }
           }
         }
         setCustomer(parsed);
@@ -491,11 +515,23 @@ export default function CustomerAccountPage() {
                 </div>
                 <div>
                   <span className="text-[#85887A] block text-[11px] mb-1">Primary Phone</span>
-                  <p className="text-[#20231B] font-mono">{customer.phone}</p>
+                  <p className="text-[#20231B] font-mono">
+                    {customer.phone?.trim() ? (
+                      customer.phone
+                    ) : (
+                      <span className="text-[#85887A] italic font-sans font-normal">Not provided</span>
+                    )}
+                  </p>
                 </div>
                 <div className="sm:col-span-2">
                   <span className="text-[#85887A] block text-[11px] mb-1">Delivery Address</span>
-                  <p className="text-[#20231B] leading-relaxed">{customer.address}</p>
+                  <p className="text-[#20231B] leading-relaxed">
+                    {customer.address?.trim() ? (
+                      customer.address
+                    ) : (
+                      <span className="text-[#85887A] italic font-normal">Not provided</span>
+                    )}
+                  </p>
                 </div>
               </div>
             </div>
@@ -744,25 +780,25 @@ export default function CustomerAccountPage() {
               </div>
 
               <div>
-                <label className="block text-[#34451D] mb-1 font-medium">Phone Number</label>
+                <label className="block text-[#34451D] mb-1 font-medium">Phone Number (Optional)</label>
                 <input
                   type="tel"
-                  required
                   maxLength={16}
                   value={editForm.phone}
                   onChange={(e) => setEditForm({ ...editForm, phone: formatAndLimitPhone(e.target.value) })}
+                  onKeyDown={handlePhoneKeyDown}
                   placeholder="e.g. 077 123 4567 or +94 77 123 4567"
                   className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-white font-mono transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-[#34451D] mb-1 font-medium">Shipping Address</label>
+                <label className="block text-[#34451D] mb-1 font-medium">Shipping Address (Optional)</label>
                 <textarea
-                  required
                   rows={3}
                   value={editForm.address}
                   onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                  placeholder="e.g. No 25, Main Street, Colombo 03"
                   className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-white transition-all"
                 />
               </div>

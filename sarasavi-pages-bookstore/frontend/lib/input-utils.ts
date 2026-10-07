@@ -21,9 +21,9 @@ export function formatAndLimitPhone(input: string): string {
   // Extract all digits only
   let digits = input.replace(/\D/g, '');
 
-  if (startsWithPlus) {
+  if (startsWithPlus || digits.startsWith('94')) {
     if (digits.startsWith('94')) {
-      // Sri Lanka (+94): 94 + max 9 subscriber digits = 11 digits total
+      // Sri Lanka (+94): 94 + max 9 subscriber digits = exactly 11 digits total
       digits = digits.slice(0, 11);
       const sub = digits.slice(2);
       if (sub.length > 5) {
@@ -52,7 +52,7 @@ export function formatAndLimitPhone(input: string): string {
     return digits;
   }
 
-  // Number typed without leading 0 or + (e.g., 714444444): max 9 digits
+  // Number typed without leading 0 or + (e.g., 771234567): max 9 digits
   if (digits.length > 0) {
     digits = digits.slice(0, 9);
     if (digits.length > 5) {
@@ -64,6 +64,63 @@ export function formatAndLimitPhone(input: string): string {
   }
 
   return '';
+}
+
+/**
+ * Keyboard event listener that actively blocks typing once max digits are reached,
+ * and restricts input to numeric characters and standard navigation keys.
+ */
+export function handlePhoneKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+  // Allow control/navigation keys, copy/paste, backspace, delete, tab
+  if (
+    ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter', 'Home', 'End'].includes(e.key) ||
+    e.ctrlKey || e.metaKey || e.altKey
+  ) {
+    return;
+  }
+
+  const input = e.currentTarget;
+  const currentVal = input.value;
+  const selectionLength = (input.selectionEnd || 0) - (input.selectionStart || 0);
+
+  // If user has highlighted text, they are replacing, so allow
+  if (selectionLength > 0) return;
+
+  const digits = currentVal.replace(/\D/g, '');
+  const isIntl = currentVal.trimStart().startsWith('+') || digits.startsWith('94');
+  const isLocal = digits.startsWith('0');
+
+  // Allow '+' only as the first character
+  if (e.key === '+') {
+    if (currentVal.length === 0 || (input.selectionStart === 0 && !currentVal.includes('+'))) {
+      return;
+    }
+    e.preventDefault();
+    return;
+  }
+
+  // Block any non-digit character (e.g. letters, symbols)
+  if (!/^\d$/.test(e.key)) {
+    e.preventDefault();
+    return;
+  }
+
+  // Strictly enforce digit limits:
+  // 1. Local number (07X XXX XXXX): exactly 10 digits
+  if (isLocal && digits.length >= 10) {
+    e.preventDefault();
+    return;
+  }
+  // 2. Sri Lankan international (+94 XX XXX XXXX): exactly 11 digits (94 + 9 digits)
+  if (isIntl && digits.startsWith('94') && digits.length >= 11) {
+    e.preventDefault();
+    return;
+  }
+  // 3. Raw number without prefix: exactly 9 digits
+  if (!isLocal && !isIntl && digits.length >= 9) {
+    e.preventDefault();
+    return;
+  }
 }
 
 /**

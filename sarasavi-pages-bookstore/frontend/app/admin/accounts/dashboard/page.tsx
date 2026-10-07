@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import apiClient from '@/lib/api-client';
-import { formatAndLimitPhone, limitPostalCode } from '@/lib/input-utils';
+import { formatAndLimitPhone, handlePhoneKeyDown, limitPostalCode } from '@/lib/input-utils';
 import { 
   UserCheck, 
   Users, 
@@ -617,6 +617,7 @@ export default function AccountsDashboardPage() {
                     placeholder="e.g. 077 123 4567 or +94 77 123 4567"
                     value={newCustomer.phone}
                     onChange={(e) => setNewCustomer({ ...newCustomer, phone: formatAndLimitPhone(e.target.value) })}
+                    onKeyDown={handlePhoneKeyDown}
                     className="w-full px-3 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:outline-none focus:bg-white focus:border-[#596B32] font-mono"
                   />
                 </div>
@@ -721,6 +722,7 @@ export default function AccountsDashboardPage() {
                     placeholder="e.g. 077 123 4567 or +94 77 123 4567"
                     value={activeCustomer.phone || ''}
                     onChange={(e) => setActiveCustomer({ ...activeCustomer, phone: formatAndLimitPhone(e.target.value) })}
+                    onKeyDown={handlePhoneKeyDown}
                     className="w-full px-3 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:outline-none focus:bg-white focus:border-[#596B32] font-mono"
                   />
                 </div>

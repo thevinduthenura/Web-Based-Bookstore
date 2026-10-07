@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Cookies from 'js-cookie';
 import { useAuth, STAFF_PRESETS } from '@/hooks/useAuth';
 import apiClient from '@/lib/api-client';
-import { formatAndLimitPhone } from '@/lib/input-utils';
+import { formatAndLimitPhone, handlePhoneKeyDown } from '@/lib/input-utils';
 import { 
   Lock, 
   User, 
@@ -230,7 +230,7 @@ function LoginForm() {
     password: '',
     confirmPassword: '',
     phone: '',
-    city: 'Colombo',
+    city: '',
     addressLine1: ''
   });
   const [regLoading, setRegLoading] = useState(false);
@@ -516,8 +516,8 @@ function LoginForm() {
           email: cleanId.toLowerCase(),
           tier: 'BRONZE',
           points: 50,
-          phone: '+94 77 123 4567',
-          address: 'Colombo, Sri Lanka',
+          phone: '',
+          address: '',
         };
       }
 
@@ -596,15 +596,20 @@ function LoginForm() {
       setRegLoading(true);
       let customerId = `CUST-${Math.floor(2000 + Math.random() * 8000)}`;
 
+      const cleanPhone = regForm.phone.trim();
+      const composedAddress = regForm.addressLine1.trim() 
+        ? (regForm.city.trim() ? `${regForm.addressLine1.trim()}, ${regForm.city.trim()}` : regForm.addressLine1.trim())
+        : (regForm.city.trim() ? regForm.city.trim() : '');
+
       try {
         const res = await apiClient.post('/accounts/register', {
           firstName,
           lastName,
           email,
           password: regForm.password,
-          phone: regForm.phone.trim() || '+94 77 123 4567',
-          city: regForm.city.trim() || 'Colombo',
-          addressLine1: regForm.addressLine1.trim() || 'No 25, Main Street',
+          phone: cleanPhone || '',
+          city: regForm.city.trim() || '',
+          addressLine1: regForm.addressLine1.trim() || '',
           country: 'Sri Lanka'
         });
 
@@ -625,8 +630,8 @@ function LoginForm() {
         membership: 'NONE' as const,
         isMember: false,
         points: 0,
-        phone: regForm.phone.trim() || '+94 77 123 4567',
-        address: regForm.addressLine1.trim() ? `${regForm.addressLine1.trim()}, ${regForm.city}` : 'Colombo, Sri Lanka',
+        phone: cleanPhone || '',
+        address: composedAddress || '',
         kycVerified: false,
         isNewUser: true
       };
@@ -635,6 +640,11 @@ function LoginForm() {
         const existing = JSON.parse(localStorage.getItem('sp_registered_customers') || '[]');
         const updated = [createdCustomer, ...existing.filter((c: any) => c.email !== email)];
         localStorage.setItem('sp_registered_customers', JSON.stringify(updated));
+
+        // CRITICAL: Fresh customer must start with an empty cart (0 items)
+        localStorage.removeItem('sp_cart');
+        localStorage.setItem('sp_cart', JSON.stringify([]));
+        window.dispatchEvent(new Event('sp_cart_updated'));
 
         // CRITICAL: Ensure this fresh customer starts with 0 orders, 0 tickets, 0 payments
         localStorage.setItem(`sp_orders_${customerId}`, JSON.stringify([]));
@@ -999,12 +1009,13 @@ function LoginForm() {
 
               <div className="grid grid-cols-2 gap-2.5">
                 <div>
-                  <label className="block text-[#34451D] font-medium mb-1">Phone Number</label>
+                  <label className="block text-[#34451D] font-medium mb-1">Phone Number (Optional)</label>
                   <input
                     type="tel"
                     maxLength={16}
                     value={regForm.phone}
                     onChange={(e) => setRegForm({ ...regForm, phone: formatAndLimitPhone(e.target.value) })}
+                    onKeyDown={handlePhoneKeyDown}
                     className={`w-full px-3.5 py-2.5 rounded-full bg-[#F8F9F5] border text-[#20231B] text-xs placeholder:text-[#85887A] focus:outline-none focus:bg-white ${
                       regForm.phone.trim() && !isPhoneValid ? 'border-red-400' : 'border-[#E2E7D8] focus:border-[#596B32]'
                     }`}
@@ -1015,25 +1026,25 @@ function LoginForm() {
                   )}
                 </div>
                 <div>
-                  <label className="block text-[#34451D] font-medium mb-1">City</label>
+                  <label className="block text-[#34451D] font-medium mb-1">City (Optional)</label>
                   <input
                     type="text"
                     value={regForm.city}
                     onChange={(e) => setRegForm({ ...regForm, city: e.target.value })}
                     className="w-full px-3.5 py-2.5 rounded-full bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] text-xs placeholder:text-[#85887A] focus:outline-none focus:bg-white focus:border-[#596B32]"
-                    placeholder="Colombo"
+                    placeholder="e.g. Colombo, Kandy"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[#34451D] font-medium mb-1">Delivery Address Line</label>
+                <label className="block text-[#34451D] font-medium mb-1">Delivery Address Line (Optional)</label>
                 <input
                   type="text"
                   value={regForm.addressLine1}
                   onChange={(e) => setRegForm({ ...regForm, addressLine1: e.target.value })}
                   className="w-full px-3.5 py-2.5 rounded-full bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] text-xs placeholder:text-[#85887A] focus:outline-none focus:bg-white focus:border-[#596B32]"
-                  placeholder="No 25, Main Street, Colombo 03"
+                  placeholder="e.g. No 25, Main Street"
                 />
               </div>
 

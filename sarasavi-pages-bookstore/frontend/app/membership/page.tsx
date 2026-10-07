@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { printMembershipInvoice } from '@/lib/invoice-pdf';
 import { 
   formatAndLimitPhone, 
+  handlePhoneKeyDown,
   formatAndLimitCardNumber, 
   formatAndLimitCardExpiry, 
   limitCvv 
@@ -942,6 +943,7 @@ export default function MembershipPage() {
                       maxLength={16}
                       value={phoneNumber}
                       onChange={(e) => setPhoneNumber(formatAndLimitPhone(e.target.value))}
+                      onKeyDown={handlePhoneKeyDown}
                       placeholder="e.g. 077 123 4567"
                       className="w-full px-4 py-3 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs text-[#20231B] placeholder-[#9E9F94] font-mono focus:outline-none focus:border-[#34451D] focus:bg-white transition-all"
                     />

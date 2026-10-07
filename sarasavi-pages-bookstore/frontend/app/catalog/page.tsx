@@ -8,6 +8,7 @@ import Cookies from 'js-cookie';
 import { printOrderInvoice } from '@/lib/invoice-pdf';
 import { 
   formatAndLimitPhone, 
+  handlePhoneKeyDown,
   formatAndLimitIsbn, 
   formatAndLimitCardNumber, 
   formatAndLimitCardExpiry, 
@@ -1424,6 +1425,7 @@ function CatalogContent() {
                         maxLength={16}
                         value={shippingForm.phone}
                         onChange={(e) => setShippingForm({ ...shippingForm, phone: formatAndLimitPhone(e.target.value) })}
+                        onKeyDown={handlePhoneKeyDown}
                         placeholder="e.g. 077 123 4567 or +94 77 123 4567"
                         className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-white"
                       />
