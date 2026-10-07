@@ -260,11 +260,7 @@ export default function Navbar({
         isHomeHero ? '-mb-20 pointer-events-none' : 'mb-6'
       }`}
     >
-      <div className={`pointer-events-auto backdrop-blur-2xl rounded-full h-14 sm:h-16 px-4 sm:px-6 flex items-center justify-between gap-2 sm:gap-4 transition-all duration-300 ${
-        isDark
-          ? 'bg-[#20231B]/75 border border-white/20 shadow-[0_12px_40px_rgba(0,0,0,0.5)]'
-          : 'bg-white/95 border border-[#E2E7D8] shadow-[0_8px_32px_rgba(32,35,27,0.06)]'
-      }`}>
+      <div className="pointer-events-auto bg-white/92 backdrop-blur-xl border border-[#E2E7D8] shadow-[0_8px_32px_rgba(32,35,27,0.05)] rounded-full h-14 sm:h-16 px-4 sm:px-6 flex items-center justify-between gap-2 sm:gap-4 transition-all">
         
         {/* Left: Brand Wordmark with Organic Dots */}
         <Link href="/" className="flex items-center gap-2 sm:gap-2.5 group text-left shrink-0">
@@ -284,11 +280,7 @@ export default function Navbar({
         </Link>
 
         {/* Center: Healium Pill Navigation */}
-        <nav className={`hidden md:flex items-center rounded-full p-1 border gap-1 text-xs transition-all ${
-          isDark
-            ? 'bg-[#F0F4E8]/95 backdrop-blur-md border-white/20 shadow-xs'
-            : 'bg-[#F0F4E8] border-[#E2E7D8]'
-        }`}>
+        <nav className="hidden md:flex items-center rounded-full p-1 bg-[#F0F4E8] border border-[#E2E7D8] gap-1 text-xs">
           {navItems.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
@@ -316,7 +308,7 @@ export default function Navbar({
               : 'text-[#596B32] hover:text-[#20231B] hover:bg-[#F0F4E8]'
           }`}>
             <Globe className={`w-3.5 h-3.5 shrink-0 ${isDark ? 'text-[#B7D85A]' : 'text-[#596B32]'}`} />
-            <span>LKR</span>
+            <span className={isDark ? 'text-white' : 'text-[#596B32]'}>LKR</span>
             <ChevronDown className={`w-3 h-3 ${isDark ? 'text-white/80' : 'text-[#596B32]'}`} />
           </div>
 
@@ -324,14 +316,10 @@ export default function Navbar({
           {onOpenBag ? (
             <button
               onClick={onOpenBag}
-              className={`relative px-2.5 sm:px-3.5 py-1.5 rounded-full text-xs font-normal flex items-center gap-1.5 shadow-xs transition-all ${
-                isDark
-                  ? 'bg-white hover:bg-[#F0F4E8] border border-white/40 text-[#20231B]'
-                  : 'bg-white hover:bg-[#F0F4E8] border border-[#E2E7D8] text-[#20231B]'
-              }`}
+              className="relative px-2.5 sm:px-3.5 py-1.5 rounded-full bg-white border border-[#E2E7D8] text-[#20231B] hover:bg-[#F0F4E8] shadow-xs text-xs font-normal flex items-center gap-1.5 transition-all"
               title="Shopping Bag"
             >
-              <ShoppingCart className={`w-3.5 h-3.5 ${isDark ? 'text-[#34451D]' : 'text-[#596B32]'}`} />
+              <ShoppingCart className="w-3.5 h-3.5 text-[#596B32]" />
               <span className="hidden sm:inline font-medium">Bag</span>
               {cartCount > 0 && (
                 <span className="h-4 min-w-[16px] px-1 rounded-full bg-[#B7D85A] text-[#20231B] text-[10px] font-mono font-bold flex items-center justify-center">
@@ -342,14 +330,10 @@ export default function Navbar({
           ) : (
             <Link
               href="/catalog?cart=open"
-              className={`relative px-2.5 sm:px-3.5 py-1.5 rounded-full text-xs font-normal flex items-center gap-1.5 shadow-xs transition-all ${
-                isDark
-                  ? 'bg-white hover:bg-[#F0F4E8] border border-white/40 text-[#20231B]'
-                  : 'bg-white hover:bg-[#F0F4E8] border border-[#E2E7D8] text-[#20231B]'
-              }`}
+              className="relative px-2.5 sm:px-3.5 py-1.5 rounded-full bg-white border border-[#E2E7D8] text-[#20231B] hover:bg-[#F0F4E8] shadow-xs text-xs font-normal flex items-center gap-1.5 transition-all"
               title="Shopping Bag"
             >
-              <ShoppingCart className={`w-3.5 h-3.5 ${isDark ? 'text-[#34451D]' : 'text-[#596B32]'}`} />
+              <ShoppingCart className="w-3.5 h-3.5 text-[#596B32]" />
               <span className="hidden sm:inline font-medium">Bag</span>
               {cartCount > 0 && (
                 <span className="h-4 min-w-[16px] px-1 rounded-full bg-[#B7D85A] text-[#20231B] text-[10px] font-mono font-bold flex items-center justify-center">
@@ -363,27 +347,17 @@ export default function Navbar({
           {customer ? (
             <Link
               href={(customer as any).dashboardPath || '/account'}
-              className={`inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-1.5 rounded-full text-xs font-medium shadow-xs transition-all ${
-                isDark
-                  ? 'bg-white hover:bg-[#F0F4E8] text-[#20231B] border border-white/40 shadow-sm'
-                  : 'bg-[#34451D] hover:bg-[#20231B] text-white shadow-xs'
-              }`}
+              className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-1.5 rounded-full bg-[#34451D] hover:bg-[#20231B] text-white text-xs font-medium shadow-xs transition-all"
             >
-              <div className={`w-4 h-4 rounded-full flex items-center justify-center ${
-                isDark ? 'bg-[#34451D]/15' : 'bg-white/20'
-              }`}>
-                <User className={`w-2.5 h-2.5 ${isDark ? 'text-[#34451D]' : 'text-[#B7D85A]'}`} />
+              <div className="w-4 h-4 rounded-full bg-white/20 flex items-center justify-center">
+                <User className="w-2.5 h-2.5 text-[#B7D85A]" />
               </div>
               <span className="max-w-[80px] sm:max-w-none truncate font-medium">{displayName}</span>
             </Link>
           ) : (
             <Link
               href="/login"
-              className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium shadow-xs transition-all ${
-                isDark
-                  ? 'bg-white hover:bg-[#F0F4E8] text-[#20231B] border border-white/40 shadow-sm'
-                  : 'bg-[#34451D] hover:bg-[#20231B] text-white shadow-xs'
-              }`}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#34451D] hover:bg-[#20231B] text-white text-xs font-medium shadow-xs transition-all"
             >
               <span className="font-medium">Sign in</span>
             </Link>
@@ -406,11 +380,7 @@ export default function Navbar({
 
       {/* Mobile Drawer */}
       {isMobileOpen && (
-        <div className={`pointer-events-auto md:hidden mt-2 rounded-3xl p-4 shadow-xl space-y-2 animate-in fade-in duration-200 border ${
-          isDark
-            ? 'bg-[#20231B]/95 backdrop-blur-2xl border-white/15 text-white'
-            : 'bg-white border-[#E2E7D8] text-[#20231B]'
-        }`}>
+        <div className="pointer-events-auto md:hidden mt-2 bg-white border border-[#E2E7D8] rounded-3xl p-4 shadow-xl space-y-2 animate-in fade-in duration-200">
           <div className="grid grid-cols-2 gap-2 text-xs">
             {navItems.map((item) => (
               <Link
@@ -419,12 +389,8 @@ export default function Navbar({
                 onClick={() => setIsMobileOpen(false)}
                 className={`py-2 px-3 rounded-xl transition-all ${
                   activeTab === item.id
-                    ? isDark 
-                      ? 'bg-[#B7D85A] text-[#20231B] font-semibold' 
-                      : 'bg-[#34451D] text-white font-semibold'
-                    : isDark
-                      ? 'text-white/85 hover:bg-white/10'
-                      : 'text-[#20231B] hover:bg-[#F0F4E8]'
+                    ? 'bg-[#34451D] text-white font-semibold'
+                    : 'text-[#20231B] hover:bg-[#F0F4E8]'
                 }`}
               >
                 {activeTab === item.id ? `• ${item.label}` : item.label}
