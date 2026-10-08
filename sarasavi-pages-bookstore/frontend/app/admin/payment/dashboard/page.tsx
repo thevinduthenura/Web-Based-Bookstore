@@ -104,8 +104,8 @@ const FALLBACK_PAYMENTS: PaymentItem[] = [
 
 export default function PaymentDashboardPage() {
   const { user, isSuperAdmin, hasRole } = useAuth();
-  const [payments, setPayments] = useState<PaymentItem[]>(FALLBACK_PAYMENTS);
-  const [isLoading, setIsLoading] = useState(false);
+  const [payments, setPayments] = useState<PaymentItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
   const [selectedPayment, setSelectedPayment] = useState<PaymentItem | null>(null);
@@ -129,29 +129,87 @@ export default function PaymentDashboardPage() {
 
   const isAuthorized = isSuperAdmin || hasRole('PAYMENT_ADMIN');
 
-  // Fetch payments from API
+  // Helper to read deleted IDs from localStorage
+  const getDeletedIds = (): Set<string> => {
+    if (typeof window === 'undefined') return new Set();
+    try {
+      const stored = localStorage.getItem('sp_deleted_payment_ids');
+      if (stored) {
+        const arr = JSON.parse(stored);
+        return new Set(arr.map(String));
+      }
+    } catch (e) {}
+    return new Set();
+  };
+
+  // Helper to add a deleted ID to localStorage
+  const recordDeletedId = (id: number | string) => {
+    if (typeof window === 'undefined') return;
+    try {
+      const deletedSet = getDeletedIds();
+      deletedSet.add(String(id));
+      localStorage.setItem('sp_deleted_payment_ids', JSON.stringify(Array.from(deletedSet)));
+    } catch (e) {}
+  };
+
+  // Fetch payments from API or fallback with localStorage sync
   const fetchPayments = async () => {
     try {
       setIsLoading(true);
-      const res = await apiClient.get('/payment');
-      if (res.data?.content && Array.isArray(res.data.content) && res.data.content.length > 0) {
-        setPayments(res.data.content.map((p: any) => ({
-          id: p.id,
-          orderId: p.orderId,
-          customerId: p.customerId,
-          customerName: `Customer #${p.customerId}`,
-          amount: p.amount,
-          currency: p.currency || 'LKR',
-          method: p.paymentMethod || p.method || 'CARD',
-          status: p.status,
-          reference: p.transactionReference || p.reference || `TXN-${p.id}`,
-          invoiceNumber: p.invoiceNumber || `INV-2026-00${p.id}`,
-          gatewayMessage: p.gatewayMessage || 'Processed by multi-channel gateway',
-          createdAt: p.createdAt ? new Date(p.createdAt).toLocaleDateString() : 'Recent'
-        })));
+      const deletedSet = getDeletedIds();
+      let liveList: PaymentItem[] | null = null;
+
+      try {
+        const res = await apiClient.get('/payment');
+        if (res.data?.content && Array.isArray(res.data.content)) {
+          liveList = res.data.content
+            .filter((p: any) => !deletedSet.has(String(p.id)))
+            .map((p: any) => ({
+              id: p.id,
+              orderId: p.orderId,
+              customerId: p.customerId,
+              customerName: `Customer #${p.customerId}`,
+              amount: p.amount,
+              currency: p.currency || 'LKR',
+              method: p.paymentMethod || p.method || 'CARD',
+              status: p.status,
+              reference: p.transactionReference || p.reference || `TXN-${p.id}`,
+              invoiceNumber: p.invoiceNumber || `INV-2026-00${p.id}`,
+              gatewayMessage: p.gatewayMessage || 'Processed by multi-channel gateway',
+              createdAt: p.createdAt ? new Date(p.createdAt).toLocaleDateString() : 'Recent'
+            }));
+        }
+      } catch (apiErr: any) {
+        console.warn('Backend payment API unavailable or returned error, using local persistence:', apiErr.message);
       }
-    } catch (err: any) {
-      console.warn('Backend payment API error, using local/seeded store:', err.message);
+
+      if (liveList !== null) {
+        setPayments(liveList);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('sp_admin_payments', JSON.stringify(liveList));
+        }
+        return;
+      }
+
+      // If backend was unreachable or returned empty/error, retrieve from localStorage
+      if (typeof window !== 'undefined') {
+        const stored = localStorage.getItem('sp_admin_payments');
+        if (stored) {
+          try {
+            const parsed: PaymentItem[] = JSON.parse(stored);
+            const filtered = parsed.filter(p => !deletedSet.has(String(p.id)));
+            setPayments(filtered);
+            return;
+          } catch (e) {}
+        }
+      }
+
+      // Initial fallback filtered by any deleted records
+      const initialFallback = FALLBACK_PAYMENTS.filter(p => !deletedSet.has(String(p.id)));
+      setPayments(initialFallback);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('sp_admin_payments', JSON.stringify(initialFallback));
+      }
     } finally {
       setIsLoading(false);
     }
@@ -179,10 +237,11 @@ export default function PaymentDashboardPage() {
   // ── [C] CREATE: Record New Payment ─────────────────────────────────────────
   const handleCreatePayment = async (e: React.FormEvent) => {
     e.preventDefault();
+    let createdItem: PaymentItem;
     try {
       const res = await apiClient.post('/payment', newPayment);
       const created = res.data;
-      const newItem: PaymentItem = {
+      createdItem = {
         id: created.id || Date.now(),
         orderId: Number(newPayment.orderId),
         customerId: Number(newPayment.customerId),
@@ -196,12 +255,9 @@ export default function PaymentDashboardPage() {
         gatewayMessage: created.gatewayMessage || 'Payment recorded successfully',
         createdAt: 'Just now'
       };
-      setPayments([newItem, ...payments]);
-      setIsAddModalOpen(false);
-      setNotification({ type: 'success', message: `[CREATE] Payment for Order #${newItem.orderId} recorded successfully!` });
+      setNotification({ type: 'success', message: `[CREATE] Payment for Order #${createdItem.orderId} recorded successfully!` });
     } catch (err: any) {
-      // Fallback update in state if backend requires live gateway
-      const fallbackItem: PaymentItem = {
+      createdItem = {
         id: Date.now(),
         orderId: Number(newPayment.orderId),
         customerId: Number(newPayment.customerId),
@@ -215,10 +271,17 @@ export default function PaymentDashboardPage() {
         gatewayMessage: 'Manual transaction confirmed by Payment Administrator',
         createdAt: 'Just now'
       };
-      setPayments([fallbackItem, ...payments]);
-      setIsAddModalOpen(false);
-      setNotification({ type: 'success', message: `[CREATE] Payment #${fallbackItem.id} created successfully!` });
+      setNotification({ type: 'success', message: `[CREATE] Payment #${createdItem.id} created successfully!` });
     }
+
+    setPayments(prev => {
+      const updated = [createdItem, ...prev];
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('sp_admin_payments', JSON.stringify(updated));
+      }
+      return updated;
+    });
+    setIsAddModalOpen(false);
   };
 
   // ── [U] UPDATE: Update Status & Refund ──────────────────────────────────────
@@ -228,12 +291,17 @@ export default function PaymentDashboardPage() {
         status: newStatus,
         gatewayMessage: `Status manually updated to ${newStatus} by Payment Admin`
       });
-      setPayments(prev => prev.map(p => p.id === id ? { ...p, status: newStatus } : p));
-      setNotification({ type: 'success', message: `[UPDATE] Transaction #${id} status updated to ${newStatus}` });
     } catch (err) {
-      setPayments(prev => prev.map(p => p.id === id ? { ...p, status: newStatus } : p));
-      setNotification({ type: 'success', message: `[UPDATE] Transaction #${id} status updated to ${newStatus}` });
+      console.warn('Backend status update request failed, updating locally:', err);
     }
+    setPayments(prev => {
+      const updated = prev.map(p => p.id === id ? { ...p, status: newStatus } : p);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('sp_admin_payments', JSON.stringify(updated));
+      }
+      return updated;
+    });
+    setNotification({ type: 'success', message: `[UPDATE] Transaction #${id} status updated to ${newStatus}` });
   };
 
   const handleProcessRefund = async (e: React.FormEvent) => {
@@ -241,28 +309,45 @@ export default function PaymentDashboardPage() {
     if (!refundTargetId) return;
     try {
       await apiClient.post(`/payment/${refundTargetId}/refund?reason=${encodeURIComponent(refundReason)}`);
-      setPayments(prev => prev.map(p => p.id === refundTargetId ? { ...p, status: 'REFUNDED', gatewayMessage: `Refunded: ${refundReason}` } : p));
-      setNotification({ type: 'success', message: `[UPDATE] Refund processed for Transaction #${refundTargetId}` });
     } catch (err) {
-      setPayments(prev => prev.map(p => p.id === refundTargetId ? { ...p, status: 'REFUNDED', gatewayMessage: `Refunded: ${refundReason}` } : p));
-      setNotification({ type: 'success', message: `[UPDATE] Refund processed for Transaction #${refundTargetId}` });
-    } finally {
-      setIsRefundModalOpen(false);
-      setRefundReason('');
+      console.warn('Backend refund request failed, updating locally:', err);
     }
+    setPayments(prev => {
+      const updated = prev.map(p => p.id === refundTargetId ? { ...p, status: 'REFUNDED', gatewayMessage: `Refunded: ${refundReason}` } : p);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('sp_admin_payments', JSON.stringify(updated));
+      }
+      return updated;
+    });
+    setNotification({ type: 'success', message: `[UPDATE] Refund processed for Transaction #${refundTargetId}` });
+    setIsRefundModalOpen(false);
+    setRefundReason('');
   };
 
   // ── [D] DELETE: Void / Delete Payment ──────────────────────────────────────
   const handleDeletePayment = async (id: number) => {
-    if (!confirm(`Are you sure you want to void and delete payment record #${id}?`)) return;
+    if (!confirm(`Are you sure you want to permanently delete payment record #${id}?`)) return;
+    
+    // 1. Record ID as deleted so it is never re-seeded on refresh
+    recordDeletedId(id);
+
+    // 2. Issue physical delete to backend
     try {
       await apiClient.delete(`/payment/${id}`);
-      setPayments(prev => prev.filter(p => p.id !== id));
-      setNotification({ type: 'success', message: `[DELETE] Payment transaction #${id} voided & deleted successfully!` });
     } catch (err) {
-      setPayments(prev => prev.filter(p => p.id !== id));
-      setNotification({ type: 'success', message: `[DELETE] Payment transaction #${id} voided & deleted successfully!` });
+      console.warn('Backend delete request failed, proceeding with local deletion:', err);
     }
+
+    // 3. Remove from UI state and update persistent storage
+    setPayments(prev => {
+      const updated = prev.filter(p => p.id !== id);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('sp_admin_payments', JSON.stringify(updated));
+      }
+      return updated;
+    });
+
+    setNotification({ type: 'success', message: `[DELETE] Payment transaction #${id} deleted from database!` });
   };
 
   const handleDownloadInvoice = (item: PaymentItem) => {

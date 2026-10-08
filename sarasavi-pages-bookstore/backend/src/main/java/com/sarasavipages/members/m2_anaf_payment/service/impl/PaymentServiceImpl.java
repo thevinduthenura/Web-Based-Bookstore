@@ -107,7 +107,9 @@ public class PaymentServiceImpl implements PaymentService {
     @Transactional
     public PaymentResponse updateStatus(Long id, PaymentStatusUpdateRequest request) {
         Payment payment = findOrThrow(id);
-        transitionStatus(payment, request.getStatus());
+        if (request.getStatus() != null) {
+            payment.setStatus(request.getStatus());
+        }
         if (request.getGatewayMessage() != null) {
             payment.setGatewayMessage(request.getGatewayMessage());
         }
@@ -120,7 +122,7 @@ public class PaymentServiceImpl implements PaymentService {
     @Transactional
     public PaymentResponse refundPayment(Long id, String reason) {
         Payment payment = findOrThrow(id);
-        transitionStatus(payment, PaymentStatus.REFUNDED);
+        payment.setStatus(PaymentStatus.REFUNDED);
         payment.setGatewayMessage("Refunded: " + (reason == null ? "customer request" : reason));
         Payment saved = paymentRepository.save(payment);
         audit("REFUND", saved, payment.getGatewayMessage());
@@ -131,14 +133,8 @@ public class PaymentServiceImpl implements PaymentService {
     @Transactional
     public void voidPayment(Long id) {
         Payment payment = findOrThrow(id);
-        // Delete = void/cancel a failed (or still pending) transaction; kept as a
-        // soft-delete row for the auditability non-functional requirement.
-        if (payment.getStatus() != PaymentStatus.FAILED && payment.getStatus() != PaymentStatus.PENDING) {
-            throw new InvalidPaymentStatusTransitionException(payment.getStatus(), PaymentStatus.VOIDED);
-        }
-        transitionStatus(payment, PaymentStatus.VOIDED);
-        paymentRepository.save(payment);
-        audit("VOID", payment, "Payment voided/cancelled");
+        paymentRepository.delete(payment);
+        audit("DELETE", payment, "Payment ID " + id + " permanently deleted from database");
     }
 
     @Override

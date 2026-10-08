@@ -75,7 +75,9 @@ public class SecurityConfig {
                 .requestMatchers("/admin/data/**").hasAnyRole("SUPER_ADMIN", "ADMIN")
 
                 // ── M2: Payment ────────────────────────────────────────────────
-                // SUPER_ADMIN or PAYMENT_ADMIN
+                // Allow recording payments & listing methods during checkout; require ADMIN for dashboard
+                .requestMatchers(HttpMethod.POST, "/payment", "/payments").permitAll()
+                .requestMatchers(HttpMethod.GET, "/payment/methods", "/payments/methods").permitAll()
                 .requestMatchers("/payment/**", "/payments/**")
                     .hasAnyRole("SUPER_ADMIN", "PAYMENT_ADMIN")
 
