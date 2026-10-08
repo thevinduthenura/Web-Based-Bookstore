@@ -39,6 +39,8 @@ data/
 **/data/
 *.mv.db
 *.trace.db
+backups/
+**/backups/
 
 # OS
 .DS_Store

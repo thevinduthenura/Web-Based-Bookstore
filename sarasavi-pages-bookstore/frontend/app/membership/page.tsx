@@ -38,8 +38,14 @@ import {
   Lock,
   Wifi,
   ChevronRight,
-  Award
+  Award,
+  QrCode,
+  Building2,
+  Smartphone,
+  Upload,
+  FileCheck
 } from 'lucide-react';
+import { evaluatePromoCode } from '@/lib/promotions';
 
 interface MembershipPlan {
   id: 'STARTER' | 'BASIC' | 'PREMIUM';
@@ -164,6 +170,16 @@ export default function MembershipPage() {
   const [cardCvv, setCardCvv] = useState('');
   const [cardHolder, setCardHolder] = useState('');
   const [isCardFlipped, setIsCardFlipped] = useState(false);
+
+  // Sri Lankan Payment Gateway & Alternative Methods
+  type MembershipPaymentMethod = 'CREDIT_CARD' | 'LANKA_QR' | 'BANK_TRANSFER' | 'HELA_PAY' | 'KOKO_PAY' | 'MINTPAY';
+  const [paymentMethod, setPaymentMethod] = useState<MembershipPaymentMethod>('CREDIT_CARD');
+  const [bankRefNo, setBankRefNo] = useState('');
+  const [bankSlipName, setBankSlipName] = useState('');
+  const [helaPayPhone, setHelaPayPhone] = useState('');
+  const [kokoPhone, setKokoPhone] = useState('');
+  const [mintpayPhone, setMintpayPhone] = useState('');
+  const [qrVerified, setQrVerified] = useState(false);
 
   // Promo code
   const [promoInput, setPromoInput] = useState('');
@@ -309,22 +325,57 @@ export default function MembershipPage() {
     const code = promoInput.trim().toUpperCase();
     if (!code) return;
 
-    if (code === 'WELCOME20' || code === 'SARASAVI20') {
-      const discount = Math.round(currentPlanPrice * 0.2);
-      setPromoDiscount(discount);
-      setPromoAppliedCode(code);
-    } else if (code === 'SAVE500' || code === 'READ500') {
-      const discount = Math.min(500, Math.round(currentPlanPrice * 0.5));
-      setPromoDiscount(discount);
-      setPromoAppliedCode(code);
+    const res = evaluatePromoCode(code, currentPlanPrice);
+    if (!res.valid) {
+      setPromoError(res.message);
+      setPromoDiscount(0);
+      setPromoAppliedCode('');
     } else {
-      setPromoError('Invalid promo code. Try WELCOME20 or SAVE500');
+      setPromoDiscount(res.discountAmount);
+      setPromoAppliedCode(res.code);
+    }
+  };
+
+  // Helper: formatted method name for invoices & receipts
+  const getPaymentMethodDisplay = (amt: number) => {
+    switch (paymentMethod) {
+      case 'LANKA_QR':
+        return 'LankaQR Instant Payment';
+      case 'BANK_TRANSFER':
+        return `Bank Transfer (Ref: ${bankRefNo.trim() || 'Direct Deposit'})`;
+      case 'HELA_PAY':
+        return `HelaPay Mobile (${helaPayPhone.trim() || 'Verified'})`;
+      case 'KOKO_PAY':
+        return `Koko Pay (3x Installments: LKR ${(amt / 3).toFixed(2)})`;
+      case 'MINTPAY':
+        return `Mintpay (3x Split: LKR ${(amt / 3).toFixed(2)})`;
+      case 'CREDIT_CARD':
+      default:
+        return `Card ending in ${cardNumber.slice(-4) || '8832'}`;
     }
   };
 
   // Complete Payment and activate plan
   const handlePayAndActivate = (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (paymentMethod === 'BANK_TRANSFER' && !bankRefNo.trim()) {
+      alert('Please enter your Bank Deposit Reference Number or Transaction ID.');
+      return;
+    }
+    if (paymentMethod === 'HELA_PAY' && !helaPayPhone.trim()) {
+      alert('Please enter your HelaPay Registered Mobile Number.');
+      return;
+    }
+    if (paymentMethod === 'KOKO_PAY' && !kokoPhone.trim()) {
+      alert('Please enter your Koko Pay Mobile Number.');
+      return;
+    }
+    if (paymentMethod === 'MINTPAY' && !mintpayPhone.trim()) {
+      alert('Please enter your Mintpay Registered Mobile Number.');
+      return;
+    }
+
     setIsProcessing(true);
 
     setTimeout(() => {
@@ -335,6 +386,7 @@ export default function MembershipPage() {
       const updatedTier = selectedPlan.id === 'PREMIUM' ? 'SCHOLAR_PREMIUM' : 'READER_BASIC';
       const finalAmount = Math.max(0, currentPlanPrice - promoDiscount);
       const memberName = fullName || customer?.name || 'Valued Reader';
+      const methodLabel = getPaymentMethodDisplay(finalAmount);
 
       const updatedCustomer = {
         id: customer?.id || `CUST-${Math.floor(1000 + Math.random() * 9000)}`,
@@ -359,7 +411,8 @@ export default function MembershipPage() {
           date: now.split(',')[0],
           amount: finalAmount,
           plan: `${selectedPlan.title} ${selectedPlan.titleAccent}`.toUpperCase(),
-          method: 'CREDIT_CARD',
+          method: paymentMethod,
+          paymentMethodDisplay: methodLabel,
           status: 'PAID'
         });
         localStorage.setItem(`sp_receipts_${updatedCustomer.id}`, JSON.stringify(receipts));
@@ -398,7 +451,7 @@ export default function MembershipPage() {
       price: currentPlanPrice,
       discount: promoDiscount,
       total: activatedInvoice.amount,
-      paymentMethod: `Card ending in ${cardNumber.slice(-4) || '8832'}`,
+      paymentMethod: getPaymentMethodDisplay(activatedInvoice.amount),
     });
   };
 
@@ -980,90 +1033,455 @@ export default function MembershipPage() {
 
                 <div className="h-px bg-[#E2E7D8] my-2" />
 
-                {/* Payment Card Details Section */}
+                {/* ── Payment Method Selector Tabs ── */}
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-serif text-lg font-light text-[#20231B]">
-                      card payment information
-                    </h3>
-                    <button
-                      type="button"
-                      onClick={() => setIsCardFlipped(!isCardFlipped)}
-                      className="text-[10px] font-mono text-[#D96B27] hover:underline flex items-center gap-1"
-                    >
-                      <RotateCcw className="w-3 h-3" />
-                      <span>{isCardFlipped ? 'Show Front' : 'Flip to Back'}</span>
-                    </button>
-                  </div>
-
                   <div>
-                    <label className="block text-[10px] font-mono uppercase text-[#596B32] font-semibold mb-1.5 tracking-wider">
-                      CARD NUMBER *
+                    <label className="block text-[10px] font-mono uppercase text-[#596B32] font-semibold mb-2 tracking-wider">
+                      SELECT PAYMENT METHOD *
                     </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        required
-                        maxLength={19}
-                        value={cardNumber}
-                        onChange={(e) => setCardNumber(formatAndLimitCardNumber(e.target.value))}
-                        onFocus={() => setIsCardFlipped(false)}
-                        placeholder="•••• •••• •••• ••••"
-                        className="w-full pl-11 pr-4 py-3 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs text-[#20231B] placeholder-[#9E9F94] font-mono focus:outline-none focus:border-[#34451D] focus:bg-white transition-all"
-                      />
-                      <CreditCard className="w-4 h-4 text-[#707365] absolute left-4 top-3.5" />
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setPaymentMethod('CREDIT_CARD')}
+                        className={`p-2.5 rounded-2xl border text-xs font-medium transition-all flex items-center gap-2 ${
+                          paymentMethod === 'CREDIT_CARD'
+                            ? 'border-[#34451D] bg-[#34451D] text-white shadow-xs'
+                            : 'border-[#E2E7D8] bg-[#F8F9F5] hover:bg-white text-[#20231B]'
+                        }`}
+                      >
+                        <CreditCard className="w-4 h-4 shrink-0" />
+                        <span className="truncate">Card Payment</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setPaymentMethod('LANKA_QR')}
+                        className={`p-2.5 rounded-2xl border text-xs font-medium transition-all flex items-center gap-2 ${
+                          paymentMethod === 'LANKA_QR'
+                            ? 'border-[#34451D] bg-[#34451D] text-white shadow-xs'
+                            : 'border-[#E2E7D8] bg-[#F8F9F5] hover:bg-white text-[#20231B]'
+                        }`}
+                      >
+                        <QrCode className="w-4 h-4 shrink-0 text-[#B7D85A]" />
+                        <span className="truncate">LankaQR Scan</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setPaymentMethod('BANK_TRANSFER')}
+                        className={`p-2.5 rounded-2xl border text-xs font-medium transition-all flex items-center gap-2 ${
+                          paymentMethod === 'BANK_TRANSFER'
+                            ? 'border-[#34451D] bg-[#34451D] text-white shadow-xs'
+                            : 'border-[#E2E7D8] bg-[#F8F9F5] hover:bg-white text-[#20231B]'
+                        }`}
+                      >
+                        <Building2 className="w-4 h-4 shrink-0" />
+                        <span className="truncate">Bank Transfer</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setPaymentMethod('HELA_PAY')}
+                        className={`p-2.5 rounded-2xl border text-xs font-medium transition-all flex items-center gap-2 ${
+                          paymentMethod === 'HELA_PAY'
+                            ? 'border-[#34451D] bg-[#34451D] text-white shadow-xs'
+                            : 'border-[#E2E7D8] bg-[#F8F9F5] hover:bg-white text-[#20231B]'
+                        }`}
+                      >
+                        <Smartphone className="w-4 h-4 shrink-0 text-amber-400" />
+                        <span className="truncate">HelaPay</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setPaymentMethod('KOKO_PAY')}
+                        className={`p-2.5 rounded-2xl border text-xs font-medium transition-all flex items-center gap-2 ${
+                          paymentMethod === 'KOKO_PAY'
+                            ? 'border-[#34451D] bg-[#34451D] text-white shadow-xs'
+                            : 'border-[#E2E7D8] bg-[#F8F9F5] hover:bg-white text-[#20231B]'
+                        }`}
+                      >
+                        <Zap className="w-4 h-4 shrink-0 text-amber-300" />
+                        <span className="truncate">Koko (3x Split)</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setPaymentMethod('MINTPAY')}
+                        className={`p-2.5 rounded-2xl border text-xs font-medium transition-all flex items-center gap-2 ${
+                          paymentMethod === 'MINTPAY'
+                            ? 'border-[#34451D] bg-[#34451D] text-white shadow-xs'
+                            : 'border-[#E2E7D8] bg-[#F8F9F5] hover:bg-white text-[#20231B]'
+                        }`}
+                      >
+                        <Sparkles className="w-4 h-4 shrink-0 text-[#B7D85A]" />
+                        <span className="truncate">Mintpay</span>
+                      </button>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-[10px] font-mono uppercase text-[#596B32] font-semibold mb-1.5 tracking-wider">
-                        EXPIRY DATE *
+                  {/* 1. CREDIT/DEBIT CARD SUB-FORM */}
+                  {paymentMethod === 'CREDIT_CARD' && (
+                    <div className="space-y-4 pt-2">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-serif text-sm font-medium text-[#20231B]">
+                          Credit or Debit Card Details
+                        </h4>
+                        <button
+                          type="button"
+                          onClick={() => setIsCardFlipped(!isCardFlipped)}
+                          className="text-[10px] font-mono text-[#D96B27] hover:underline flex items-center gap-1"
+                        >
+                          <RotateCcw className="w-3 h-3" />
+                          <span>{isCardFlipped ? 'Show Front' : 'Flip to Back'}</span>
+                        </button>
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-mono uppercase text-[#596B32] font-semibold mb-1.5 tracking-wider">
+                          CARD NUMBER *
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            required
+                            maxLength={19}
+                            value={cardNumber}
+                            onChange={(e) => setCardNumber(formatAndLimitCardNumber(e.target.value))}
+                            onFocus={() => setIsCardFlipped(false)}
+                            placeholder="•••• •••• •••• ••••"
+                            className="w-full pl-11 pr-4 py-3 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs text-[#20231B] placeholder-[#9E9F94] font-mono focus:outline-none focus:border-[#34451D] focus:bg-white transition-all"
+                          />
+                          <CreditCard className="w-4 h-4 text-[#707365] absolute left-4 top-3.5" />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-[10px] font-mono uppercase text-[#596B32] font-semibold mb-1.5 tracking-wider">
+                            EXPIRY DATE *
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            maxLength={5}
+                            value={cardExpiry}
+                            onChange={(e) => setCardExpiry(formatAndLimitCardExpiry(e.target.value))}
+                            onFocus={() => setIsCardFlipped(false)}
+                            placeholder="MM/YY"
+                            className="w-full px-4 py-3 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs text-[#20231B] placeholder-[#9E9F94] font-mono focus:outline-none focus:border-[#34451D] focus:bg-white transition-all text-center"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[10px] font-mono uppercase text-[#596B32] font-semibold mb-1.5 tracking-wider">
+                            CVV / CVC *
+                          </label>
+                          <input
+                            type="password"
+                            required
+                            maxLength={4}
+                            value={cardCvv}
+                            onChange={(e) => setCardCvv(limitCvv(e.target.value))}
+                            onFocus={() => setIsCardFlipped(true)}
+                            onBlur={() => setIsCardFlipped(false)}
+                            placeholder="•••"
+                            className="w-full px-4 py-3 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs text-[#20231B] placeholder-[#9E9F94] font-mono focus:outline-none focus:border-[#34451D] focus:bg-white transition-all text-center"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-mono uppercase text-[#596B32] font-semibold mb-1.5 tracking-wider">
+                          CARDHOLDER NAME *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={cardHolder}
+                          onChange={(e) => setCardHolder(e.target.value.toUpperCase())}
+                          onFocus={() => setIsCardFlipped(false)}
+                          placeholder="NAME ON CARD"
+                          className="w-full px-4 py-3 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs text-[#20231B] placeholder-[#9E9F94] font-mono focus:outline-none focus:border-[#34451D] focus:bg-white transition-all uppercase"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 2. LANKAQR SCAN TO PAY SUB-FORM */}
+                  {paymentMethod === 'LANKA_QR' && (
+                    <div className="p-5 rounded-2xl bg-[#F0F4E8] border border-[#E2E7D8] space-y-4">
+                      <div className="flex items-center justify-between border-b border-[#E2E7D8] pb-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-lg bg-[#34451D] text-[#B7D85A] flex items-center justify-center font-bold font-mono text-xs">
+                            LQR
+                          </div>
+                          <div>
+                            <span className="text-xs font-semibold text-[#20231B] block">LankaQR Instant Mobile Pay</span>
+                            <span className="text-[10px] text-[#596B32]">Certified CBSL National Standard</span>
+                          </div>
+                        </div>
+                        <span className="px-2 py-0.5 rounded-full bg-[#34451D] text-[#B7D85A] font-mono text-[10px] font-semibold">
+                          0% Gateway Fee
+                        </span>
+                      </div>
+
+                      <div className="flex flex-col sm:flex-row items-center gap-5">
+                        {/* Dynamic Stylized QR Representation */}
+                        <div className="w-36 h-36 bg-white p-2.5 rounded-2xl border-2 border-[#34451D] shadow-md flex flex-col items-center justify-center shrink-0">
+                          <svg className="w-full h-full text-[#34451D]" viewBox="0 0 100 100" fill="currentColor">
+                            <rect x="10" y="10" width="24" height="24" rx="3" fill="#34451D" />
+                            <rect x="15" y="15" width="14" height="14" rx="2" fill="white" />
+                            <rect x="18" y="18" width="8" height="8" fill="#34451D" />
+
+                            <rect x="66" y="10" width="24" height="24" rx="3" fill="#34451D" />
+                            <rect x="71" y="15" width="14" height="14" rx="2" fill="white" />
+                            <rect x="74" y="18" width="8" height="8" fill="#34451D" />
+
+                            <rect x="10" y="66" width="24" height="24" rx="3" fill="#34451D" />
+                            <rect x="15" y="71" width="14" height="14" rx="2" fill="white" />
+                            <rect x="18" y="74" width="8" height="8" fill="#34451D" />
+
+                            <circle cx="50" cy="50" r="7" fill="#B7D85A" />
+                            <rect x="42" y="18" width="8" height="8" fill="#34451D" />
+                            <rect x="52" y="28" width="8" height="8" fill="#596B32" />
+                            <rect x="42" y="74" width="8" height="8" fill="#34451D" />
+                            <rect x="52" y="64" width="8" height="8" fill="#596B32" />
+                            <rect x="66" y="52" width="8" height="8" fill="#34451D" />
+                            <rect x="76" y="66" width="8" height="8" fill="#34451D" />
+                            <rect x="76" y="80" width="8" height="8" fill="#596B32" />
+                          </svg>
+                        </div>
+
+                        <div className="text-xs space-y-1.5 flex-1">
+                          <p className="font-semibold text-[#20231B]">How to complete payment:</p>
+                          <ol className="list-decimal list-inside space-y-1 text-[#596B32] text-[11px]">
+                            <li>Open any banking app (ComBank, BOC, Sampath, Flash, Genie, FriMi, SOLO).</li>
+                            <li>Select <strong>Scan QR</strong> and scan the code.</li>
+                            <li>Confirm payment of <strong>LKR {Math.max(0, currentPlanPrice - promoDiscount).toFixed(2)}</strong>.</li>
+                          </ol>
+                          <p className="font-mono text-[10px] text-[#707365] pt-1">
+                            Ref: <strong>LQR-MEM-{Math.floor(100000 + Math.random() * 900000)}</strong>
+                          </p>
+                        </div>
+                      </div>
+
+                      <label className="flex items-center gap-2 text-xs text-[#34451D] cursor-pointer pt-2 border-t border-[#E2E7D8]">
+                        <input
+                          type="checkbox"
+                          checked={qrVerified}
+                          onChange={(e) => setQrVerified(e.target.checked)}
+                          className="rounded text-[#34451D] focus:ring-[#596B32] w-4 h-4"
+                        />
+                        <span>I have scanned and completed the LankaQR transaction.</span>
                       </label>
-                      <input
-                        type="text"
-                        required
-                        maxLength={5}
-                        value={cardExpiry}
-                        onChange={(e) => setCardExpiry(formatAndLimitCardExpiry(e.target.value))}
-                        onFocus={() => setIsCardFlipped(false)}
-                        placeholder="MM/YY"
-                        className="w-full px-4 py-3 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs text-[#20231B] placeholder-[#9E9F94] font-mono focus:outline-none focus:border-[#34451D] focus:bg-white transition-all text-center"
-                      />
                     </div>
+                  )}
 
-                    <div>
-                      <label className="block text-[10px] font-mono uppercase text-[#596B32] font-semibold mb-1.5 tracking-wider">
-                        CVV / CVC *
-                      </label>
-                      <input
-                        type="password"
-                        required
-                        maxLength={4}
-                        value={cardCvv}
-                        onChange={(e) => setCardCvv(limitCvv(e.target.value))}
-                        onFocus={() => setIsCardFlipped(true)}
-                        onBlur={() => setIsCardFlipped(false)}
-                        placeholder="•••"
-                        className="w-full px-4 py-3 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs text-[#20231B] placeholder-[#9E9F94] font-mono focus:outline-none focus:border-[#34451D] focus:bg-white transition-all text-center"
-                      />
+                  {/* 3. BANK TRANSFER & SLIP UPLOAD SUB-FORM */}
+                  {paymentMethod === 'BANK_TRANSFER' && (
+                    <div className="p-5 rounded-2xl bg-[#F0F4E8] border border-[#E2E7D8] space-y-4">
+                      <div>
+                        <h4 className="text-xs font-semibold text-[#20231B] mb-2">Sarasavi Pages Official Bank Accounts</h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+                          <div className="p-3 bg-white rounded-xl border border-[#E2E7D8]">
+                            <p className="font-semibold text-[#34451D]">Commercial Bank of Ceylon</p>
+                            <p className="font-mono text-[#20231B]">A/C: 1002394829</p>
+                            <p className="text-[#85887A]">Branch: Colombo Fort (Code 012)</p>
+                            <p className="text-[#85887A]">Name: Sarasavi Pages Books Ltd</p>
+                          </div>
+                          <div className="p-3 bg-white rounded-xl border border-[#E2E7D8]">
+                            <p className="font-semibold text-[#34451D]">Bank of Ceylon (BOC)</p>
+                            <p className="font-mono text-[#20231B]">A/C: 8201948270</p>
+                            <p className="text-[#85887A]">Branch: Corporate Branch (Code 001)</p>
+                            <p className="text-[#85887A]">Name: Sarasavi Pages Books Ltd</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-[10px] font-mono uppercase text-[#596B32] font-semibold mb-1">
+                            BANK DEPOSIT REFERENCE / SLIP NUMBER *
+                          </label>
+                          <input
+                            type="text"
+                            required={paymentMethod === 'BANK_TRANSFER'}
+                            value={bankRefNo}
+                            onChange={(e) => setBankRefNo(e.target.value)}
+                            placeholder="e.g. TXN9821034 or Slip #00492"
+                            className="w-full px-4 py-2.5 rounded-xl bg-white border border-[#E2E7D8] text-xs text-[#20231B] font-mono focus:outline-none focus:border-[#34451D]"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[10px] font-mono uppercase text-[#596B32] font-semibold mb-1">
+                            ATTACH PAYMENT SLIP / RECEIPT SCREENSHOT (OPTIONAL)
+                          </label>
+                          <div className="flex items-center gap-3">
+                            <label className="cursor-pointer px-4 py-2 rounded-xl bg-white border border-[#E2E7D8] text-xs text-[#34451D] hover:bg-[#F8F9F5] flex items-center gap-1.5 font-medium transition-colors shadow-xs">
+                              <Upload className="w-3.5 h-3.5" />
+                              <span>{bankSlipName ? 'Change Slip' : 'Upload Deposit Slip'}</span>
+                              <input
+                                type="file"
+                                accept="image/*,.pdf"
+                                className="hidden"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) setBankSlipName(file.name);
+                                }}
+                              />
+                            </label>
+                            {bankSlipName && (
+                              <span className="text-[11px] font-mono text-[#596B32] flex items-center gap-1">
+                                <FileCheck className="w-3.5 h-3.5" />
+                                <span>{bankSlipName}</span>
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
-                  <div>
-                    <label className="block text-[10px] font-mono uppercase text-[#596B32] font-semibold mb-1.5 tracking-wider">
-                      CARDHOLDER NAME *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={cardHolder}
-                      onChange={(e) => setCardHolder(e.target.value.toUpperCase())}
-                      onFocus={() => setIsCardFlipped(false)}
-                      placeholder="NAME ON CARD"
-                      className="w-full px-4 py-3 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs text-[#20231B] placeholder-[#9E9F94] font-mono focus:outline-none focus:border-[#34451D] focus:bg-white transition-all uppercase"
-                    />
-                  </div>
+                  {/* 4. HELAPAY MOBILE WALLET SUB-FORM */}
+                  {paymentMethod === 'HELA_PAY' && (
+                    <div className="p-5 rounded-2xl bg-[#FFF9F2] border border-[#FCD9BD] space-y-3">
+                      <div className="flex items-center justify-between border-b border-[#FCD9BD] pb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="px-2 py-0.5 rounded-full bg-[#D96B27] text-white text-[10px] font-bold">
+                            HelaPay
+                          </span>
+                          <span className="text-xs font-semibold text-[#20231B]">Sri Lanka Mobile Wallet</span>
+                        </div>
+                        <span className="text-[10px] font-mono text-[#D96B27]">Instant Authorization</span>
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-mono uppercase text-[#D96B27] font-semibold mb-1">
+                          HELAPAY REGISTERED PHONE NUMBER *
+                        </label>
+                        <input
+                          type="tel"
+                          required={paymentMethod === 'HELA_PAY'}
+                          value={helaPayPhone}
+                          onChange={(e) => setHelaPayPhone(formatAndLimitPhone(e.target.value))}
+                          onKeyDown={handlePhoneKeyDown}
+                          placeholder="e.g. 077 123 4567"
+                          className="w-full px-4 py-2.5 rounded-xl bg-white border border-[#FCD9BD] text-xs font-mono text-[#20231B] focus:outline-none focus:border-[#D96B27]"
+                        />
+                        <p className="text-[10px] text-[#85887A] mt-1">
+                          You will receive a fast 1-click confirmation prompt on your HelaPay mobile app.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 5. KOKO PAY (3x INSTALLMENTS) SUB-FORM */}
+                  {paymentMethod === 'KOKO_PAY' && (
+                    <div className="p-5 rounded-2xl bg-[#F4F9F2] border border-[#CDE5C5] space-y-4">
+                      <div className="flex items-center justify-between border-b border-[#CDE5C5] pb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="px-2.5 py-0.5 rounded-full bg-[#20231B] text-[#B7D85A] text-[10px] font-bold">
+                            koko
+                          </span>
+                          <span className="text-xs font-semibold text-[#20231B]">Buy Now Pay Later · 0% Interest</span>
+                        </div>
+                        <span className="text-[10px] font-mono text-[#596B32] font-semibold">3 Easy Monthly Payments</span>
+                      </div>
+
+                      {/* 3 Installments Plan Breakdown */}
+                      <div className="grid grid-cols-3 gap-2 text-center">
+                        <div className="p-2.5 bg-white rounded-xl border border-[#CDE5C5] space-y-0.5">
+                          <span className="text-[9px] font-mono uppercase text-[#85887A] block">Due Today</span>
+                          <span className="text-xs font-mono font-bold text-[#34451D] block">
+                            LKR {((Math.max(0, currentPlanPrice - promoDiscount)) / 3).toFixed(2)}
+                          </span>
+                          <span className="text-[9px] text-emerald-600 font-medium">1st Installment</span>
+                        </div>
+                        <div className="p-2.5 bg-white rounded-xl border border-[#CDE5C5] space-y-0.5">
+                          <span className="text-[9px] font-mono uppercase text-[#85887A] block">In 30 Days</span>
+                          <span className="text-xs font-mono font-bold text-[#34451D] block">
+                            LKR {((Math.max(0, currentPlanPrice - promoDiscount)) / 3).toFixed(2)}
+                          </span>
+                          <span className="text-[9px] text-[#85887A]">2nd Installment</span>
+                        </div>
+                        <div className="p-2.5 bg-white rounded-xl border border-[#CDE5C5] space-y-0.5">
+                          <span className="text-[9px] font-mono uppercase text-[#85887A] block">In 60 Days</span>
+                          <span className="text-xs font-mono font-bold text-[#34451D] block">
+                            LKR {((Math.max(0, currentPlanPrice - promoDiscount)) / 3).toFixed(2)}
+                          </span>
+                          <span className="text-[9px] text-[#85887A]">3rd Installment</span>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-mono uppercase text-[#596B32] font-semibold mb-1">
+                          KOKO ACCOUNT MOBILE NUMBER *
+                        </label>
+                        <input
+                          type="tel"
+                          required={paymentMethod === 'KOKO_PAY'}
+                          value={kokoPhone}
+                          onChange={(e) => setKokoPhone(formatAndLimitPhone(e.target.value))}
+                          onKeyDown={handlePhoneKeyDown}
+                          placeholder="e.g. 077 123 4567"
+                          className="w-full px-4 py-2.5 rounded-xl bg-white border border-[#CDE5C5] text-xs font-mono text-[#20231B] focus:outline-none focus:border-[#34451D]"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 6. MINTPAY (PAY IN 3) SUB-FORM */}
+                  {paymentMethod === 'MINTPAY' && (
+                    <div className="p-5 rounded-2xl bg-[#F0F8FF] border border-[#CCE3F5] space-y-4">
+                      <div className="flex items-center justify-between border-b border-[#CCE3F5] pb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="px-2.5 py-0.5 rounded-full bg-[#0055FF] text-white text-[10px] font-bold">
+                            Mintpay
+                          </span>
+                          <span className="text-xs font-semibold text-[#20231B]">Shop Now, Split in 3 · Zero Fees</span>
+                        </div>
+                        <span className="text-[10px] font-mono text-[#0055FF] font-semibold">Debit or Credit Card</span>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                        <div className="p-2.5 bg-white rounded-xl border border-[#CCE3F5]">
+                          <span className="text-[9px] font-mono text-[#85887A] block">Today (1/3)</span>
+                          <span className="font-mono font-bold text-[#0055FF] block">
+                            LKR {((Math.max(0, currentPlanPrice - promoDiscount)) / 3).toFixed(2)}
+                          </span>
+                        </div>
+                        <div className="p-2.5 bg-white rounded-xl border border-[#CCE3F5]">
+                          <span className="text-[9px] font-mono text-[#85887A] block">Month 1 (2/3)</span>
+                          <span className="font-mono font-bold text-[#20231B] block">
+                            LKR {((Math.max(0, currentPlanPrice - promoDiscount)) / 3).toFixed(2)}
+                          </span>
+                        </div>
+                        <div className="p-2.5 bg-white rounded-xl border border-[#CCE3F5]">
+                          <span className="text-[9px] font-mono text-[#85887A] block">Month 2 (3/3)</span>
+                          <span className="font-mono font-bold text-[#20231B] block">
+                            LKR {((Math.max(0, currentPlanPrice - promoDiscount)) / 3).toFixed(2)}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-mono uppercase text-[#0055FF] font-semibold mb-1">
+                          MINTPAY REGISTERED MOBILE NUMBER *
+                        </label>
+                        <input
+                          type="tel"
+                          required={paymentMethod === 'MINTPAY'}
+                          value={mintpayPhone}
+                          onChange={(e) => setMintpayPhone(formatAndLimitPhone(e.target.value))}
+                          onKeyDown={handlePhoneKeyDown}
+                          placeholder="e.g. 077 123 4567"
+                          className="w-full px-4 py-2.5 rounded-xl bg-white border border-[#CCE3F5] text-xs font-mono text-[#20231B] focus:outline-none focus:border-[#0055FF]"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="h-px bg-[#E2E7D8] my-2" />

@@ -183,34 +183,30 @@ export const ordersApi = {
       localCart.totalItems = 0;
     }),
 
-  validateCoupon: async (code: string, cartTotal: number): Promise<PromoResult> =>
-    fetchApi<PromoResult>('/promotions/validate', {
+  validateCoupon: async (code: string, cartTotal: number): Promise<PromoResult> => {
+    const { evaluatePromoCode } = await import('@/lib/promotions');
+    return fetchApi<PromoResult>('/promotions/validate', {
       method: 'POST',
       body: JSON.stringify({ code, cartTotal })
     }, () => {
-      const upper = code.toUpperCase();
-      const MOCK_PROMOS: Record<string, { discountPercent: number; maxDiscount: number; minSpend: number }> = {
-        PAGE10: { discountPercent: 10, maxDiscount: 500, minSpend: 2000 },
-        WELCOME20: { discountPercent: 20, maxDiscount: 1000, minSpend: 3000 },
-        SLIITBOOK: { discountPercent: 15, maxDiscount: 750, minSpend: 1500 },
-      };
-      const p = MOCK_PROMOS[upper];
-      if (!p) throw new Error('Invalid coupon code. Try PAGE10, WELCOME20 or SLIITBOOK.');
-      if (cartTotal < p.minSpend) throw new Error(`Minimum spend of LKR ${p.minSpend.toFixed(2)} required.`);
-      const discount = Math.min(cartTotal * (p.discountPercent / 100), p.maxDiscount);
+      const res = evaluatePromoCode(code, cartTotal);
+      if (!res.valid) {
+        throw new Error(res.message);
+      }
       return {
         promotion: {
-          id: upper,
-          code: upper,
-          discountPercentage: p.discountPercent,
-          discountPercent: p.discountPercent,
-          maxDiscount: p.maxDiscount,
-          minSpend: p.minSpend,
+          id: res.code,
+          code: res.code,
+          discountPercentage: res.discountPercentage,
+          discountPercent: res.discountPercentage,
+          maxDiscount: 2000,
+          minSpend: 0,
           validUntil: '',
           active: true
         },
-        discountAmount: Math.round(discount * 100) / 100,
-        finalTotal: Math.round((cartTotal - discount) * 100) / 100,
+        discountAmount: res.discountAmount,
+        finalTotal: res.finalTotal,
       };
-    }),
+    });
+  },
 };

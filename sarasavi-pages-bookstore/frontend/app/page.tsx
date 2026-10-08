@@ -65,11 +65,17 @@ import {
   CreditCard,
   Building2,
   Banknote,
-  Landmark
+  Landmark,
+  QrCode,
+  Smartphone,
+  Zap,
+  Upload,
+  FileCheck
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { ordersApi } from '@/lib/orders-api';
 import apiClient from '@/lib/api-client';
+import { evaluatePromoCode, VALID_PROMOTIONS } from '@/lib/promotions';
 import type { Book } from '@/types/orders';
 
 type NavTab = 'home' | 'books' | 'about' | 'rentals' | 'writers';
@@ -198,7 +204,9 @@ export default function StorefrontPage() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [promoCode, setPromoCode] = useState('');
   const [promoDiscount, setPromoDiscount] = useState(0);
+  const [promoDiscountFlat, setPromoDiscountFlat] = useState(0);
   const [promoApplied, setPromoApplied] = useState(false);
+  const [promoAppliedCode, setPromoAppliedCode] = useState('');
   const [promoError, setPromoError] = useState('');
 
   // Synchronize cart with localStorage
@@ -235,11 +243,17 @@ export default function StorefrontPage() {
     postalCode: ''
   });
   const [paymentForm, setPaymentForm] = useState({
-    method: 'CREDIT_CARD' as 'CREDIT_CARD' | 'DEBIT_CARD' | 'BANK_TRANSFER' | 'CASH_ON_DELIVERY',
+    method: 'CREDIT_CARD' as 'CREDIT_CARD' | 'DEBIT_CARD' | 'LANKA_QR' | 'BANK_TRANSFER' | 'HELA_PAY' | 'KOKO_PAY' | 'MINTPAY' | 'CASH_ON_DELIVERY',
     cardNumber: '',
     cardHolder: '',
     expiry: '',
-    cvv: ''
+    cvv: '',
+    bankRefNo: '',
+    bankSlipName: '',
+    helaPayPhone: '',
+    kokoPhone: '',
+    mintpayPhone: '',
+    qrConfirmed: false
   });
   const [checkoutProcessing, setCheckoutProcessing] = useState(false);
   const [orderInvoice, setOrderInvoice] = useState<{
@@ -264,11 +278,17 @@ export default function StorefrontPage() {
   const [membershipStep, setMembershipStep] = useState<'select' | 'payment' | 'success'>('select');
   const [selectedMembershipPlan, setSelectedMembershipPlan] = useState(MEMBERSHIP_PLANS[0]);
   const [membershipPaymentForm, setMembershipPaymentForm] = useState({
-    method: 'CREDIT_CARD' as 'CREDIT_CARD' | 'DEBIT_CARD' | 'BANK_TRANSFER',
+    method: 'CREDIT_CARD' as 'CREDIT_CARD' | 'DEBIT_CARD' | 'LANKA_QR' | 'BANK_TRANSFER' | 'HELA_PAY' | 'KOKO_PAY' | 'MINTPAY',
     cardNumber: '',
     cardHolder: '',
     expiry: '',
-    cvv: ''
+    cvv: '',
+    bankRefNo: '',
+    bankSlipName: '',
+    helaPayPhone: '',
+    kokoPhone: '',
+    mintpayPhone: '',
+    qrConfirmed: false
   });
   const [membershipProcessing, setMembershipProcessing] = useState(false);
   const [membershipInvoice, setMembershipInvoice] = useState<{
@@ -276,6 +296,7 @@ export default function StorefrontPage() {
     plan: string;
     price: number;
     duration: string;
+    paymentMethod?: string;
     date: string;
     customer: string;
   } | null>(null);
@@ -715,28 +736,69 @@ export default function StorefrontPage() {
   const subtotal = cart.reduce((sum, item) => sum + item.book.price * item.quantity, 0);
   // Tier-based discount: Standard user = 0%, Basic member = 10%, Scholar Premium = 20%
   const memberDiscountRate = userMembership === 'PREMIUM' ? 20 : userMembership === 'BASIC' ? 10 : 0;
-  const effectiveDiscountRate = Math.max(promoDiscount, memberDiscountRate);
-  const discountAmount = (subtotal * effectiveDiscountRate) / 100;
-  const total = Math.max(0, subtotal - discountAmount);
+  const memberDiscountAmount = (subtotal * memberDiscountRate) / 100;
+  const promoDiscountAmount = promoDiscountFlat > 0 ? promoDiscountFlat : (subtotal * promoDiscount) / 100;
+  const discountAmount = Math.min(subtotal, Math.round((memberDiscountAmount + promoDiscountAmount) * 100) / 100);
+  const total = Math.max(0, Math.round((subtotal - discountAmount) * 100) / 100);
 
-  const applyPromo = () => {
+  const applyPromo = (codeOverride?: string) => {
     setPromoError('');
-    const code = promoCode.trim().toUpperCase();
-    if (!code) return;
+    const code = (typeof codeOverride === 'string' ? codeOverride : promoCode).trim().toUpperCase();
+    if (!code) {
+      setPromoError('Please enter a coupon code.');
+      return;
+    }
 
-    if (code === 'WELCOME10') {
-      setPromoDiscount(10);
+    const result = evaluatePromoCode(code, subtotal);
+    if (result.valid) {
       setPromoApplied(true);
-    } else if (code === 'SARASAVI20') {
-      setPromoDiscount(20);
-      setPromoApplied(true);
-    } else if (code === 'STUDENT15') {
-      setPromoDiscount(15);
-      setPromoApplied(true);
+      setPromoAppliedCode(result.code);
+      setPromoCode(result.code);
+      if (VALID_PROMOTIONS[result.code]?.type === 'FLAT') {
+        setPromoDiscountFlat(result.discountAmount);
+        setPromoDiscount(0);
+      } else {
+        setPromoDiscount(result.discountPercentage);
+        setPromoDiscountFlat(0);
+      }
+      setPromoError('');
     } else {
-      setPromoError('Invalid coupon. Try WELCOME10, SARASAVI20 or STUDENT15');
       setPromoApplied(false);
+      setPromoAppliedCode('');
       setPromoDiscount(0);
+      setPromoDiscountFlat(0);
+      setPromoError(result.message);
+    }
+  };
+
+  const removePromo = () => {
+    setPromoApplied(false);
+    setPromoAppliedCode('');
+    setPromoDiscount(0);
+    setPromoDiscountFlat(0);
+    setPromoCode('');
+    setPromoError('');
+  };
+
+  const getCheckoutPaymentDisplay = (m: string) => {
+    switch (m) {
+      case 'LANKA_QR':
+        return 'LankaQR Instant Mobile Pay';
+      case 'BANK_TRANSFER':
+        return `Bank Transfer (Ref: ${paymentForm.bankRefNo.trim() || 'Direct Deposit'})`;
+      case 'HELA_PAY':
+        return `HelaPay Mobile (${paymentForm.helaPayPhone.trim() || 'Verified'})`;
+      case 'KOKO_PAY':
+        return `Koko Pay (3x LKR ${(total / 3).toFixed(2)})`;
+      case 'MINTPAY':
+        return `Mintpay (3x LKR ${(total / 3).toFixed(2)})`;
+      case 'CASH_ON_DELIVERY':
+        return 'Cash on Delivery (COD)';
+      case 'DEBIT_CARD':
+        return `Debit Card ending in ${paymentForm.cardNumber.replace(/\s+/g, '').slice(-4) || '8832'}`;
+      case 'CREDIT_CARD':
+      default:
+        return `Credit Card ending in ${paymentForm.cardNumber.replace(/\s+/g, '').slice(-4) || '8832'}`;
     }
   };
 
@@ -762,6 +824,24 @@ export default function StorefrontPage() {
 
   const handlePaymentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (paymentForm.method === 'BANK_TRANSFER' && !paymentForm.bankRefNo.trim()) {
+      alert('Please enter your Bank Deposit Reference Number or Transaction ID.');
+      return;
+    }
+    if (paymentForm.method === 'HELA_PAY' && !paymentForm.helaPayPhone.trim()) {
+      alert('Please enter your HelaPay Registered Mobile Number.');
+      return;
+    }
+    if (paymentForm.method === 'KOKO_PAY' && !paymentForm.kokoPhone.trim()) {
+      alert('Please enter your Koko Pay Mobile Number.');
+      return;
+    }
+    if (paymentForm.method === 'MINTPAY' && !paymentForm.mintpayPhone.trim()) {
+      alert('Please enter your Mintpay Registered Mobile Number.');
+      return;
+    }
+
     setCheckoutProcessing(true);
     // Simulate secure payment gateway processing (1.5 sec)
     await new Promise(res => setTimeout(res, 1500));
@@ -774,7 +854,7 @@ export default function StorefrontPage() {
       subtotal,
       discount: discountAmount,
       total,
-      paymentMethod: paymentForm.method.replace(/_/g, ' '),
+      paymentMethod: getCheckoutPaymentDisplay(paymentForm.method),
       date: new Date().toLocaleString('en-LK', { timeZone: 'Asia/Colombo' }),
       customer: shippingForm.fullName,
       email: shippingForm.email,
@@ -793,6 +873,7 @@ export default function StorefrontPage() {
         amount: total,
         subtotal,
         discount: discountAmount,
+        paymentMethod: invoice.paymentMethod,
         status: 'PROCESSING',
         courier: 'Domex Express',
         tracking: `DX-${Math.floor(100000 + Math.random() * 900000)}`,
@@ -826,6 +907,8 @@ export default function StorefrontPage() {
     setCart([]);
     setPromoApplied(false);
     setPromoDiscount(0);
+    setPromoDiscountFlat(0);
+    setPromoAppliedCode('');
     setPromoCode('');
   };
 
@@ -848,8 +931,46 @@ export default function StorefrontPage() {
   };
 
   // ── MEMBERSHIP HANDLERS ───────────────────────────────────────────────────
+  const getMembershipPaymentDisplay = (m: string, price: number) => {
+    switch (m) {
+      case 'LANKA_QR':
+        return 'LankaQR Instant Mobile Pay';
+      case 'BANK_TRANSFER':
+        return `Bank Transfer (Ref: ${membershipPaymentForm.bankRefNo.trim() || 'Direct Deposit'})`;
+      case 'HELA_PAY':
+        return `HelaPay Mobile (${membershipPaymentForm.helaPayPhone.trim() || 'Verified'})`;
+      case 'KOKO_PAY':
+        return `Koko Pay (3x LKR ${(price / 3).toFixed(2)})`;
+      case 'MINTPAY':
+        return `Mintpay (3x LKR ${(price / 3).toFixed(2)})`;
+      case 'DEBIT_CARD':
+        return `Debit Card ending in ${membershipPaymentForm.cardNumber.replace(/\s+/g, '').slice(-4) || '8832'}`;
+      case 'CREDIT_CARD':
+      default:
+        return `Credit Card ending in ${membershipPaymentForm.cardNumber.replace(/\s+/g, '').slice(-4) || '8832'}`;
+    }
+  };
+
   const handleMembershipPayment = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (membershipPaymentForm.method === 'BANK_TRANSFER' && !membershipPaymentForm.bankRefNo.trim()) {
+      alert('Please enter your Bank Deposit Reference Number or Transaction ID.');
+      return;
+    }
+    if (membershipPaymentForm.method === 'HELA_PAY' && !membershipPaymentForm.helaPayPhone.trim()) {
+      alert('Please enter your HelaPay Registered Mobile Number.');
+      return;
+    }
+    if (membershipPaymentForm.method === 'KOKO_PAY' && !membershipPaymentForm.kokoPhone.trim()) {
+      alert('Please enter your Koko Pay Mobile Number.');
+      return;
+    }
+    if (membershipPaymentForm.method === 'MINTPAY' && !membershipPaymentForm.mintpayPhone.trim()) {
+      alert('Please enter your Mintpay Registered Mobile Number.');
+      return;
+    }
+
     setMembershipProcessing(true);
     await new Promise(res => setTimeout(res, 1800));
     const invoiceNo = `MEM-${Date.now().toString().slice(-8)}`;
@@ -858,6 +979,7 @@ export default function StorefrontPage() {
       plan: selectedMembershipPlan.label,
       price: selectedMembershipPlan.price,
       duration: selectedMembershipPlan.duration,
+      paymentMethod: getMembershipPaymentDisplay(membershipPaymentForm.method, selectedMembershipPlan.price),
       date: new Date().toLocaleString('en-LK', { timeZone: 'Asia/Colombo' }),
       customer: loggedInCustomer?.name || shippingForm.fullName || 'Guest',
     };
@@ -880,6 +1002,7 @@ export default function StorefrontPage() {
       duration: inv.duration,
       price: inv.price,
       total: inv.price,
+      paymentMethod: inv.paymentMethod,
     });
   };
 
@@ -2063,45 +2186,89 @@ export default function StorefrontPage() {
               )}
             </div>
 
-            {/* Promo Code Input */}
+            {/* Promo Code Input & Suggestion Chips */}
             {cart.length > 0 && (
-              <div className="pt-4 border-t border-[#E2E7D8] space-y-2">
+              <div className="pt-4 border-t border-[#E2E7D8] space-y-2.5">
                 <div className="flex gap-2">
                   <input
                     type="text"
                     value={promoCode}
                     onChange={(e) => setPromoCode(e.target.value)}
-                    placeholder="Coupon (e.g. WELCOME10)"
+                    placeholder="Coupon (e.g. PAGE10, WELCOME20)"
                     className="flex-1 px-3.5 py-2 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-xs text-[#20231B] focus:outline-none focus:border-[#596B32] uppercase font-mono"
                   />
-                  <button
-                    onClick={applyPromo}
-                    className="px-4 py-2 rounded-xl bg-[#34451D] text-white text-xs font-medium hover:bg-[#20231B] transition-all"
-                  >
-                    Apply
-                  </button>
+                  {promoApplied ? (
+                    <button
+                      type="button"
+                      onClick={removePromo}
+                      className="px-3.5 py-2 rounded-xl bg-red-100 text-red-700 text-xs font-medium hover:bg-red-200 transition-all flex items-center gap-1"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                      <span>Remove</span>
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => applyPromo()}
+                      className="px-4 py-2 rounded-xl bg-[#34451D] text-white text-xs font-medium hover:bg-[#20231B] transition-all"
+                    >
+                      Apply
+                    </button>
+                  )}
                 </div>
-                {promoError && <p className="text-[11px] text-red-500">{promoError}</p>}
+
+                {/* Popular promo code tags for quick application */}
+                {!promoApplied && (
+                  <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                    <span className="text-[10px] text-[#85887A] font-mono">Try:</span>
+                    {['PAGE10', 'WELCOME20', 'SARASAVI20', 'SLIITBOOK', 'SAVE500'].map(chip => (
+                      <button
+                        key={chip}
+                        type="button"
+                        onClick={() => {
+                          setPromoCode(chip);
+                          applyPromo(chip);
+                        }}
+                        className="px-2 py-0.5 rounded-md bg-[#F0F4E8] hover:bg-[#34451D] hover:text-white text-[#34451D] font-mono text-[10px] border border-[#E2E7D8] transition-all"
+                      >
+                        {chip}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {promoError && <p className="text-[11px] text-red-500 font-medium">{promoError}</p>}
                 {promoApplied && (
-                  <p className="text-[11px] text-[#596B32] inline-flex items-center gap-1 font-medium">
-                    <Check className="w-3.5 h-3.5" />
-                    <span>{promoDiscount}% promotional discount applied!</span>
-                  </p>
+                  <div className="p-2.5 rounded-xl bg-[#F0F4E8] border border-[#CDE5C5] flex items-center justify-between text-[11px] text-[#34451D]">
+                    <span className="inline-flex items-center gap-1.5 font-medium">
+                      <Check className="w-3.5 h-3.5 text-emerald-600" />
+                      <span><strong>{promoAppliedCode}</strong> applied ({promoDiscountFlat > 0 ? `LKR ${promoDiscountFlat} OFF` : `${promoDiscount}% OFF`})</span>
+                    </span>
+                    <button type="button" onClick={removePromo} className="text-[#85887A] hover:text-red-600">
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 )}
               </div>
             )}
 
-            {/* Checkout Total */}
+            {/* Checkout Total Breakdown */}
             {cart.length > 0 && (
               <div className="pt-4 border-t border-[#E2E7D8] space-y-2">
                 <div className="flex justify-between text-xs text-[#85887A]">
                   <span>Subtotal</span>
                   <span className="font-mono">LKR {subtotal.toFixed(2)}</span>
                 </div>
+                {memberDiscountRate > 0 && (
+                  <div className="flex justify-between text-xs text-[#596B32]">
+                    <span>Member Discount ({memberDiscountRate}%)</span>
+                    <span className="font-mono">- LKR {memberDiscountAmount.toFixed(2)}</span>
+                  </div>
+                )}
                 {promoApplied && (
                   <div className="flex justify-between text-xs text-[#596B32] font-medium">
-                    <span>Coupon Discount ({promoDiscount}%)</span>
-                    <span className="font-mono">- LKR {discountAmount.toFixed(2)}</span>
+                    <span>Coupon Discount ({promoAppliedCode})</span>
+                    <span className="font-mono">- LKR {promoDiscountAmount.toFixed(2)}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-sm font-semibold text-[#20231B] pt-2 border-t border-[#E2E7D8]">
@@ -2221,8 +2388,22 @@ export default function StorefrontPage() {
                         <span className="font-mono shrink-0">LKR {(i.book.price * i.quantity).toFixed(2)}</span>
                       </div>
                     ))}
-                    {promoApplied && <div className="flex justify-between text-[11px] text-[#596B32] font-medium"><span>Discount</span><span className="font-mono">- LKR {discountAmount.toFixed(2)}</span></div>}
-                    <div className="flex justify-between text-xs font-semibold text-[#20231B] pt-1 border-t border-[#E2E7D8]"><span>Total</span><span className="font-mono">LKR {total.toFixed(2)}</span></div>
+                    {memberDiscountRate > 0 && (
+                      <div className="flex justify-between text-[11px] text-[#596B32]">
+                        <span>Member Discount ({memberDiscountRate}%)</span>
+                        <span className="font-mono">- LKR {memberDiscountAmount.toFixed(2)}</span>
+                      </div>
+                    )}
+                    {promoApplied && (
+                      <div className="flex justify-between text-[11px] text-[#596B32] font-medium">
+                        <span>Coupon ({promoAppliedCode})</span>
+                        <span className="font-mono">- LKR {promoDiscountAmount.toFixed(2)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between text-xs font-semibold text-[#20231B] pt-1 border-t border-[#E2E7D8]">
+                      <span>Total Due</span>
+                      <span className="font-mono">LKR {total.toFixed(2)}</span>
+                    </div>
                   </div>
                   <div className="flex justify-end gap-2 pt-2">
                     <button type="button" onClick={() => setIsCheckoutOpen(false)} className="px-4 py-2.5 rounded-full border border-[#E2E7D8] text-[#85887A] text-xs font-medium hover:bg-[#F0F4E8]">Cancel</button>
@@ -2235,70 +2416,393 @@ export default function StorefrontPage() {
               {checkoutStep === 'payment' && (
                 <form onSubmit={handlePaymentSubmit} className="space-y-4 text-xs">
                   <div>
-                    <label className="block text-[#85887A] font-medium mb-2">Payment Method *</label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {(['CREDIT_CARD', 'DEBIT_CARD', 'BANK_TRANSFER', 'CASH_ON_DELIVERY'] as const).map(m => (
-                        <button key={m} type="button" onClick={() => setPaymentForm({...paymentForm, method: m})}
-                          className={`p-3 rounded-xl border text-xs font-medium transition-all flex items-center justify-center gap-2 ${
-                            paymentForm.method === m ? 'border-[#34451D] bg-[#34451D] text-white shadow-xs' : 'border-[#E2E7D8] bg-white text-[#20231B] hover:border-[#596B32]'
-                          }`}>
-                          {m === 'CREDIT_CARD' && <CreditCard className="w-4 h-4 shrink-0" />}
-                          {m === 'DEBIT_CARD' && <CreditCard className="w-4 h-4 shrink-0" />}
-                          {m === 'BANK_TRANSFER' && <Building2 className="w-4 h-4 shrink-0" />}
-                          {m === 'CASH_ON_DELIVERY' && <Banknote className="w-4 h-4 shrink-0" />}
-                          <span>{m === 'CREDIT_CARD' ? 'Credit Card' : m === 'DEBIT_CARD' ? 'Debit Card' : m === 'BANK_TRANSFER' ? 'Bank Transfer' : 'Cash on Delivery'}</span>
-                        </button>
-                      ))}
+                    <label className="block text-[#85887A] font-medium mb-2">Select Payment Method *</label>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setPaymentForm({ ...paymentForm, method: 'CREDIT_CARD' })}
+                        className={`p-2.5 rounded-xl border text-xs font-medium transition-all flex items-center justify-center gap-1.5 ${
+                          paymentForm.method === 'CREDIT_CARD' || paymentForm.method === 'DEBIT_CARD'
+                            ? 'border-[#34451D] bg-[#34451D] text-white shadow-xs'
+                            : 'border-[#E2E7D8] bg-white text-[#20231B] hover:border-[#596B32]'
+                        }`}
+                      >
+                        <CreditCard className="w-3.5 h-3.5 shrink-0" />
+                        <span className="truncate">Card</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setPaymentForm({ ...paymentForm, method: 'LANKA_QR' })}
+                        className={`p-2.5 rounded-xl border text-xs font-medium transition-all flex items-center justify-center gap-1.5 ${
+                          paymentForm.method === 'LANKA_QR'
+                            ? 'border-[#34451D] bg-[#34451D] text-white shadow-xs'
+                            : 'border-[#E2E7D8] bg-white text-[#20231B] hover:border-[#596B32]'
+                        }`}
+                      >
+                        <QrCode className="w-3.5 h-3.5 shrink-0 text-[#B7D85A]" />
+                        <span className="truncate">LankaQR</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setPaymentForm({ ...paymentForm, method: 'BANK_TRANSFER' })}
+                        className={`p-2.5 rounded-xl border text-xs font-medium transition-all flex items-center justify-center gap-1.5 ${
+                          paymentForm.method === 'BANK_TRANSFER'
+                            ? 'border-[#34451D] bg-[#34451D] text-white shadow-xs'
+                            : 'border-[#E2E7D8] bg-white text-[#20231B] hover:border-[#596B32]'
+                        }`}
+                      >
+                        <Building2 className="w-3.5 h-3.5 shrink-0" />
+                        <span className="truncate">Bank Transfer</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setPaymentForm({ ...paymentForm, method: 'HELA_PAY' })}
+                        className={`p-2.5 rounded-xl border text-xs font-medium transition-all flex items-center justify-center gap-1.5 ${
+                          paymentForm.method === 'HELA_PAY'
+                            ? 'border-[#34451D] bg-[#34451D] text-white shadow-xs'
+                            : 'border-[#E2E7D8] bg-white text-[#20231B] hover:border-[#596B32]'
+                        }`}
+                      >
+                        <Smartphone className="w-3.5 h-3.5 shrink-0 text-amber-400" />
+                        <span className="truncate">HelaPay</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setPaymentForm({ ...paymentForm, method: 'KOKO_PAY' })}
+                        className={`p-2.5 rounded-xl border text-xs font-medium transition-all flex items-center justify-center gap-1.5 ${
+                          paymentForm.method === 'KOKO_PAY'
+                            ? 'border-[#34451D] bg-[#34451D] text-white shadow-xs'
+                            : 'border-[#E2E7D8] bg-white text-[#20231B] hover:border-[#596B32]'
+                        }`}
+                      >
+                        <Zap className="w-3.5 h-3.5 shrink-0 text-amber-300" />
+                        <span className="truncate">Koko Pay</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setPaymentForm({ ...paymentForm, method: 'MINTPAY' })}
+                        className={`p-2.5 rounded-xl border text-xs font-medium transition-all flex items-center justify-center gap-1.5 ${
+                          paymentForm.method === 'MINTPAY'
+                            ? 'border-[#34451D] bg-[#34451D] text-white shadow-xs'
+                            : 'border-[#E2E7D8] bg-white text-[#20231B] hover:border-[#596B32]'
+                        }`}
+                      >
+                        <Sparkles className="w-3.5 h-3.5 shrink-0 text-[#B7D85A]" />
+                        <span className="truncate">Mintpay</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setPaymentForm({ ...paymentForm, method: 'CASH_ON_DELIVERY' })}
+                        className={`col-span-2 sm:col-span-2 p-2.5 rounded-xl border text-xs font-medium transition-all flex items-center justify-center gap-1.5 ${
+                          paymentForm.method === 'CASH_ON_DELIVERY'
+                            ? 'border-[#34451D] bg-[#34451D] text-white shadow-xs'
+                            : 'border-[#E2E7D8] bg-white text-[#20231B] hover:border-[#596B32]'
+                        }`}
+                      >
+                        <Banknote className="w-3.5 h-3.5 shrink-0" />
+                        <span className="truncate">Cash on Delivery (COD)</span>
+                      </button>
                     </div>
                   </div>
 
-                  {paymentForm.method !== 'CASH_ON_DELIVERY' && paymentForm.method !== 'BANK_TRANSFER' && (
-                    <>
+                  {/* 1. CREDIT/DEBIT CARD FORM */}
+                  {(paymentForm.method === 'CREDIT_CARD' || paymentForm.method === 'DEBIT_CARD') && (
+                    <div className="space-y-3 pt-1">
                       <div>
                         <label className="block text-[#85887A] font-medium mb-1">Card Number *</label>
-                        <input required maxLength={19} value={paymentForm.cardNumber}
-                          onChange={e => setPaymentForm({...paymentForm, cardNumber: formatAndLimitCardNumber(e.target.value)})}
-                          placeholder="1234 5678 9012 3456" className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] font-mono focus:bg-white focus:outline-none focus:border-[#596B32]" />
+                        <input
+                          required
+                          maxLength={19}
+                          value={paymentForm.cardNumber}
+                          onChange={e => setPaymentForm({ ...paymentForm, cardNumber: formatAndLimitCardNumber(e.target.value) })}
+                          placeholder="1234 5678 9012 3456"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] font-mono focus:bg-white focus:outline-none focus:border-[#596B32]"
+                        />
                       </div>
                       <div>
                         <label className="block text-[#85887A] font-medium mb-1">Cardholder Name *</label>
-                        <input required value={paymentForm.cardHolder} onChange={e => setPaymentForm({...paymentForm, cardHolder: e.target.value})}
-                          placeholder="KASUN PERERA" className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] uppercase focus:bg-white focus:outline-none focus:border-[#596B32]" />
+                        <input
+                          required
+                          value={paymentForm.cardHolder}
+                          onChange={e => setPaymentForm({ ...paymentForm, cardHolder: e.target.value })}
+                          placeholder="KASUN PERERA"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] uppercase focus:bg-white focus:outline-none focus:border-[#596B32]"
+                        />
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-2 gap-3">
                         <div>
                           <label className="block text-[#85887A] font-medium mb-1">Expiry Date *</label>
-                          <input required maxLength={5} value={paymentForm.expiry}
-                            onChange={e => setPaymentForm({...paymentForm, expiry: formatAndLimitCardExpiry(e.target.value)})}
-                            placeholder="MM/YY" className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] font-mono focus:bg-white focus:outline-none focus:border-[#596B32]" />
+                          <input
+                            required
+                            maxLength={5}
+                            value={paymentForm.expiry}
+                            onChange={e => setPaymentForm({ ...paymentForm, expiry: formatAndLimitCardExpiry(e.target.value) })}
+                            placeholder="MM/YY"
+                            className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] font-mono focus:bg-white focus:outline-none focus:border-[#596B32]"
+                          />
                         </div>
                         <div>
                           <label className="block text-[#85887A] font-medium mb-1">CVV *</label>
-                          <input required type="password" maxLength={4} value={paymentForm.cvv} onChange={e => setPaymentForm({...paymentForm, cvv: limitCvv(e.target.value)})}
-                            placeholder="•••" className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] font-mono focus:bg-white focus:outline-none focus:border-[#596B32]" />
+                          <input
+                            required
+                            type="password"
+                            maxLength={4}
+                            value={paymentForm.cvv}
+                            onChange={e => setPaymentForm({ ...paymentForm, cvv: limitCvv(e.target.value) })}
+                            placeholder="•••"
+                            className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] text-[#20231B] font-mono focus:bg-white focus:outline-none focus:border-[#596B32]"
+                          />
                         </div>
                       </div>
-                    </>
-                  )}
-                  {paymentForm.method === 'BANK_TRANSFER' && (
-                    <div className="p-4 rounded-2xl bg-[#F0F4E8] border border-[#E2E7D8] text-xs text-[#34451D] space-y-1">
-                      <p className="font-semibold">Bank Transfer Details:</p>
-                      <p>Bank: Commercial Bank of Ceylon</p>
-                      <p>Account: 1234567890 · Branch: Colombo Fort</p>
-                      <p>Reference: Your order ID (provided after confirmation)</p>
                     </div>
                   )}
+
+                  {/* 2. LANKAQR SCAN TO PAY */}
+                  {paymentForm.method === 'LANKA_QR' && (
+                    <div className="p-4 rounded-2xl bg-[#F0F4E8] border border-[#E2E7D8] space-y-3">
+                      <div className="flex items-center justify-between pb-2 border-b border-[#E2E7D8]">
+                        <div className="flex items-center gap-2">
+                          <span className="w-6 h-6 rounded bg-[#34451D] text-[#B7D85A] flex items-center justify-center font-bold text-[10px] font-mono">
+                            LQR
+                          </span>
+                          <div>
+                            <p className="font-semibold text-[#20231B] text-xs">LankaQR Dynamic Payment</p>
+                            <p className="text-[10px] text-[#596B32]">Scan with any Sri Lankan Banking or Fintech App</p>
+                          </div>
+                        </div>
+                        <span className="text-[10px] font-mono bg-[#34451D] text-[#B7D85A] px-2 py-0.5 rounded-full font-semibold">
+                          0% Surcharge
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-4">
+                        <div className="w-28 h-28 bg-white p-2 rounded-xl border border-[#34451D] shadow-xs flex items-center justify-center shrink-0">
+                          <svg className="w-full h-full text-[#34451D]" viewBox="0 0 100 100" fill="currentColor">
+                            <rect x="10" y="10" width="24" height="24" rx="3" fill="#34451D" />
+                            <rect x="15" y="15" width="14" height="14" rx="2" fill="white" />
+                            <rect x="18" y="18" width="8" height="8" fill="#34451D" />
+                            <rect x="66" y="10" width="24" height="24" rx="3" fill="#34451D" />
+                            <rect x="71" y="15" width="14" height="14" rx="2" fill="white" />
+                            <rect x="74" y="18" width="8" height="8" fill="#34451D" />
+                            <rect x="10" y="66" width="24" height="24" rx="3" fill="#34451D" />
+                            <rect x="15" y="71" width="14" height="14" rx="2" fill="white" />
+                            <rect x="18" y="74" width="8" height="8" fill="#34451D" />
+                            <circle cx="50" cy="50" r="7" fill="#B7D85A" />
+                            <rect x="42" y="18" width="8" height="8" fill="#34451D" />
+                            <rect x="52" y="28" width="8" height="8" fill="#596B32" />
+                            <rect x="42" y="74" width="8" height="8" fill="#34451D" />
+                            <rect x="66" y="52" width="8" height="8" fill="#34451D" />
+                            <rect x="76" y="66" width="8" height="8" fill="#34451D" />
+                          </svg>
+                        </div>
+                        <div className="text-[11px] space-y-1 text-[#596B32]">
+                          <p className="font-semibold text-[#20231B]">Payable Amount: <span className="font-mono text-[#34451D]">LKR {total.toFixed(2)}</span></p>
+                          <p>1. Open ComBank, BOC, Sampath, Genie, Flash or FriMi.</p>
+                          <p>2. Scan QR & confirm exact amount.</p>
+                          <p className="font-mono text-[10px] text-[#85887A]">Ref: LQR-ORD-{Date.now().toString().slice(-6)}</p>
+                        </div>
+                      </div>
+
+                      <label className="flex items-center gap-2 text-[11px] text-[#34451D] cursor-pointer pt-1 border-t border-[#E2E7D8]">
+                        <input
+                          type="checkbox"
+                          checked={paymentForm.qrConfirmed}
+                          onChange={e => setPaymentForm({ ...paymentForm, qrConfirmed: e.target.checked })}
+                          className="rounded text-[#34451D] focus:ring-[#596B32]"
+                        />
+                        <span>I confirm that I have completed the LankaQR transaction.</span>
+                      </label>
+                    </div>
+                  )}
+
+                  {/* 3. BANK TRANSFER & SLIP */}
+                  {paymentForm.method === 'BANK_TRANSFER' && (
+                    <div className="p-4 rounded-2xl bg-[#F0F4E8] border border-[#E2E7D8] space-y-3">
+                      <div className="space-y-1">
+                        <p className="font-semibold text-xs text-[#20231B]">Sarasavi Official Accounts for Direct Transfer:</p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] pt-1">
+                          <div className="p-2.5 bg-white rounded-xl border border-[#E2E7D8]">
+                            <p className="font-semibold text-[#34451D]">Commercial Bank</p>
+                            <p className="font-mono text-[#20231B]">A/C: 1002394829</p>
+                            <p className="text-[#85887A]">Fort Branch (Code 012)</p>
+                          </div>
+                          <div className="p-2.5 bg-white rounded-xl border border-[#E2E7D8]">
+                            <p className="font-semibold text-[#34451D]">Bank of Ceylon (BOC)</p>
+                            <p className="font-mono text-[#20231B]">A/C: 8201948270</p>
+                            <p className="text-[#85887A]">Corporate Branch (Code 001)</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-[#85887A] font-medium mb-1">Deposit Reference / Transaction ID *</label>
+                        <input
+                          type="text"
+                          required={paymentForm.method === 'BANK_TRANSFER'}
+                          value={paymentForm.bankRefNo}
+                          onChange={e => setPaymentForm({ ...paymentForm, bankRefNo: e.target.value })}
+                          placeholder="e.g. TXN-1029482 or Slip #8821"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#E2E7D8] font-mono text-[#20231B] focus:outline-none focus:border-[#596B32]"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[#85887A] font-medium mb-1">Payment Slip Screenshot (Optional)</label>
+                        <div className="flex items-center gap-3">
+                          <label className="cursor-pointer px-3.5 py-2 rounded-xl bg-white border border-[#E2E7D8] text-xs text-[#34451D] hover:bg-[#F8F9F5] flex items-center gap-1.5 font-medium transition-colors">
+                            <Upload className="w-3.5 h-3.5" />
+                            <span>{paymentForm.bankSlipName ? 'Change Slip' : 'Upload Slip'}</span>
+                            <input
+                              type="file"
+                              accept="image/*,.pdf"
+                              className="hidden"
+                              onChange={e => {
+                                const f = e.target.files?.[0];
+                                if (f) setPaymentForm({ ...paymentForm, bankSlipName: f.name });
+                              }}
+                            />
+                          </label>
+                          {paymentForm.bankSlipName && (
+                            <span className="text-[11px] font-mono text-[#596B32] flex items-center gap-1">
+                              <FileCheck className="w-3.5 h-3.5" />
+                              <span>{paymentForm.bankSlipName}</span>
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 4. HELAPAY MOBILE WALLET */}
+                  {paymentForm.method === 'HELA_PAY' && (
+                    <div className="p-4 rounded-2xl bg-[#FFF9F2] border border-[#FCD9BD] space-y-2">
+                      <div className="flex items-center justify-between pb-1 border-b border-[#FCD9BD]">
+                        <span className="font-semibold text-xs text-[#D96B27]">HelaPay Mobile Wallet</span>
+                        <span className="text-[10px] font-mono text-[#D96B27]">Instant PIN Authorization</span>
+                      </div>
+                      <div>
+                        <label className="block text-[#D96B27] font-medium mb-1">HelaPay Registered Mobile Number *</label>
+                        <input
+                          type="tel"
+                          required={paymentForm.method === 'HELA_PAY'}
+                          value={paymentForm.helaPayPhone}
+                          onChange={e => setPaymentForm({ ...paymentForm, helaPayPhone: formatAndLimitPhone(e.target.value) })}
+                          onKeyDown={handlePhoneKeyDown}
+                          placeholder="077 123 4567"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#FCD9BD] font-mono text-[#20231B] focus:outline-none focus:border-[#D96B27]"
+                        />
+                        <p className="text-[10px] text-[#85887A] mt-1">A payment authorization push alert will be sent to your HelaPay app.</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 5. KOKO PAY BNPL */}
+                  {paymentForm.method === 'KOKO_PAY' && (
+                    <div className="p-4 rounded-2xl bg-[#F4F9F2] border border-[#CDE5C5] space-y-3">
+                      <div className="flex items-center justify-between pb-1 border-b border-[#CDE5C5]">
+                        <div className="flex items-center gap-1.5">
+                          <span className="px-2 py-0.5 rounded bg-[#20231B] text-[#B7D85A] font-bold text-[10px]">koko</span>
+                          <span className="font-semibold text-xs text-[#20231B]">Buy Now, Pay in 3</span>
+                        </div>
+                        <span className="text-[10px] text-[#596B32] font-semibold">0% Interest</span>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-2 text-center text-[10px]">
+                        <div className="p-2 bg-white rounded-xl border border-[#CDE5C5]">
+                          <span className="text-[#85887A] block">Today</span>
+                          <span className="font-bold text-[#34451D] block">LKR {(total / 3).toFixed(2)}</span>
+                        </div>
+                        <div className="p-2 bg-white rounded-xl border border-[#CDE5C5]">
+                          <span className="text-[#85887A] block">30 Days</span>
+                          <span className="font-bold text-[#34451D] block">LKR {(total / 3).toFixed(2)}</span>
+                        </div>
+                        <div className="p-2 bg-white rounded-xl border border-[#CDE5C5]">
+                          <span className="text-[#85887A] block">60 Days</span>
+                          <span className="font-bold text-[#34451D] block">LKR {(total / 3).toFixed(2)}</span>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-[#596B32] font-medium mb-1">Koko Registered Phone Number *</label>
+                        <input
+                          type="tel"
+                          required={paymentForm.method === 'KOKO_PAY'}
+                          value={paymentForm.kokoPhone}
+                          onChange={e => setPaymentForm({ ...paymentForm, kokoPhone: formatAndLimitPhone(e.target.value) })}
+                          onKeyDown={handlePhoneKeyDown}
+                          placeholder="077 123 4567"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#CDE5C5] font-mono text-[#20231B] focus:outline-none focus:border-[#34451D]"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 6. MINTPAY */}
+                  {paymentForm.method === 'MINTPAY' && (
+                    <div className="p-4 rounded-2xl bg-[#F0F8FF] border border-[#CCE3F5] space-y-3">
+                      <div className="flex items-center justify-between pb-1 border-b border-[#CCE3F5]">
+                        <div className="flex items-center gap-1.5">
+                          <span className="px-2 py-0.5 rounded bg-[#0055FF] text-white font-bold text-[10px]">Mintpay</span>
+                          <span className="font-semibold text-xs text-[#20231B]">Shop Now, Split in 3</span>
+                        </div>
+                        <span className="text-[10px] text-[#0055FF] font-semibold">Zero Extra Fees</span>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-2 text-center text-[10px]">
+                        <div className="p-2 bg-white rounded-xl border border-[#CCE3F5]">
+                          <span className="text-[#85887A] block">Today (1/3)</span>
+                          <span className="font-bold text-[#0055FF] block">LKR {(total / 3).toFixed(2)}</span>
+                        </div>
+                        <div className="p-2 bg-white rounded-xl border border-[#CCE3F5]">
+                          <span className="text-[#85887A] block">Month 1 (2/3)</span>
+                          <span className="font-bold text-[#20231B] block">LKR {(total / 3).toFixed(2)}</span>
+                        </div>
+                        <div className="p-2 bg-white rounded-xl border border-[#CCE3F5]">
+                          <span className="text-[#85887A] block">Month 2 (3/3)</span>
+                          <span className="font-bold text-[#20231B] block">LKR {(total / 3).toFixed(2)}</span>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-[#0055FF] font-medium mb-1">Mintpay Mobile Number *</label>
+                        <input
+                          type="tel"
+                          required={paymentForm.method === 'MINTPAY'}
+                          value={paymentForm.mintpayPhone}
+                          onChange={e => setPaymentForm({ ...paymentForm, mintpayPhone: formatAndLimitPhone(e.target.value) })}
+                          onKeyDown={handlePhoneKeyDown}
+                          placeholder="077 123 4567"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#CCE3F5] font-mono text-[#20231B] focus:outline-none focus:border-[#0055FF]"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 7. CASH ON DELIVERY */}
                   {paymentForm.method === 'CASH_ON_DELIVERY' && (
                     <div className="p-4 rounded-2xl bg-[#F0F4E8] border border-[#E2E7D8] text-xs text-[#34451D]">
-                      <p className="font-semibold">Cash on Delivery Selected</p>
-                      <p className="mt-1 text-[#85887A]">Our delivery partner will collect LKR {total.toFixed(2)} at your doorstep. Exact change appreciated.</p>
+                      <p className="font-semibold">Cash on Delivery (Islandwide)</p>
+                      <p className="mt-1 text-[#85887A]">Pay LKR {total.toFixed(2)} directly to our Domex Express courier upon delivery to your doorstep.</p>
                     </div>
                   )}
-                  {/* Final total */}
+
+                  {/* Final total summary box */}
                   <div className="p-4 rounded-2xl bg-[#34451D] text-white flex justify-between items-center">
-                    <span className="text-xs font-medium">Total Payable</span>
+                    <div>
+                      <span className="text-xs font-medium block">Total Payable</span>
+                      {discountAmount > 0 && (
+                        <span className="text-[10px] text-[#B7D85A]">Total Savings: LKR {discountAmount.toFixed(2)}</span>
+                      )}
+                    </div>
                     <span className="text-lg font-mono font-light">LKR {total.toFixed(2)}</span>
                   </div>
+
                   <div className="flex justify-between gap-2 pt-2">
                     <button type="button" onClick={() => setCheckoutStep('shipping')} className="px-4 py-2.5 rounded-full border border-[#E2E7D8] text-[#85887A] text-xs font-medium hover:bg-[#F0F4E8]">← Back</button>
                     <button type="submit" disabled={checkoutProcessing} className="px-6 py-2.5 rounded-full bg-[#34451D] hover:bg-[#20231B] text-white text-xs font-medium shadow-md transition-all active:scale-95 disabled:opacity-60 flex items-center gap-2">
@@ -2427,23 +2931,91 @@ export default function StorefrontPage() {
                     <span className="font-mono font-semibold text-[#20231B]">LKR {selectedMembershipPlan.price.toFixed(2)}</span>
                   </div>
                   <div>
-                    <label className="block text-[#85887A] font-medium mb-2">Payment Method *</label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {(['CREDIT_CARD', 'DEBIT_CARD', 'BANK_TRANSFER'] as const).map(m => (
-                        <button key={m} type="button" onClick={() => setMembershipPaymentForm({...membershipPaymentForm, method: m})}
-                          className={`p-2.5 rounded-xl border text-[11px] font-medium transition-all flex items-center justify-center gap-1.5 ${
-                            membershipPaymentForm.method === m ? 'border-[#34451D] bg-[#34451D] text-white shadow-xs' : 'border-[#E2E7D8] bg-white text-[#20231B] hover:border-[#596B32]'
-                          }`}>
-                          {m === 'CREDIT_CARD' && <CreditCard className="w-3.5 h-3.5 shrink-0" />}
-                          {m === 'DEBIT_CARD' && <CreditCard className="w-3.5 h-3.5 shrink-0" />}
-                          {m === 'BANK_TRANSFER' && <Building2 className="w-3.5 h-3.5 shrink-0" />}
-                          <span>{m === 'CREDIT_CARD' ? 'Credit' : m === 'DEBIT_CARD' ? 'Debit' : 'Bank'}</span>
-                        </button>
-                      ))}
+                    <label className="block text-[#85887A] font-medium mb-2">Select Payment Method *</label>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setMembershipPaymentForm({ ...membershipPaymentForm, method: 'CREDIT_CARD' })}
+                        className={`p-2.5 rounded-xl border text-[11px] font-medium transition-all flex items-center justify-center gap-1.5 ${
+                          membershipPaymentForm.method === 'CREDIT_CARD' || membershipPaymentForm.method === 'DEBIT_CARD'
+                            ? 'border-[#34451D] bg-[#34451D] text-white shadow-xs'
+                            : 'border-[#E2E7D8] bg-white text-[#20231B] hover:border-[#596B32]'
+                        }`}
+                      >
+                        <CreditCard className="w-3.5 h-3.5 shrink-0" />
+                        <span className="truncate">Card Payment</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setMembershipPaymentForm({ ...membershipPaymentForm, method: 'LANKA_QR' })}
+                        className={`p-2.5 rounded-xl border text-[11px] font-medium transition-all flex items-center justify-center gap-1.5 ${
+                          membershipPaymentForm.method === 'LANKA_QR'
+                            ? 'border-[#34451D] bg-[#34451D] text-white shadow-xs'
+                            : 'border-[#E2E7D8] bg-white text-[#20231B] hover:border-[#596B32]'
+                        }`}
+                      >
+                        <QrCode className="w-3.5 h-3.5 shrink-0 text-[#B7D85A]" />
+                        <span className="truncate">LankaQR Scan</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setMembershipPaymentForm({ ...membershipPaymentForm, method: 'BANK_TRANSFER' })}
+                        className={`p-2.5 rounded-xl border text-[11px] font-medium transition-all flex items-center justify-center gap-1.5 ${
+                          membershipPaymentForm.method === 'BANK_TRANSFER'
+                            ? 'border-[#34451D] bg-[#34451D] text-white shadow-xs'
+                            : 'border-[#E2E7D8] bg-white text-[#20231B] hover:border-[#596B32]'
+                        }`}
+                      >
+                        <Building2 className="w-3.5 h-3.5 shrink-0" />
+                        <span className="truncate">Bank Deposit</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setMembershipPaymentForm({ ...membershipPaymentForm, method: 'HELA_PAY' })}
+                        className={`p-2.5 rounded-xl border text-[11px] font-medium transition-all flex items-center justify-center gap-1.5 ${
+                          membershipPaymentForm.method === 'HELA_PAY'
+                            ? 'border-[#34451D] bg-[#34451D] text-white shadow-xs'
+                            : 'border-[#E2E7D8] bg-white text-[#20231B] hover:border-[#596B32]'
+                        }`}
+                      >
+                        <Smartphone className="w-3.5 h-3.5 shrink-0 text-amber-400" />
+                        <span className="truncate">HelaPay Wallet</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setMembershipPaymentForm({ ...membershipPaymentForm, method: 'KOKO_PAY' })}
+                        className={`p-2.5 rounded-xl border text-[11px] font-medium transition-all flex items-center justify-center gap-1.5 ${
+                          membershipPaymentForm.method === 'KOKO_PAY'
+                            ? 'border-[#34451D] bg-[#34451D] text-white shadow-xs'
+                            : 'border-[#E2E7D8] bg-white text-[#20231B] hover:border-[#596B32]'
+                        }`}
+                      >
+                        <Zap className="w-3.5 h-3.5 shrink-0 text-amber-300" />
+                        <span className="truncate">Koko (3x)</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setMembershipPaymentForm({ ...membershipPaymentForm, method: 'MINTPAY' })}
+                        className={`p-2.5 rounded-xl border text-[11px] font-medium transition-all flex items-center justify-center gap-1.5 ${
+                          membershipPaymentForm.method === 'MINTPAY'
+                            ? 'border-[#34451D] bg-[#34451D] text-white shadow-xs'
+                            : 'border-[#E2E7D8] bg-white text-[#20231B] hover:border-[#596B32]'
+                        }`}
+                      >
+                        <Sparkles className="w-3.5 h-3.5 shrink-0 text-[#B7D85A]" />
+                        <span className="truncate">Mintpay Split</span>
+                      </button>
                     </div>
                   </div>
-                  {membershipPaymentForm.method !== 'BANK_TRANSFER' && (
-                    <>
+
+                  {/* 1. Card Sub-Form */}
+                  {(membershipPaymentForm.method === 'CREDIT_CARD' || membershipPaymentForm.method === 'DEBIT_CARD') && (
+                    <div className="space-y-3 pt-1">
                       <div>
                         <label className="block text-[#85887A] font-medium mb-1">Card Number *</label>
                         <input required maxLength={19} value={membershipPaymentForm.cardNumber}
@@ -2464,7 +3036,187 @@ export default function StorefrontPage() {
                             placeholder="•••" className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F9F5] border border-[#E2E7D8] font-mono text-[#20231B] focus:outline-none focus:border-[#596B32] focus:bg-white" />
                         </div>
                       </div>
-                    </>
+                    </div>
+                  )}
+
+                  {/* 2. LankaQR Sub-Form */}
+                  {membershipPaymentForm.method === 'LANKA_QR' && (
+                    <div className="p-4 rounded-2xl bg-[#F0F4E8] border border-[#E2E7D8] space-y-3">
+                      <div className="flex items-center justify-between pb-1 border-b border-[#E2E7D8]">
+                        <span className="font-semibold text-xs text-[#20231B]">LankaQR Instant Code</span>
+                        <span className="text-[10px] font-mono text-[#596B32] font-semibold">0% Fee</span>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="w-24 h-24 bg-white p-2 rounded-xl border border-[#34451D] flex items-center justify-center shrink-0">
+                          <svg className="w-full h-full text-[#34451D]" viewBox="0 0 100 100" fill="currentColor">
+                            <rect x="10" y="10" width="24" height="24" rx="3" fill="#34451D" />
+                            <rect x="15" y="15" width="14" height="14" rx="2" fill="white" />
+                            <rect x="18" y="18" width="8" height="8" fill="#34451D" />
+                            <rect x="66" y="10" width="24" height="24" rx="3" fill="#34451D" />
+                            <rect x="71" y="15" width="14" height="14" rx="2" fill="white" />
+                            <rect x="74" y="18" width="8" height="8" fill="#34451D" />
+                            <rect x="10" y="66" width="24" height="24" rx="3" fill="#34451D" />
+                            <rect x="15" y="71" width="14" height="14" rx="2" fill="white" />
+                            <rect x="18" y="74" width="8" height="8" fill="#34451D" />
+                            <circle cx="50" cy="50" r="7" fill="#B7D85A" />
+                          </svg>
+                        </div>
+                        <div className="text-[11px] space-y-1 text-[#596B32]">
+                          <p className="font-semibold text-[#20231B]">Scan with Banking App</p>
+                          <p>ComBank, BOC, Sampath, Genie, Flash or FriMi.</p>
+                          <p className="font-mono text-[10px] text-[#85887A]">Ref: LQR-MEM-{Date.now().toString().slice(-6)}</p>
+                        </div>
+                      </div>
+                      <label className="flex items-center gap-2 text-[11px] text-[#34451D] cursor-pointer pt-1 border-t border-[#E2E7D8]">
+                        <input
+                          type="checkbox"
+                          checked={membershipPaymentForm.qrConfirmed}
+                          onChange={e => setMembershipPaymentForm({ ...membershipPaymentForm, qrConfirmed: e.target.checked })}
+                          className="rounded text-[#34451D] focus:ring-[#596B32]"
+                        />
+                        <span>I have completed the QR transfer on my phone.</span>
+                      </label>
+                    </div>
+                  )}
+
+                  {/* 3. Bank Transfer Sub-Form */}
+                  {membershipPaymentForm.method === 'BANK_TRANSFER' && (
+                    <div className="p-4 rounded-2xl bg-[#F0F4E8] border border-[#E2E7D8] space-y-3">
+                      <div className="text-[11px] space-y-1 text-[#34451D]">
+                        <p className="font-semibold text-xs text-[#20231B]">Commercial Bank Account Details:</p>
+                        <p>Account: <strong>1002394829</strong> · Colombo Fort (Code 012)</p>
+                        <p>Name: Sarasavi Pages Books Ltd</p>
+                      </div>
+                      <div>
+                        <label className="block text-[#85887A] font-medium mb-1">Deposit Slip Ref / Transaction ID *</label>
+                        <input
+                          type="text"
+                          required={membershipPaymentForm.method === 'BANK_TRANSFER'}
+                          value={membershipPaymentForm.bankRefNo}
+                          onChange={e => setMembershipPaymentForm({ ...membershipPaymentForm, bankRefNo: e.target.value })}
+                          placeholder="e.g. TXN981249 or Slip #4019"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#E2E7D8] font-mono text-[#20231B] focus:outline-none focus:border-[#596B32]"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[#85887A] font-medium mb-1">Attach Deposit Slip (Optional)</label>
+                        <div className="flex items-center gap-3">
+                          <label className="cursor-pointer px-3.5 py-2 rounded-xl bg-white border border-[#E2E7D8] text-xs text-[#34451D] hover:bg-[#F8F9F5] flex items-center gap-1.5 font-medium transition-colors">
+                            <Upload className="w-3.5 h-3.5" />
+                            <span>{membershipPaymentForm.bankSlipName ? 'Change Slip' : 'Upload Slip'}</span>
+                            <input
+                              type="file"
+                              accept="image/*,.pdf"
+                              className="hidden"
+                              onChange={e => {
+                                const f = e.target.files?.[0];
+                                if (f) setMembershipPaymentForm({ ...membershipPaymentForm, bankSlipName: f.name });
+                              }}
+                            />
+                          </label>
+                          {membershipPaymentForm.bankSlipName && (
+                            <span className="text-[11px] font-mono text-[#596B32] flex items-center gap-1">
+                              <FileCheck className="w-3.5 h-3.5" />
+                              <span>{membershipPaymentForm.bankSlipName}</span>
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 4. HelaPay Sub-Form */}
+                  {membershipPaymentForm.method === 'HELA_PAY' && (
+                    <div className="p-4 rounded-2xl bg-[#FFF9F2] border border-[#FCD9BD] space-y-2">
+                      <div className="flex items-center justify-between pb-1 border-b border-[#FCD9BD]">
+                        <span className="font-semibold text-xs text-[#D96B27]">HelaPay Mobile Wallet</span>
+                        <span className="text-[10px] font-mono text-[#D96B27]">Instant PIN Authorization</span>
+                      </div>
+                      <div>
+                        <label className="block text-[#D96B27] font-medium mb-1">HelaPay Registered Mobile Number *</label>
+                        <input
+                          type="tel"
+                          required={membershipPaymentForm.method === 'HELA_PAY'}
+                          value={membershipPaymentForm.helaPayPhone}
+                          onChange={e => setMembershipPaymentForm({ ...membershipPaymentForm, helaPayPhone: formatAndLimitPhone(e.target.value) })}
+                          onKeyDown={handlePhoneKeyDown}
+                          placeholder="077 123 4567"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#FCD9BD] font-mono text-[#20231B] focus:outline-none focus:border-[#D96B27]"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 5. Koko Pay Sub-Form */}
+                  {membershipPaymentForm.method === 'KOKO_PAY' && (
+                    <div className="p-4 rounded-2xl bg-[#F4F9F2] border border-[#CDE5C5] space-y-3">
+                      <div className="flex items-center justify-between pb-1 border-b border-[#CDE5C5]">
+                        <span className="font-semibold text-xs text-[#20231B]">Koko Pay (3 Monthly Installments)</span>
+                        <span className="text-[10px] font-mono text-[#596B32] font-semibold">0% Interest</span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 text-center text-[10px]">
+                        <div className="p-2 bg-white rounded-xl border border-[#CDE5C5]">
+                          <span className="text-[#85887A] block">Today</span>
+                          <span className="font-bold text-[#34451D] block">LKR {(selectedMembershipPlan.price / 3).toFixed(2)}</span>
+                        </div>
+                        <div className="p-2 bg-white rounded-xl border border-[#CDE5C5]">
+                          <span className="text-[#85887A] block">30 Days</span>
+                          <span className="font-bold text-[#34451D] block">LKR {(selectedMembershipPlan.price / 3).toFixed(2)}</span>
+                        </div>
+                        <div className="p-2 bg-white rounded-xl border border-[#CDE5C5]">
+                          <span className="text-[#85887A] block">60 Days</span>
+                          <span className="font-bold text-[#34451D] block">LKR {(selectedMembershipPlan.price / 3).toFixed(2)}</span>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-[#596B32] font-medium mb-1">Koko Registered Mobile Number *</label>
+                        <input
+                          type="tel"
+                          required={membershipPaymentForm.method === 'KOKO_PAY'}
+                          value={membershipPaymentForm.kokoPhone}
+                          onChange={e => setMembershipPaymentForm({ ...membershipPaymentForm, kokoPhone: formatAndLimitPhone(e.target.value) })}
+                          onKeyDown={handlePhoneKeyDown}
+                          placeholder="077 123 4567"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#CDE5C5] font-mono text-[#20231B] focus:outline-none focus:border-[#34451D]"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 6. Mintpay Sub-Form */}
+                  {membershipPaymentForm.method === 'MINTPAY' && (
+                    <div className="p-4 rounded-2xl bg-[#F0F8FF] border border-[#CCE3F5] space-y-3">
+                      <div className="flex items-center justify-between pb-1 border-b border-[#CCE3F5]">
+                        <span className="font-semibold text-xs text-[#20231B]">Mintpay (Pay in 3 Split)</span>
+                        <span className="text-[10px] font-mono text-[#0055FF] font-semibold">Zero Surcharge</span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 text-center text-[10px]">
+                        <div className="p-2 bg-white rounded-xl border border-[#CCE3F5]">
+                          <span className="text-[#85887A] block">Today</span>
+                          <span className="font-bold text-[#0055FF] block">LKR {(selectedMembershipPlan.price / 3).toFixed(2)}</span>
+                        </div>
+                        <div className="p-2 bg-white rounded-xl border border-[#CCE3F5]">
+                          <span className="text-[#85887A] block">Month 1</span>
+                          <span className="font-bold text-[#20231B] block">LKR {(selectedMembershipPlan.price / 3).toFixed(2)}</span>
+                        </div>
+                        <div className="p-2 bg-white rounded-xl border border-[#CCE3F5]">
+                          <span className="text-[#85887A] block">Month 2</span>
+                          <span className="font-bold text-[#20231B] block">LKR {(selectedMembershipPlan.price / 3).toFixed(2)}</span>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-[#0055FF] font-medium mb-1">Mintpay Mobile Number *</label>
+                        <input
+                          type="tel"
+                          required={membershipPaymentForm.method === 'MINTPAY'}
+                          value={membershipPaymentForm.mintpayPhone}
+                          onChange={e => setMembershipPaymentForm({ ...membershipPaymentForm, mintpayPhone: formatAndLimitPhone(e.target.value) })}
+                          onKeyDown={handlePhoneKeyDown}
+                          placeholder="077 123 4567"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#CCE3F5] font-mono text-[#20231B] focus:outline-none focus:border-[#0055FF]"
+                        />
+                      </div>
+                    </div>
                   )}
                   <div className="flex justify-between gap-2 pt-2">
                     <button type="button" onClick={() => setMembershipStep('select')} className="px-4 py-2.5 rounded-full border border-[#E2E7D8] text-[#85887A] text-xs font-medium hover:bg-[#F0F4E8]">← Back</button>
@@ -2489,6 +3241,9 @@ export default function StorefrontPage() {
                     <div className="flex justify-between"><span className="text-[#85887A]">Plan</span><span className="font-medium text-[#20231B]">{membershipInvoice.plan}</span></div>
                     <div className="flex justify-between"><span className="text-[#85887A]">Duration</span><span className="text-[#20231B]">{membershipInvoice.duration}</span></div>
                     <div className="flex justify-between font-semibold text-[#20231B] pt-1 border-t border-[#E2E7D8]"><span>Amount Paid</span><span className="font-mono">LKR {membershipInvoice.price.toFixed(2)}</span></div>
+                    {membershipInvoice.paymentMethod && (
+                      <div className="flex justify-between text-[#85887A]"><span>Payment Method</span><span className="font-medium text-[#20231B]">{membershipInvoice.paymentMethod}</span></div>
+                    )}
                     <p className="text-[10px] text-[#85887A]">{membershipInvoice.date}</p>
                   </div>
                   <div className="flex flex-col sm:flex-row gap-2">
