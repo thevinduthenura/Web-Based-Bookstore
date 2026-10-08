@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { 
   ShoppingCart, 
@@ -104,6 +104,21 @@ export default function OrdersDashboardPage() {
 
   const isAuthorized = isSuperAdmin || hasRole('ORDER_ADMIN');
 
+  // Load persisted orders
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('sp_admin_orders');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setOrders(parsed);
+          }
+        }
+      } catch (e) {}
+    }
+  }, []);
+
   if (!isAuthorized) {
     return (
       <div className="bg-white border border-[#E2E7D8] rounded-2xl p-8 max-w-lg mx-auto text-center space-y-4 shadow-sm">
@@ -133,7 +148,11 @@ export default function OrdersDashboardPage() {
       destination: newOrder.destination,
       createdAt: 'Just now'
     };
-    setOrders([created, ...orders]);
+    const updated = [created, ...orders];
+    setOrders(updated);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('sp_admin_orders', JSON.stringify(updated));
+    }
     setIsAddModalOpen(false);
     setNewOrder({ customerName: '', itemsSummary: '', totalAmount: 2500, courier: 'Domex Express', destination: 'Colombo' });
     setNotification({ type: 'success', message: `[CREATE] Order #${created.id} created and queued for packing!` });
@@ -148,7 +167,11 @@ export default function OrdersDashboardPage() {
   const handleSaveEdit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeOrder) return;
-    setOrders(prev => prev.map(o => o.id === activeOrder.id ? activeOrder : o));
+    const updated = orders.map(o => o.id === activeOrder.id ? activeOrder : o);
+    setOrders(updated);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('sp_admin_orders', JSON.stringify(updated));
+    }
     setIsEditModalOpen(false);
     setNotification({ type: 'success', message: `[UPDATE] Order #${activeOrder.id} status updated to ${activeOrder.status}!` });
   };
@@ -156,7 +179,11 @@ export default function OrdersDashboardPage() {
   // ── [D] DELETE: Cancel / Delete Order ──────────────────────────────────────
   const handleDeleteOrder = (id: string) => {
     if (!confirm(`Are you sure you want to cancel and delete order #${id}?`)) return;
-    setOrders(prev => prev.filter(o => o.id !== id));
+    const updated = orders.filter(o => o.id !== id);
+    setOrders(updated);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('sp_admin_orders', JSON.stringify(updated));
+    }
     setNotification({ type: 'success', message: `[DELETE] Order #${id} cancelled and removed from dispatch queue.` });
   };
 
