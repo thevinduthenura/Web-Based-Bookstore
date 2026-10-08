@@ -17,8 +17,10 @@ import com.sarasavipages.members.m5_gayathmi_accounts.repository.CustomerProfile
 import com.sarasavipages.members.m6_diyes_orders.entity.Book;
 import com.sarasavipages.members.m6_diyes_orders.entity.Cart;
 import com.sarasavipages.members.m6_diyes_orders.entity.CartItem;
+import com.sarasavipages.members.m6_diyes_orders.entity.Order;
 import com.sarasavipages.members.m6_diyes_orders.repository.BookRepository;
 import com.sarasavipages.members.m6_diyes_orders.repository.CartRepository;
+import com.sarasavipages.members.m6_diyes_orders.repository.OrderRepository;
 import com.sarasavipages.members.sync.document.*;
 import com.sarasavipages.members.sync.repository.*;
 import jakarta.annotation.PostConstruct;
@@ -57,6 +59,7 @@ public class SyncScheduler {
     private final CustomerProfileRepository  customerProfileRepository;
     private final InventoryRepository        inventoryRepository;
     private final PaymentRepository          paymentRepository;
+    private final OrderRepository            orderRepository;
 
     private final BookMirrorRepository       bookMirrorRepository;
     private final OrderMirrorRepository      orderMirrorRepository;
@@ -362,29 +365,24 @@ public class SyncScheduler {
             int count = 0;
             for (OrderMirror om : mirrors) {
                 if (om.getId() == null) continue;
-                Optional<Cart> existing = cartRepository.findById(om.getId());
-                if (existing.isEmpty()) {
-                    Cart c = new Cart();
-                    c.setId(om.getId());
-                    c.setCustomerId(om.getCustomerId() != null ? om.getCustomerId() : "CUST-1001");
-                    c.setTotalAmount(om.getTotalAmount());
-                    c.setUpdatedAt(om.getOrderedAt() != null ? om.getOrderedAt() : LocalDateTime.now());
 
-                    if (om.getItems() != null && !om.getItems().isEmpty()) {
-                        List<CartItem> items = om.getItems().stream().map(im -> {
-                            CartItem ci = new CartItem();
-                            ci.setBookId(im.getBookId());
-                            ci.setTitle(im.getBookTitle());
-                            ci.setQuantity(im.getQuantity());
-                            ci.setPrice(im.getUnitPrice());
-                            return ci;
-                        }).collect(Collectors.toList());
-                        c.setItems(items);
-                        c.setTotalItems(items.stream().mapToInt(CartItem::getQuantity).sum());
-                    }
-                    cartRepository.save(c);
-                    count++;
-                }
+                // Sync into MSSQL orders table
+                Optional<Order> existingOrder = orderRepository.findById(om.getId());
+                Order o = existingOrder.orElseGet(() -> {
+                    Order newO = new Order();
+                    newO.setId(om.getId());
+                    return newO;
+                });
+                o.setCustomerName(om.getCustomerName() != null ? om.getCustomerName() : "Customer");
+                o.setItemsSummary(om.getItemsSummary() != null ? om.getItemsSummary() : "Assorted Books");
+                o.setTotalAmount(BigDecimal.valueOf(om.getTotalAmount() > 0 ? om.getTotalAmount() : 1500.0));
+                o.setStatus(om.getStatus() != null ? om.getStatus() : "PENDING");
+                o.setCourier(om.getCourier() != null ? om.getCourier() : "Domex Express");
+                o.setTrackingNo(om.getTrackingNo() != null ? om.getTrackingNo() : "Pending");
+                o.setDestination(om.getDestination() != null ? om.getDestination() : "Colombo");
+                o.setCreatedAt(om.getOrderedAt() != null ? om.getOrderedAt() : LocalDateTime.now());
+                orderRepository.save(o);
+                count++;
             }
             return count;
         } catch (Exception e) {
@@ -495,9 +493,9 @@ public class SyncScheduler {
     @Scheduled(fixedRateString = "${sync.interval-ms:300000}", initialDelay = 135_000)
     public void syncOrders() {
         try {
-            List<Cart> carts = cartRepository.findAll();
-            if (!carts.isEmpty()) {
-                List<OrderMirror> mirrors = carts.stream()
+            List<Order> orders = orderRepository.findAll();
+            if (!orders.isEmpty()) {
+                List<OrderMirror> mirrors = orders.stream()
                         .map(this::toOrderMirror)
                         .collect(Collectors.toList());
                 orderMirrorRepository.saveAll(mirrors);
@@ -596,6 +594,23 @@ public class SyncScheduler {
                 .gatewayMessage(p.getGatewayMessage())
                 .invoiceNumber(p.getInvoiceNumber())
                 .createdAt(p.getCreatedAt())
+                .syncedAt(LocalDateTime.now())
+                .build();
+    }
+
+    private OrderMirror toOrderMirror(Order o) {
+        return OrderMirror.builder()
+                .id(o.getId())
+                .customerId(o.getCustomerName())
+                .customerName(o.getCustomerName())
+                .status(o.getStatus())
+                .totalAmount(o.getTotalAmount() != null ? o.getTotalAmount().doubleValue() : 0.0)
+                .paymentMethod("COD / Online")
+                .itemsSummary(o.getItemsSummary())
+                .courier(o.getCourier())
+                .trackingNo(o.getTrackingNo())
+                .destination(o.getDestination())
+                .orderedAt(o.getCreatedAt())
                 .syncedAt(LocalDateTime.now())
                 .build();
     }

@@ -99,7 +99,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/books/**").hasAnyRole("SUPER_ADMIN", "ORDER_ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/books/**").hasAnyRole("SUPER_ADMIN", "ORDER_ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/books/**").hasAnyRole("SUPER_ADMIN", "ORDER_ADMIN")
-                .requestMatchers("/orders/**")
+                .requestMatchers(HttpMethod.GET, "/orders", "/orders/**").permitAll()
+                .requestMatchers("/orders", "/orders/**")
                     .hasAnyRole("SUPER_ADMIN", "ORDER_ADMIN")
 
                 // Everything else requires authentication

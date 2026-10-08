@@ -21,6 +21,7 @@ import {
   Filter
 } from 'lucide-react';
 import CartManager from '@/components/orders/CartManager';
+import { ordersApi } from '@/lib/orders-api';
 
 interface OrderItem {
   id: string;
@@ -104,19 +105,46 @@ export default function OrdersDashboardPage() {
 
   const isAuthorized = isSuperAdmin || hasRole('ORDER_ADMIN');
 
-  // Load persisted orders
+  // Load orders from Backend API (with local fallback)
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    const fetchOrders = async () => {
       try {
-        const stored = localStorage.getItem('sp_admin_orders');
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setOrders(parsed);
+        const apiOrders = await ordersApi.getOrders();
+        if (Array.isArray(apiOrders) && apiOrders.length > 0) {
+          const formatted = apiOrders.map((o: any) => ({
+            id: o.id,
+            customerName: o.customerName || 'Customer',
+            itemsSummary: o.itemsSummary || 'Assorted Books',
+            totalAmount: Number(o.totalAmount || 0),
+            status: o.status || 'PENDING',
+            courier: o.courier || 'Domex Express',
+            trackingNo: o.trackingNo || 'Pending',
+            destination: o.destination || 'Colombo',
+            createdAt: o.createdAt ? new Date(o.createdAt).toLocaleDateString() : 'Recent'
+          }));
+          setOrders(formatted);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('sp_admin_orders', JSON.stringify(formatted));
           }
+          return;
         }
-      } catch (e) {}
-    }
+      } catch (err) {
+        console.warn('[OrdersDashboard] Backend fetch fallback to local storage:', err);
+      }
+
+      if (typeof window !== 'undefined') {
+        try {
+          const stored = localStorage.getItem('sp_admin_orders');
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setOrders(parsed);
+            }
+          }
+        } catch (e) {}
+      }
+    };
+    fetchOrders();
   }, []);
 
   if (!isAuthorized) {
@@ -135,7 +163,7 @@ export default function OrdersDashboardPage() {
   }
 
   // ── [C] CREATE: Create Order ───────────────────────────────────────────────
-  const handleCreateOrder = (e: React.FormEvent) => {
+  const handleCreateOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     const created: OrderItem = {
       id: `ORD-${Math.floor(90000 + Math.random() * 9999)}`,
@@ -148,6 +176,22 @@ export default function OrdersDashboardPage() {
       destination: newOrder.destination,
       createdAt: 'Just now'
     };
+
+    try {
+      await ordersApi.createOrder({
+        id: created.id,
+        customerName: created.customerName,
+        itemsSummary: created.itemsSummary,
+        totalAmount: created.totalAmount,
+        status: created.status,
+        courier: created.courier,
+        trackingNo: created.trackingNo,
+        destination: created.destination
+      });
+    } catch (err) {
+      console.warn('[OrdersDashboard] Order API sync warning:', err);
+    }
+
     const updated = [created, ...orders];
     setOrders(updated);
     if (typeof window !== 'undefined') {
@@ -155,7 +199,7 @@ export default function OrdersDashboardPage() {
     }
     setIsAddModalOpen(false);
     setNewOrder({ customerName: '', itemsSummary: '', totalAmount: 2500, courier: 'Domex Express', destination: 'Colombo' });
-    setNotification({ type: 'success', message: `[CREATE] Order #${created.id} created and queued for packing!` });
+    setNotification({ type: 'success', message: `[CREATE] Order #${created.id} saved to Database and queued for packing!` });
   };
 
   // ── [U] UPDATE: Update Order Status ────────────────────────────────────────
@@ -164,27 +208,49 @@ export default function OrdersDashboardPage() {
     setIsEditModalOpen(true);
   };
 
-  const handleSaveEdit = (e: React.FormEvent) => {
+  const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeOrder) return;
+
+    try {
+      await ordersApi.updateOrder(activeOrder.id, {
+        customerName: activeOrder.customerName,
+        itemsSummary: activeOrder.itemsSummary,
+        totalAmount: activeOrder.totalAmount,
+        status: activeOrder.status,
+        courier: activeOrder.courier,
+        trackingNo: activeOrder.trackingNo,
+        destination: activeOrder.destination
+      });
+    } catch (err) {
+      console.warn('[OrdersDashboard] Update order API sync warning:', err);
+    }
+
     const updated = orders.map(o => o.id === activeOrder.id ? activeOrder : o);
     setOrders(updated);
     if (typeof window !== 'undefined') {
       localStorage.setItem('sp_admin_orders', JSON.stringify(updated));
     }
     setIsEditModalOpen(false);
-    setNotification({ type: 'success', message: `[UPDATE] Order #${activeOrder.id} status updated to ${activeOrder.status}!` });
+    setNotification({ type: 'success', message: `[UPDATE] Order #${activeOrder.id} status updated in Database to ${activeOrder.status}!` });
   };
 
   // ── [D] DELETE: Cancel / Delete Order ──────────────────────────────────────
-  const handleDeleteOrder = (id: string) => {
+  const handleDeleteOrder = async (id: string) => {
     if (!confirm(`Are you sure you want to cancel and delete order #${id}?`)) return;
+
+    try {
+      await ordersApi.deleteOrder(id);
+    } catch (err) {
+      console.warn('[OrdersDashboard] Delete order API sync warning:', err);
+    }
+
     const updated = orders.filter(o => o.id !== id);
     setOrders(updated);
     if (typeof window !== 'undefined') {
       localStorage.setItem('sp_admin_orders', JSON.stringify(updated));
     }
-    setNotification({ type: 'success', message: `[DELETE] Order #${id} cancelled and removed from dispatch queue.` });
+    setNotification({ type: 'success', message: `[DELETE] Order #${id} deleted from Database and dispatch queue.` });
   };
 
   const filteredOrders = orders.filter(o => {

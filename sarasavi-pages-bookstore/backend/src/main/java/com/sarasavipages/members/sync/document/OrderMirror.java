@@ -33,6 +33,10 @@ public class OrderMirror {
     private String status;
     private double totalAmount;
     private String paymentMethod;
+    private String itemsSummary;
+    private String courier;
+    private String trackingNo;
+    private String destination;
 
     /** Embedded line items — avoids a separate collection join */
     private List<OrderItemMirror> items;

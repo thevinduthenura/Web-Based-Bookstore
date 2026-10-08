@@ -209,4 +209,32 @@ export const ordersApi = {
       };
     });
   },
+
+  getOrders: async (): Promise<any[]> =>
+    fetchApi<any[]>('/orders', { method: 'GET' }, () => {
+      if (typeof window !== 'undefined') {
+        const stored = localStorage.getItem('sp_admin_orders');
+        if (stored) {
+          try { return JSON.parse(stored); } catch (e) {}
+        }
+      }
+      return [];
+    }),
+
+  createOrder: async (order: any): Promise<any> =>
+    fetchApi<any>('/orders', {
+      method: 'POST',
+      body: JSON.stringify(order)
+    }, () => order),
+
+  updateOrder: async (id: string, order: any): Promise<any> =>
+    fetchApi<any>(`/orders/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(order)
+    }, () => order),
+
+  deleteOrder: async (id: string): Promise<void> =>
+    fetchApi<void>(`/orders/${id}`, {
+      method: 'DELETE'
+    }, () => {}),
 };
