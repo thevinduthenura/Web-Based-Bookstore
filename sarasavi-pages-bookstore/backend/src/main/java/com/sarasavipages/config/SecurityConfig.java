@@ -72,7 +72,7 @@ public class SecurityConfig {
                 // Only SUPER_ADMIN can manage staff
                 .requestMatchers("/admin/staff/**").hasRole("SUPER_ADMIN")
                 .requestMatchers("/admin/audit-logs/**").hasRole("SUPER_ADMIN")
-                .requestMatchers("/admin/data/**").hasAnyRole("SUPER_ADMIN", "ADMIN")
+                .requestMatchers("/admin/data/**").hasAnyRole("SUPER_ADMIN", "ADMIN", "PAYMENT_ADMIN", "INVENTORY_ADMIN", "ACCOUNT_ADMIN")
 
                 // ── M2: Payment ────────────────────────────────────────────────
                 // Allow recording payments & listing methods during checkout; require ADMIN for dashboard

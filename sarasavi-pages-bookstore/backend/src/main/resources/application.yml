@@ -34,6 +34,7 @@ spring:
 sync:
   enabled: ${SYNC_ENABLED:true}
   interval-ms: ${SYNC_INTERVAL_MS:300000}
+  inbound-interval-ms: ${SYNC_INBOUND_INTERVAL_MS:120000}
 
 server:
   port: ${PORT:${SERVER_PORT:8080}}

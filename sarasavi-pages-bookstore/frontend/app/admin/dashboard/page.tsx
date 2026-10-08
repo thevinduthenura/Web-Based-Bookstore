@@ -21,7 +21,8 @@ import {
   Globe,
   Database,
   Terminal,
-  Server
+  Server,
+  RefreshCw
 } from 'lucide-react';
 import type { AuditLogEntry } from '@/types/admin';
 
@@ -119,6 +120,30 @@ export default function AdminDashboardPage() {
   const [recentLogs, setRecentLogs] = useState<AuditLogEntry[]>([]);
   const [isLoadingLogs, setIsLoadingLogs] = useState(true);
 
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  const handleSyncFromMongo = async () => {
+    try {
+      setIsSyncing(true);
+      setSyncStatus(null);
+      const res = await apiClient.post('/admin/data/sync/bidirectional');
+      const details = res.data?.pullDetails;
+      const msg = details 
+        ? `Sync successful! Updated MSSQL with: ${details.booksUpdated ?? 0} books, ${details.customersUpdated ?? 0} customers, ${details.inventoryUpdated ?? 0} inventory, ${details.paymentsUpdated ?? 0} payments from MongoDB Atlas.`
+        : 'Bidirectional sync with MongoDB Atlas completed successfully!';
+      setSyncStatus({ type: 'success', message: msg });
+    } catch (err: any) {
+      console.error('Data sync failed:', err);
+      setSyncStatus({
+        type: 'error',
+        message: err.response?.data?.message || 'Sync failed: ensure backend with MSSQL & MongoDB connection is active.'
+      });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   useEffect(() => {
     async function loadData() {
       try {
@@ -167,6 +192,16 @@ export default function AdminDashboardPage() {
 
           {/* Action Buttons */}
           <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={handleSyncFromMongo}
+              disabled={isSyncing}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-[#EBF0E4] hover:bg-[#DCE3D2] border border-[#DCE3D2] text-[#34451D] font-semibold text-xs shadow-xs transition-all active:scale-95 disabled:opacity-50"
+              title="Pull all data added on Vercel (MongoDB) into MSSQL database"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 text-[#596B32] ${isSyncing ? 'animate-spin' : ''}`} />
+              <span>{isSyncing ? 'Syncing...' : 'Sync MongoDB ⇄ MSSQL'}</span>
+            </button>
+
             <Link
               href="/"
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-[#FFFFFF] hover:bg-[#F0F4E8] border border-[#E2E7D8] text-[#20231B] font-semibold text-xs shadow-xs transition-all"
@@ -193,6 +228,23 @@ export default function AdminDashboardPage() {
             </Link>
           </div>
         </div>
+
+        {/* Sync Status Banner */}
+        {syncStatus && (
+          <div className={`mt-4 p-3 rounded-2xl text-xs flex items-center justify-between border ${
+            syncStatus.type === 'success' 
+              ? 'bg-[#F0F4E8] border-[#DCE3D2] text-[#34451D]' 
+              : 'bg-red-50 border-red-200 text-red-700'
+          }`}>
+            <span>{syncStatus.message}</span>
+            <button 
+              onClick={() => setSyncStatus(null)}
+              className="font-bold ml-3 text-sm hover:opacity-75"
+            >
+              ×
+            </button>
+          </div>
+        )}
       </div>
 
       {/* ── HIGH-IMPACT STATS KPI GRID ──────────────────────────── */}
